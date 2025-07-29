@@ -1,0 +1,396 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.cpsolver.studentsct.weights;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import java.text.DecimalFormat;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import java.util.ArrayList;<a name="line.4"></a>
+<span class="sourceLineNo">005</span>import java.util.BitSet;<a name="line.5"></a>
+<span class="sourceLineNo">006</span>import java.util.HashSet;<a name="line.6"></a>
+<span class="sourceLineNo">007</span>import java.util.Set;<a name="line.7"></a>
+<span class="sourceLineNo">008</span><a name="line.8"></a>
+<span class="sourceLineNo">009</span>import org.cpsolver.coursett.model.Placement;<a name="line.9"></a>
+<span class="sourceLineNo">010</span>import org.cpsolver.coursett.model.RoomLocation;<a name="line.10"></a>
+<span class="sourceLineNo">011</span>import org.cpsolver.coursett.model.TimeLocation;<a name="line.11"></a>
+<span class="sourceLineNo">012</span>import org.cpsolver.ifs.assignment.Assignment;<a name="line.12"></a>
+<span class="sourceLineNo">013</span>import org.cpsolver.ifs.assignment.DefaultSingleAssignment;<a name="line.13"></a>
+<span class="sourceLineNo">014</span>import org.cpsolver.ifs.solution.Solution;<a name="line.14"></a>
+<span class="sourceLineNo">015</span>import org.cpsolver.ifs.util.DataProperties;<a name="line.15"></a>
+<span class="sourceLineNo">016</span>import org.cpsolver.ifs.util.ToolBox;<a name="line.16"></a>
+<span class="sourceLineNo">017</span>import org.cpsolver.studentsct.extension.DistanceConflict;<a name="line.17"></a>
+<span class="sourceLineNo">018</span>import org.cpsolver.studentsct.extension.StudentQuality;<a name="line.18"></a>
+<span class="sourceLineNo">019</span>import org.cpsolver.studentsct.extension.TimeOverlapsCounter;<a name="line.19"></a>
+<span class="sourceLineNo">020</span>import org.cpsolver.studentsct.model.Config;<a name="line.20"></a>
+<span class="sourceLineNo">021</span>import org.cpsolver.studentsct.model.Course;<a name="line.21"></a>
+<span class="sourceLineNo">022</span>import org.cpsolver.studentsct.model.CourseRequest;<a name="line.22"></a>
+<span class="sourceLineNo">023</span>import org.cpsolver.studentsct.model.Enrollment;<a name="line.23"></a>
+<span class="sourceLineNo">024</span>import org.cpsolver.studentsct.model.Offering;<a name="line.24"></a>
+<span class="sourceLineNo">025</span>import org.cpsolver.studentsct.model.Request;<a name="line.25"></a>
+<span class="sourceLineNo">026</span>import org.cpsolver.studentsct.model.SctAssignment;<a name="line.26"></a>
+<span class="sourceLineNo">027</span>import org.cpsolver.studentsct.model.Section;<a name="line.27"></a>
+<span class="sourceLineNo">028</span>import org.cpsolver.studentsct.model.Student;<a name="line.28"></a>
+<span class="sourceLineNo">029</span>import org.cpsolver.studentsct.model.Subpart;<a name="line.29"></a>
+<span class="sourceLineNo">030</span><a name="line.30"></a>
+<span class="sourceLineNo">031</span><a name="line.31"></a>
+<span class="sourceLineNo">032</span>/**<a name="line.32"></a>
+<span class="sourceLineNo">033</span> * Original weighting that was used before this student weightings model was introduced<a name="line.33"></a>
+<span class="sourceLineNo">034</span> * <a name="line.34"></a>
+<span class="sourceLineNo">035</span> * @author  Tom&#225;&#353; M&#252;ller<a name="line.35"></a>
+<span class="sourceLineNo">036</span> * @version StudentSct 1.3 (Student Sectioning)&lt;br&gt;<a name="line.36"></a>
+<span class="sourceLineNo">037</span> *          Copyright (C) 2007 - 2014 Tom&#225;&#353; M&#252;ller&lt;br&gt;<a name="line.37"></a>
+<span class="sourceLineNo">038</span> *          &lt;a href="mailto:muller@unitime.org"&gt;muller@unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.38"></a>
+<span class="sourceLineNo">039</span> *          &lt;a href="http://muller.unitime.org"&gt;http://muller.unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.39"></a>
+<span class="sourceLineNo">040</span> * &lt;br&gt;<a name="line.40"></a>
+<span class="sourceLineNo">041</span> *          This library is free software; you can redistribute it and/or modify<a name="line.41"></a>
+<span class="sourceLineNo">042</span> *          it under the terms of the GNU Lesser General Public License as<a name="line.42"></a>
+<span class="sourceLineNo">043</span> *          published by the Free Software Foundation; either version 3 of the<a name="line.43"></a>
+<span class="sourceLineNo">044</span> *          License, or (at your option) any later version. &lt;br&gt;<a name="line.44"></a>
+<span class="sourceLineNo">045</span> * &lt;br&gt;<a name="line.45"></a>
+<span class="sourceLineNo">046</span> *          This library is distributed in the hope that it will be useful, but<a name="line.46"></a>
+<span class="sourceLineNo">047</span> *          WITHOUT ANY WARRANTY; without even the implied warranty of<a name="line.47"></a>
+<span class="sourceLineNo">048</span> *          MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU<a name="line.48"></a>
+<span class="sourceLineNo">049</span> *          Lesser General Public License for more details. &lt;br&gt;<a name="line.49"></a>
+<span class="sourceLineNo">050</span> * &lt;br&gt;<a name="line.50"></a>
+<span class="sourceLineNo">051</span> *          You should have received a copy of the GNU Lesser General Public<a name="line.51"></a>
+<span class="sourceLineNo">052</span> *          License along with this library; if not see<a name="line.52"></a>
+<span class="sourceLineNo">053</span> *          &lt;a href='http://www.gnu.org/licenses/'&gt;http://www.gnu.org/licenses/&lt;/a&gt;.<a name="line.53"></a>
+<span class="sourceLineNo">054</span> */<a name="line.54"></a>
+<span class="sourceLineNo">055</span><a name="line.55"></a>
+<span class="sourceLineNo">056</span>public class OriginalStudentWeights implements StudentWeights {<a name="line.56"></a>
+<span class="sourceLineNo">057</span>    private double iPriorityWeight = 0.90;<a name="line.57"></a>
+<span class="sourceLineNo">058</span>    private double iAlterativeWeight = 1.0;<a name="line.58"></a>
+<span class="sourceLineNo">059</span>    private double iInitialWeight = 1.2;<a name="line.59"></a>
+<span class="sourceLineNo">060</span>    private double iSelectedWeight = 1.1;<a name="line.60"></a>
+<span class="sourceLineNo">061</span>    private double iWaitlistedWeight = 1.01;<a name="line.61"></a>
+<span class="sourceLineNo">062</span>    private double iDistConfWeight = 0.95;<a name="line.62"></a>
+<span class="sourceLineNo">063</span>    protected double[] iQalityWeights;<a name="line.63"></a>
+<span class="sourceLineNo">064</span>    /**<a name="line.64"></a>
+<span class="sourceLineNo">065</span>     * Enrollment value: value * sAltValue ^ index, where index is zero for the<a name="line.65"></a>
+<span class="sourceLineNo">066</span>     * first course, one for the second course etc.<a name="line.66"></a>
+<span class="sourceLineNo">067</span>     */<a name="line.67"></a>
+<span class="sourceLineNo">068</span>    private double iAltValue = 0.5;<a name="line.68"></a>
+<span class="sourceLineNo">069</span>    private double iDummyStudentWeight = 0.5;<a name="line.69"></a>
+<span class="sourceLineNo">070</span>    private double iNormPenalty = 5.0;<a name="line.70"></a>
+<span class="sourceLineNo">071</span>    <a name="line.71"></a>
+<span class="sourceLineNo">072</span>    public OriginalStudentWeights(DataProperties config) {<a name="line.72"></a>
+<span class="sourceLineNo">073</span>        iDummyStudentWeight = config.getPropertyDouble("Student.DummyStudentWeight", iDummyStudentWeight);<a name="line.73"></a>
+<span class="sourceLineNo">074</span>        iQalityWeights = new double[StudentQuality.Type.values().length];<a name="line.74"></a>
+<span class="sourceLineNo">075</span>        for (StudentQuality.Type type: StudentQuality.Type.values()) {<a name="line.75"></a>
+<span class="sourceLineNo">076</span>            iQalityWeights[type.ordinal()] = config.getPropertyDouble(type.getWeightName(), type.getWeightDefault());<a name="line.76"></a>
+<span class="sourceLineNo">077</span>        }<a name="line.77"></a>
+<span class="sourceLineNo">078</span>    }<a name="line.78"></a>
+<span class="sourceLineNo">079</span><a name="line.79"></a>
+<span class="sourceLineNo">080</span>    /**<a name="line.80"></a>
+<span class="sourceLineNo">081</span>     * Normalized enrollment penalty -- to be used in<a name="line.81"></a>
+<span class="sourceLineNo">082</span>     * {@link Enrollment#toDouble(Assignment)}<a name="line.82"></a>
+<span class="sourceLineNo">083</span>     * @param penalty given penalty<a name="line.83"></a>
+<span class="sourceLineNo">084</span>     * @return normalized penalty<a name="line.84"></a>
+<span class="sourceLineNo">085</span>     */<a name="line.85"></a>
+<span class="sourceLineNo">086</span>    public double normalizePenalty(double penalty) {<a name="line.86"></a>
+<span class="sourceLineNo">087</span>        return iNormPenalty / (iNormPenalty + penalty);<a name="line.87"></a>
+<span class="sourceLineNo">088</span>    }<a name="line.88"></a>
+<span class="sourceLineNo">089</span><a name="line.89"></a>
+<span class="sourceLineNo">090</span><a name="line.90"></a>
+<span class="sourceLineNo">091</span>    public double getWeight(Request request) {<a name="line.91"></a>
+<span class="sourceLineNo">092</span>        return   Math.pow(iPriorityWeight, request.getPriority())<a name="line.92"></a>
+<span class="sourceLineNo">093</span>               * (request.isAlternative() ? iAlterativeWeight : 1.0)<a name="line.93"></a>
+<span class="sourceLineNo">094</span>               * (request.getStudent().isDummy() ? iDummyStudentWeight : 1.0);<a name="line.94"></a>
+<span class="sourceLineNo">095</span>    }<a name="line.95"></a>
+<span class="sourceLineNo">096</span><a name="line.96"></a>
+<span class="sourceLineNo">097</span>    @Override<a name="line.97"></a>
+<span class="sourceLineNo">098</span>    public double getBound(Request request) {<a name="line.98"></a>
+<span class="sourceLineNo">099</span>        double w = getWeight(request) * Math.pow(iInitialWeight, (request.getInitialAssignment() == null ? 0 : 1));<a name="line.99"></a>
+<span class="sourceLineNo">100</span>        if (request instanceof CourseRequest) {<a name="line.100"></a>
+<span class="sourceLineNo">101</span>            CourseRequest cr = (CourseRequest)request;<a name="line.101"></a>
+<span class="sourceLineNo">102</span>            w *= Math.pow(iSelectedWeight, cr.getSelectedChoices().isEmpty() ? 0 : 1);<a name="line.102"></a>
+<span class="sourceLineNo">103</span>            w *= Math.pow(iWaitlistedWeight, cr.getWaitlistedChoices().isEmpty() ? 0 : 1);<a name="line.103"></a>
+<span class="sourceLineNo">104</span>            w *= normalizePenalty(cr.getMinPenalty());<a name="line.104"></a>
+<span class="sourceLineNo">105</span>        }<a name="line.105"></a>
+<span class="sourceLineNo">106</span>        return w;<a name="line.106"></a>
+<span class="sourceLineNo">107</span>    }<a name="line.107"></a>
+<span class="sourceLineNo">108</span>    <a name="line.108"></a>
+<span class="sourceLineNo">109</span>    @Override<a name="line.109"></a>
+<span class="sourceLineNo">110</span>    public double getWeight(Assignment&lt;Request, Enrollment&gt; assignment, Enrollment enrollment) {<a name="line.110"></a>
+<span class="sourceLineNo">111</span>        return  getWeight(enrollment.getRequest())<a name="line.111"></a>
+<span class="sourceLineNo">112</span>                * Math.pow(iAltValue, enrollment.getPriority())<a name="line.112"></a>
+<span class="sourceLineNo">113</span>                * Math.pow(iInitialWeight, enrollment.percentInitial())<a name="line.113"></a>
+<span class="sourceLineNo">114</span>                * Math.pow(iSelectedWeight, enrollment.percentSelected())<a name="line.114"></a>
+<span class="sourceLineNo">115</span>                * Math.pow(iWaitlistedWeight, enrollment.percentWaitlisted())<a name="line.115"></a>
+<span class="sourceLineNo">116</span>                * normalizePenalty(enrollment.getPenalty());<a name="line.116"></a>
+<span class="sourceLineNo">117</span>    }<a name="line.117"></a>
+<span class="sourceLineNo">118</span>    <a name="line.118"></a>
+<span class="sourceLineNo">119</span>    @Override<a name="line.119"></a>
+<span class="sourceLineNo">120</span>    public double getWeight(Assignment&lt;Request, Enrollment&gt; assignment, Enrollment enrollment, Set&lt;DistanceConflict.Conflict&gt; distanceConflicts, Set&lt;TimeOverlapsCounter.Conflict&gt; timeOverlappingConflicts) {<a name="line.120"></a>
+<span class="sourceLineNo">121</span>        int share = 0;<a name="line.121"></a>
+<span class="sourceLineNo">122</span>        if (timeOverlappingConflicts != null) <a name="line.122"></a>
+<span class="sourceLineNo">123</span>            for (TimeOverlapsCounter.Conflict c: timeOverlappingConflicts)<a name="line.123"></a>
+<span class="sourceLineNo">124</span>                share += c.getShare();<a name="line.124"></a>
+<span class="sourceLineNo">125</span>        return getWeight(assignment, enrollment)<a name="line.125"></a>
+<span class="sourceLineNo">126</span>               * (distanceConflicts == null || distanceConflicts.isEmpty() ? 1.0 : Math.pow(iDistConfWeight, distanceConflicts.size()))<a name="line.126"></a>
+<span class="sourceLineNo">127</span>               * Math.max(share == 0 ? 1.0 : 1.0 - (((double)share) / enrollment.getNrSlots()) / 2.0, 0.5);<a name="line.127"></a>
+<span class="sourceLineNo">128</span>    }<a name="line.128"></a>
+<span class="sourceLineNo">129</span>    <a name="line.129"></a>
+<span class="sourceLineNo">130</span>    @Override<a name="line.130"></a>
+<span class="sourceLineNo">131</span>    public double getDistanceConflictWeight(Assignment&lt;Request, Enrollment&gt; assignment, DistanceConflict.Conflict c) {<a name="line.131"></a>
+<span class="sourceLineNo">132</span>        if (c.getR1().getPriority() &lt; c.getR2().getPriority()) {<a name="line.132"></a>
+<span class="sourceLineNo">133</span>            return (1.0 - iDistConfWeight) * getWeight(assignment, c.getE1());<a name="line.133"></a>
+<span class="sourceLineNo">134</span>        } else {<a name="line.134"></a>
+<span class="sourceLineNo">135</span>            return (1.0 - iDistConfWeight) * getWeight(assignment, c.getE2());<a name="line.135"></a>
+<span class="sourceLineNo">136</span>        }<a name="line.136"></a>
+<span class="sourceLineNo">137</span>    }<a name="line.137"></a>
+<span class="sourceLineNo">138</span>    <a name="line.138"></a>
+<span class="sourceLineNo">139</span>    @Override<a name="line.139"></a>
+<span class="sourceLineNo">140</span>    public double getTimeOverlapConflictWeight(Assignment&lt;Request, Enrollment&gt; assignment, Enrollment enrollment, TimeOverlapsCounter.Conflict timeOverlap) {<a name="line.140"></a>
+<span class="sourceLineNo">141</span>        return Math.min(0.5 * timeOverlap.getShare() / enrollment.getNrSlots(), 0.5) * getWeight(assignment, enrollment);<a name="line.141"></a>
+<span class="sourceLineNo">142</span>    }<a name="line.142"></a>
+<span class="sourceLineNo">143</span>    <a name="line.143"></a>
+<span class="sourceLineNo">144</span>    @Override<a name="line.144"></a>
+<span class="sourceLineNo">145</span>    public boolean isBetterThanBestSolution(Solution&lt;Request, Enrollment&gt; currentSolution) {<a name="line.145"></a>
+<span class="sourceLineNo">146</span>        if (currentSolution.getBestInfo() == null) return true;<a name="line.146"></a>
+<span class="sourceLineNo">147</span>        int unassigned = currentSolution.getModel().nrUnassignedVariables(currentSolution.getAssignment());<a name="line.147"></a>
+<span class="sourceLineNo">148</span>        if (currentSolution.getModel().getBestUnassignedVariables() != unassigned)<a name="line.148"></a>
+<span class="sourceLineNo">149</span>            return currentSolution.getModel().getBestUnassignedVariables() &gt; unassigned;<a name="line.149"></a>
+<span class="sourceLineNo">150</span>        return currentSolution.getModel().getTotalValue(currentSolution.getAssignment()) &lt; currentSolution.getBestValue();<a name="line.150"></a>
+<span class="sourceLineNo">151</span>    }<a name="line.151"></a>
+<span class="sourceLineNo">152</span><a name="line.152"></a>
+<span class="sourceLineNo">153</span>    /**<a name="line.153"></a>
+<span class="sourceLineNo">154</span>     * Test case -- run to see the weights for a few courses<a name="line.154"></a>
+<span class="sourceLineNo">155</span>     * @param args program arguments<a name="line.155"></a>
+<span class="sourceLineNo">156</span>     */<a name="line.156"></a>
+<span class="sourceLineNo">157</span>    public static void main(String[] args) {<a name="line.157"></a>
+<span class="sourceLineNo">158</span>        OriginalStudentWeights pw = new OriginalStudentWeights(new DataProperties());<a name="line.158"></a>
+<span class="sourceLineNo">159</span>        DecimalFormat df = new DecimalFormat("0.000");<a name="line.159"></a>
+<span class="sourceLineNo">160</span>        Student s = new Student(0l);<a name="line.160"></a>
+<span class="sourceLineNo">161</span>        new CourseRequest(1l, 0, false, s, ToolBox.toList(<a name="line.161"></a>
+<span class="sourceLineNo">162</span>                new Course(1, "A", "1", new Offering(0, "A")),<a name="line.162"></a>
+<span class="sourceLineNo">163</span>                new Course(1, "A", "2", new Offering(0, "A")),<a name="line.163"></a>
+<span class="sourceLineNo">164</span>                new Course(1, "A", "3", new Offering(0, "A"))), false, null);<a name="line.164"></a>
+<span class="sourceLineNo">165</span>        new CourseRequest(2l, 1, false, s, ToolBox.toList(<a name="line.165"></a>
+<span class="sourceLineNo">166</span>                new Course(1, "B", "1", new Offering(0, "B")),<a name="line.166"></a>
+<span class="sourceLineNo">167</span>                new Course(1, "B", "2", new Offering(0, "B")),<a name="line.167"></a>
+<span class="sourceLineNo">168</span>                new Course(1, "B", "3", new Offering(0, "B"))), false, null);<a name="line.168"></a>
+<span class="sourceLineNo">169</span>        new CourseRequest(3l, 2, false, s, ToolBox.toList(<a name="line.169"></a>
+<span class="sourceLineNo">170</span>                new Course(1, "C", "1", new Offering(0, "C")),<a name="line.170"></a>
+<span class="sourceLineNo">171</span>                new Course(1, "C", "2", new Offering(0, "C")),<a name="line.171"></a>
+<span class="sourceLineNo">172</span>                new Course(1, "C", "3", new Offering(0, "C"))), false, null);<a name="line.172"></a>
+<span class="sourceLineNo">173</span>        new CourseRequest(4l, 3, false, s, ToolBox.toList(<a name="line.173"></a>
+<span class="sourceLineNo">174</span>                new Course(1, "D", "1", new Offering(0, "D")),<a name="line.174"></a>
+<span class="sourceLineNo">175</span>                new Course(1, "D", "2", new Offering(0, "D")),<a name="line.175"></a>
+<span class="sourceLineNo">176</span>                new Course(1, "D", "3", new Offering(0, "D"))), false, null);<a name="line.176"></a>
+<span class="sourceLineNo">177</span>        new CourseRequest(5l, 4, false, s, ToolBox.toList(<a name="line.177"></a>
+<span class="sourceLineNo">178</span>                new Course(1, "E", "1", new Offering(0, "E")),<a name="line.178"></a>
+<span class="sourceLineNo">179</span>                new Course(1, "E", "2", new Offering(0, "E")),<a name="line.179"></a>
+<span class="sourceLineNo">180</span>                new Course(1, "E", "3", new Offering(0, "E"))), false, null);<a name="line.180"></a>
+<span class="sourceLineNo">181</span>        new CourseRequest(6l, 5, true, s, ToolBox.toList(<a name="line.181"></a>
+<span class="sourceLineNo">182</span>                new Course(1, "F", "1", new Offering(0, "F")),<a name="line.182"></a>
+<span class="sourceLineNo">183</span>                new Course(1, "F", "2", new Offering(0, "F")),<a name="line.183"></a>
+<span class="sourceLineNo">184</span>                new Course(1, "F", "3", new Offering(0, "F"))), false, null);<a name="line.184"></a>
+<span class="sourceLineNo">185</span>        new CourseRequest(7l, 6, true, s, ToolBox.toList(<a name="line.185"></a>
+<span class="sourceLineNo">186</span>                new Course(1, "G", "1", new Offering(0, "G")),<a name="line.186"></a>
+<span class="sourceLineNo">187</span>                new Course(1, "G", "2", new Offering(0, "G")),<a name="line.187"></a>
+<span class="sourceLineNo">188</span>                new Course(1, "G", "3", new Offering(0, "G"))), false, null);<a name="line.188"></a>
+<span class="sourceLineNo">189</span>        <a name="line.189"></a>
+<span class="sourceLineNo">190</span>        Assignment&lt;Request, Enrollment&gt; assignment = new DefaultSingleAssignment&lt;Request, Enrollment&gt;();<a name="line.190"></a>
+<span class="sourceLineNo">191</span>        Placement p = new Placement(null, new TimeLocation(1, 90, 12, 0, 0, null, null, new BitSet(), 10), new ArrayList&lt;RoomLocation&gt;());<a name="line.191"></a>
+<span class="sourceLineNo">192</span>        for (Request r: s.getRequests()) {<a name="line.192"></a>
+<span class="sourceLineNo">193</span>            CourseRequest cr = (CourseRequest)r;<a name="line.193"></a>
+<span class="sourceLineNo">194</span>            double[] w = new double[] {0.0, 0.0, 0.0};<a name="line.194"></a>
+<span class="sourceLineNo">195</span>            for (int i = 0; i &lt; cr.getCourses().size(); i++) {<a name="line.195"></a>
+<span class="sourceLineNo">196</span>                Config cfg = new Config(0l, -1, "", cr.getCourses().get(i).getOffering());<a name="line.196"></a>
+<span class="sourceLineNo">197</span>                Set&lt;SctAssignment&gt; sections = new HashSet&lt;SctAssignment&gt;();<a name="line.197"></a>
+<span class="sourceLineNo">198</span>                sections.add(new Section(0, 1, "x", new Subpart(0, "Lec", "Lec", cfg, null), p, null));<a name="line.198"></a>
+<span class="sourceLineNo">199</span>                Enrollment e = new Enrollment(cr, i, cfg, sections, assignment);<a name="line.199"></a>
+<span class="sourceLineNo">200</span>                w[i] = pw.getWeight(assignment, e, null, null);<a name="line.200"></a>
+<span class="sourceLineNo">201</span>            }<a name="line.201"></a>
+<span class="sourceLineNo">202</span>            System.out.println(cr + ": " + df.format(w[0]) + "  " + df.format(w[1]) + "  " + df.format(w[2]));<a name="line.202"></a>
+<span class="sourceLineNo">203</span>        }<a name="line.203"></a>
+<span class="sourceLineNo">204</span><a name="line.204"></a>
+<span class="sourceLineNo">205</span>        System.out.println("With one distance conflict:");<a name="line.205"></a>
+<span class="sourceLineNo">206</span>        for (Request r: s.getRequests()) {<a name="line.206"></a>
+<span class="sourceLineNo">207</span>            CourseRequest cr = (CourseRequest)r;<a name="line.207"></a>
+<span class="sourceLineNo">208</span>            double[] w = new double[] {0.0, 0.0, 0.0};<a name="line.208"></a>
+<span class="sourceLineNo">209</span>            for (int i = 0; i &lt; cr.getCourses().size(); i++) {<a name="line.209"></a>
+<span class="sourceLineNo">210</span>                Config cfg = new Config(0l, -1, "", cr.getCourses().get(i).getOffering());<a name="line.210"></a>
+<span class="sourceLineNo">211</span>                Set&lt;SctAssignment&gt; sections = new HashSet&lt;SctAssignment&gt;();<a name="line.211"></a>
+<span class="sourceLineNo">212</span>                sections.add(new Section(0, 1, "x", new Subpart(0, "Lec", "Lec", cfg, null), p, null));<a name="line.212"></a>
+<span class="sourceLineNo">213</span>                Enrollment e = new Enrollment(cr, i, cfg, sections, assignment);<a name="line.213"></a>
+<span class="sourceLineNo">214</span>                Set&lt;DistanceConflict.Conflict&gt; dc = new HashSet&lt;DistanceConflict.Conflict&gt;();<a name="line.214"></a>
+<span class="sourceLineNo">215</span>                dc.add(new DistanceConflict.Conflict(s, e, (Section)sections.iterator().next(), e, (Section)sections.iterator().next()));<a name="line.215"></a>
+<span class="sourceLineNo">216</span>                w[i] = pw.getWeight(assignment, e, dc, null);<a name="line.216"></a>
+<span class="sourceLineNo">217</span>            }<a name="line.217"></a>
+<span class="sourceLineNo">218</span>            System.out.println(cr + ": " + df.format(w[0]) + "  " + df.format(w[1]) + "  " + df.format(w[2]));<a name="line.218"></a>
+<span class="sourceLineNo">219</span>        }<a name="line.219"></a>
+<span class="sourceLineNo">220</span><a name="line.220"></a>
+<span class="sourceLineNo">221</span>        System.out.println("With two distance conflicts:");<a name="line.221"></a>
+<span class="sourceLineNo">222</span>        for (Request r: s.getRequests()) {<a name="line.222"></a>
+<span class="sourceLineNo">223</span>            CourseRequest cr = (CourseRequest)r;<a name="line.223"></a>
+<span class="sourceLineNo">224</span>            double[] w = new double[] {0.0, 0.0, 0.0};<a name="line.224"></a>
+<span class="sourceLineNo">225</span>            for (int i = 0; i &lt; cr.getCourses().size(); i++) {<a name="line.225"></a>
+<span class="sourceLineNo">226</span>                Config cfg = new Config(0l, -1, "", cr.getCourses().get(i).getOffering());<a name="line.226"></a>
+<span class="sourceLineNo">227</span>                Set&lt;SctAssignment&gt; sections = new HashSet&lt;SctAssignment&gt;();<a name="line.227"></a>
+<span class="sourceLineNo">228</span>                sections.add(new Section(0, 1, "x", new Subpart(0, "Lec", "Lec", cfg, null), p, null));<a name="line.228"></a>
+<span class="sourceLineNo">229</span>                Enrollment e = new Enrollment(cr, i, cfg, sections, assignment);<a name="line.229"></a>
+<span class="sourceLineNo">230</span>                Set&lt;DistanceConflict.Conflict&gt; dc = new HashSet&lt;DistanceConflict.Conflict&gt;();<a name="line.230"></a>
+<span class="sourceLineNo">231</span>                dc.add(new DistanceConflict.Conflict(s, e, (Section)sections.iterator().next(), e, (Section)sections.iterator().next()));<a name="line.231"></a>
+<span class="sourceLineNo">232</span>                dc.add(new DistanceConflict.Conflict(s, e, (Section)sections.iterator().next(), e, <a name="line.232"></a>
+<span class="sourceLineNo">233</span>                        new Section(1, 1, "x", new Subpart(0, "Lec", "Lec", cfg, null), p, null)));<a name="line.233"></a>
+<span class="sourceLineNo">234</span>                w[i] = pw.getWeight(assignment, e, dc, null);<a name="line.234"></a>
+<span class="sourceLineNo">235</span>            }<a name="line.235"></a>
+<span class="sourceLineNo">236</span>            System.out.println(cr + ": " + df.format(w[0]) + "  " + df.format(w[1]) + "  " + df.format(w[2]));<a name="line.236"></a>
+<span class="sourceLineNo">237</span>        }<a name="line.237"></a>
+<span class="sourceLineNo">238</span><a name="line.238"></a>
+<span class="sourceLineNo">239</span>        System.out.println("With 25% time overlapping conflicts:");<a name="line.239"></a>
+<span class="sourceLineNo">240</span>        for (Request r: s.getRequests()) {<a name="line.240"></a>
+<span class="sourceLineNo">241</span>            CourseRequest cr = (CourseRequest)r;<a name="line.241"></a>
+<span class="sourceLineNo">242</span>            double[] w = new double[] {0.0, 0.0, 0.0};<a name="line.242"></a>
+<span class="sourceLineNo">243</span>            for (int i = 0; i &lt; cr.getCourses().size(); i++) {<a name="line.243"></a>
+<span class="sourceLineNo">244</span>                Config cfg = new Config(0l, -1, "", cr.getCourses().get(i).getOffering());<a name="line.244"></a>
+<span class="sourceLineNo">245</span>                Set&lt;SctAssignment&gt; sections = new HashSet&lt;SctAssignment&gt;();<a name="line.245"></a>
+<span class="sourceLineNo">246</span>                sections.add(new Section(0, 1, "x", new Subpart(0, "Lec", "Lec", cfg, null), p, null));<a name="line.246"></a>
+<span class="sourceLineNo">247</span>                Enrollment e = new Enrollment(cr, i, cfg, sections, assignment);<a name="line.247"></a>
+<span class="sourceLineNo">248</span>                Set&lt;TimeOverlapsCounter.Conflict&gt; toc = new HashSet&lt;TimeOverlapsCounter.Conflict&gt;();<a name="line.248"></a>
+<span class="sourceLineNo">249</span>                toc.add(new TimeOverlapsCounter.Conflict(s, 3, e, sections.iterator().next(), e, sections.iterator().next()));<a name="line.249"></a>
+<span class="sourceLineNo">250</span>                w[i] = pw.getWeight(assignment, e, null, toc);<a name="line.250"></a>
+<span class="sourceLineNo">251</span>            }<a name="line.251"></a>
+<span class="sourceLineNo">252</span>            System.out.println(cr + ": " + df.format(w[0]) + "  " + df.format(w[1]) + "  " + df.format(w[2]));<a name="line.252"></a>
+<span class="sourceLineNo">253</span>        }<a name="line.253"></a>
+<span class="sourceLineNo">254</span>    }<a name="line.254"></a>
+<span class="sourceLineNo">255</span><a name="line.255"></a>
+<span class="sourceLineNo">256</span>    @Override<a name="line.256"></a>
+<span class="sourceLineNo">257</span>    public boolean isFreeTimeAllowOverlaps() {<a name="line.257"></a>
+<span class="sourceLineNo">258</span>        return true;<a name="line.258"></a>
+<span class="sourceLineNo">259</span>    }<a name="line.259"></a>
+<span class="sourceLineNo">260</span><a name="line.260"></a>
+<span class="sourceLineNo">261</span>    @Override<a name="line.261"></a>
+<span class="sourceLineNo">262</span>    public double getWeight(Assignment&lt;Request, Enrollment&gt; assignment, Enrollment enrollment, Set&lt;StudentQuality.Conflict&gt; qualityConflicts) {<a name="line.262"></a>
+<span class="sourceLineNo">263</span>        double base = getWeight(assignment, enrollment);<a name="line.263"></a>
+<span class="sourceLineNo">264</span>        double penalty = 0.0;<a name="line.264"></a>
+<span class="sourceLineNo">265</span>        if (qualityConflicts != null) {<a name="line.265"></a>
+<span class="sourceLineNo">266</span>            for (StudentQuality.Conflict c: qualityConflicts) {<a name="line.266"></a>
+<span class="sourceLineNo">267</span>                Enrollment other = c.getOther(enrollment);<a name="line.267"></a>
+<span class="sourceLineNo">268</span>                switch (c.getType().getType()) {<a name="line.268"></a>
+<span class="sourceLineNo">269</span>                    case REQUEST:<a name="line.269"></a>
+<span class="sourceLineNo">270</span>                        if (enrollment.isCourseRequest())<a name="line.270"></a>
+<span class="sourceLineNo">271</span>                            penalty += base * iQalityWeights[c.getType().ordinal()] * c.getWeight(enrollment);<a name="line.271"></a>
+<span class="sourceLineNo">272</span>                        else if (other.isCourseRequest())<a name="line.272"></a>
+<span class="sourceLineNo">273</span>                            penalty += getWeight(assignment, other) * iQalityWeights[c.getType().ordinal()] * c.getWeight(other);<a name="line.273"></a>
+<span class="sourceLineNo">274</span>                        break;<a name="line.274"></a>
+<span class="sourceLineNo">275</span>                    case BOTH:<a name="line.275"></a>
+<span class="sourceLineNo">276</span>                        penalty += base * iQalityWeights[c.getType().ordinal()] * c.getWeight(enrollment);<a name="line.276"></a>
+<span class="sourceLineNo">277</span>                        if (other.getRequest() != null)<a name="line.277"></a>
+<span class="sourceLineNo">278</span>                            penalty += getWeight(assignment, other) * iQalityWeights[c.getType().ordinal()] * c.getWeight(other);<a name="line.278"></a>
+<span class="sourceLineNo">279</span>                        break;<a name="line.279"></a>
+<span class="sourceLineNo">280</span>                    case LOWER:<a name="line.280"></a>
+<span class="sourceLineNo">281</span>                        other = c.getOther(enrollment);<a name="line.281"></a>
+<span class="sourceLineNo">282</span>                        if (other.getRequest().getPriority() &lt;= enrollment.getRequest().getPriority())<a name="line.282"></a>
+<span class="sourceLineNo">283</span>                            penalty += base * iQalityWeights[c.getType().ordinal()] * c.getWeight(enrollment);<a name="line.283"></a>
+<span class="sourceLineNo">284</span>                        else if (other.getRequest() != null)<a name="line.284"></a>
+<span class="sourceLineNo">285</span>                            penalty += getWeight(assignment, other) * iQalityWeights[c.getType().ordinal()] * c.getWeight(other);<a name="line.285"></a>
+<span class="sourceLineNo">286</span>                        break;<a name="line.286"></a>
+<span class="sourceLineNo">287</span>                    case HIGHER:<a name="line.287"></a>
+<span class="sourceLineNo">288</span>                        other = c.getOther(enrollment);<a name="line.288"></a>
+<span class="sourceLineNo">289</span>                        if (other.getRequest().getPriority() &gt;= enrollment.getRequest().getPriority())<a name="line.289"></a>
+<span class="sourceLineNo">290</span>                            penalty += base * iQalityWeights[c.getType().ordinal()] * c.getWeight(enrollment);<a name="line.290"></a>
+<span class="sourceLineNo">291</span>                        else if (other.getRequest() != null)<a name="line.291"></a>
+<span class="sourceLineNo">292</span>                            penalty += getWeight(assignment, other) * iQalityWeights[c.getType().ordinal()] * c.getWeight(other);<a name="line.292"></a>
+<span class="sourceLineNo">293</span>                }<a name="line.293"></a>
+<span class="sourceLineNo">294</span>            }<a name="line.294"></a>
+<span class="sourceLineNo">295</span>        }<a name="line.295"></a>
+<span class="sourceLineNo">296</span>        return base - penalty;<a name="line.296"></a>
+<span class="sourceLineNo">297</span>    }<a name="line.297"></a>
+<span class="sourceLineNo">298</span><a name="line.298"></a>
+<span class="sourceLineNo">299</span>    @Override<a name="line.299"></a>
+<span class="sourceLineNo">300</span>    public double getStudentQualityConflictWeight(Assignment&lt;Request, Enrollment&gt; assignment, Enrollment enrollment, StudentQuality.Conflict conflict) {<a name="line.300"></a>
+<span class="sourceLineNo">301</span>        switch (conflict.getType().getType()) {<a name="line.301"></a>
+<span class="sourceLineNo">302</span>            case BOTH:<a name="line.302"></a>
+<span class="sourceLineNo">303</span>                if (enrollment == null || enrollment.getRequest() == null) return 0.0;<a name="line.303"></a>
+<span class="sourceLineNo">304</span>                return getWeight(assignment, enrollment) * iQalityWeights[conflict.getType().ordinal()] * conflict.getWeight(enrollment);<a name="line.304"></a>
+<span class="sourceLineNo">305</span>            case REQUEST:<a name="line.305"></a>
+<span class="sourceLineNo">306</span>                if (enrollment == null || enrollment.getRequest() == null || !enrollment.isCourseRequest()) return 0.0;<a name="line.306"></a>
+<span class="sourceLineNo">307</span>                return getWeight(assignment, enrollment) * iQalityWeights[conflict.getType().ordinal()] * conflict.getWeight(enrollment);<a name="line.307"></a>
+<span class="sourceLineNo">308</span>            case LOWER:<a name="line.308"></a>
+<span class="sourceLineNo">309</span>                if (conflict.getR1().getPriority() &lt; conflict.getR2().getPriority()) {<a name="line.309"></a>
+<span class="sourceLineNo">310</span>                    return getWeight(assignment, enrollment) * iQalityWeights[conflict.getType().ordinal()] * conflict.getWeight(conflict.getE2());<a name="line.310"></a>
+<span class="sourceLineNo">311</span>                } else {<a name="line.311"></a>
+<span class="sourceLineNo">312</span>                    return getWeight(assignment, enrollment) * iQalityWeights[conflict.getType().ordinal()] * conflict.getWeight(conflict.getE1());<a name="line.312"></a>
+<span class="sourceLineNo">313</span>                }<a name="line.313"></a>
+<span class="sourceLineNo">314</span>            case HIGHER:<a name="line.314"></a>
+<span class="sourceLineNo">315</span>                if (conflict.getR1().getPriority() &gt; conflict.getR2().getPriority()) {<a name="line.315"></a>
+<span class="sourceLineNo">316</span>                    return getWeight(assignment, enrollment) * iQalityWeights[conflict.getType().ordinal()] * conflict.getWeight(conflict.getE2());<a name="line.316"></a>
+<span class="sourceLineNo">317</span>                } else {<a name="line.317"></a>
+<span class="sourceLineNo">318</span>                    return getWeight(assignment, enrollment) * iQalityWeights[conflict.getType().ordinal()] * conflict.getWeight(conflict.getE1());<a name="line.318"></a>
+<span class="sourceLineNo">319</span>                }<a name="line.319"></a>
+<span class="sourceLineNo">320</span>            default:<a name="line.320"></a>
+<span class="sourceLineNo">321</span>                return 0.0;<a name="line.321"></a>
+<span class="sourceLineNo">322</span>        }<a name="line.322"></a>
+<span class="sourceLineNo">323</span>    }<a name="line.323"></a>
+<span class="sourceLineNo">324</span>}<a name="line.324"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

@@ -1,0 +1,176 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.cpsolver.exam.reports;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import java.text.DecimalFormat;<a name="line.3"></a>
+<span class="sourceLineNo">004</span><a name="line.4"></a>
+<span class="sourceLineNo">005</span>import org.cpsolver.exam.criteria.StudentBackToBackConflicts;<a name="line.5"></a>
+<span class="sourceLineNo">006</span>import org.cpsolver.exam.criteria.StudentDirectConflicts;<a name="line.6"></a>
+<span class="sourceLineNo">007</span>import org.cpsolver.exam.criteria.StudentDistanceBackToBackConflicts;<a name="line.7"></a>
+<span class="sourceLineNo">008</span>import org.cpsolver.exam.criteria.StudentMoreThan2ADayConflicts;<a name="line.8"></a>
+<span class="sourceLineNo">009</span>import org.cpsolver.exam.criteria.StudentNotAvailableConflicts;<a name="line.9"></a>
+<span class="sourceLineNo">010</span>import org.cpsolver.exam.model.Exam;<a name="line.10"></a>
+<span class="sourceLineNo">011</span>import org.cpsolver.exam.model.ExamModel;<a name="line.11"></a>
+<span class="sourceLineNo">012</span>import org.cpsolver.exam.model.ExamPlacement;<a name="line.12"></a>
+<span class="sourceLineNo">013</span>import org.cpsolver.ifs.assignment.Assignment;<a name="line.13"></a>
+<span class="sourceLineNo">014</span>import org.cpsolver.ifs.util.CSVFile;<a name="line.14"></a>
+<span class="sourceLineNo">015</span>import org.cpsolver.ifs.util.CSVFile.CSVField;<a name="line.15"></a>
+<span class="sourceLineNo">016</span><a name="line.16"></a>
+<span class="sourceLineNo">017</span><a name="line.17"></a>
+<span class="sourceLineNo">018</span>/**<a name="line.18"></a>
+<span class="sourceLineNo">019</span> * Export student direct, back-to-back, and more than two exams a day conflicts<a name="line.19"></a>
+<span class="sourceLineNo">020</span> * summarized for each exam into a CSV file. &lt;br&gt;<a name="line.20"></a>
+<span class="sourceLineNo">021</span> * &lt;br&gt;<a name="line.21"></a>
+<span class="sourceLineNo">022</span> * Usage:<a name="line.22"></a>
+<span class="sourceLineNo">023</span> * &lt;pre&gt;&lt;code&gt;<a name="line.23"></a>
+<span class="sourceLineNo">024</span> * &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;new ExamStudentConflictsPerExam(model).report().save(file);<a name="line.24"></a>
+<span class="sourceLineNo">025</span> * &lt;/code&gt;&lt;/pre&gt;<a name="line.25"></a>
+<span class="sourceLineNo">026</span> * &lt;br&gt;<a name="line.26"></a>
+<span class="sourceLineNo">027</span> * <a name="line.27"></a>
+<span class="sourceLineNo">028</span> * @author  Tom&#225;&#353; M&#252;ller<a name="line.28"></a>
+<span class="sourceLineNo">029</span> * @version ExamTT 1.3 (Examination Timetabling)&lt;br&gt;<a name="line.29"></a>
+<span class="sourceLineNo">030</span> *          Copyright (C) 2008 - 2014 Tom&#225;&#353; M&#252;ller&lt;br&gt;<a name="line.30"></a>
+<span class="sourceLineNo">031</span> *          &lt;a href="mailto:muller@unitime.org"&gt;muller@unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.31"></a>
+<span class="sourceLineNo">032</span> *          &lt;a href="http://muller.unitime.org"&gt;http://muller.unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.32"></a>
+<span class="sourceLineNo">033</span> * &lt;br&gt;<a name="line.33"></a>
+<span class="sourceLineNo">034</span> *          This library is free software; you can redistribute it and/or modify<a name="line.34"></a>
+<span class="sourceLineNo">035</span> *          it under the terms of the GNU Lesser General Public License as<a name="line.35"></a>
+<span class="sourceLineNo">036</span> *          published by the Free Software Foundation; either version 3 of the<a name="line.36"></a>
+<span class="sourceLineNo">037</span> *          License, or (at your option) any later version. &lt;br&gt;<a name="line.37"></a>
+<span class="sourceLineNo">038</span> * &lt;br&gt;<a name="line.38"></a>
+<span class="sourceLineNo">039</span> *          This library is distributed in the hope that it will be useful, but<a name="line.39"></a>
+<span class="sourceLineNo">040</span> *          WITHOUT ANY WARRANTY; without even the implied warranty of<a name="line.40"></a>
+<span class="sourceLineNo">041</span> *          MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU<a name="line.41"></a>
+<span class="sourceLineNo">042</span> *          Lesser General Public License for more details. &lt;br&gt;<a name="line.42"></a>
+<span class="sourceLineNo">043</span> * &lt;br&gt;<a name="line.43"></a>
+<span class="sourceLineNo">044</span> *          You should have received a copy of the GNU Lesser General Public<a name="line.44"></a>
+<span class="sourceLineNo">045</span> *          License along with this library; if not see<a name="line.45"></a>
+<span class="sourceLineNo">046</span> *          &lt;a href='http://www.gnu.org/licenses/'&gt;http://www.gnu.org/licenses/&lt;/a&gt;.<a name="line.46"></a>
+<span class="sourceLineNo">047</span> */<a name="line.47"></a>
+<span class="sourceLineNo">048</span>public class ExamStudentConflictsPerExam {<a name="line.48"></a>
+<span class="sourceLineNo">049</span>    private ExamModel iModel = null;<a name="line.49"></a>
+<span class="sourceLineNo">050</span><a name="line.50"></a>
+<span class="sourceLineNo">051</span>    /**<a name="line.51"></a>
+<span class="sourceLineNo">052</span>     * Constructor<a name="line.52"></a>
+<span class="sourceLineNo">053</span>     * <a name="line.53"></a>
+<span class="sourceLineNo">054</span>     * @param model<a name="line.54"></a>
+<span class="sourceLineNo">055</span>     *            examination timetabling model<a name="line.55"></a>
+<span class="sourceLineNo">056</span>     */<a name="line.56"></a>
+<span class="sourceLineNo">057</span>    public ExamStudentConflictsPerExam(ExamModel model) {<a name="line.57"></a>
+<span class="sourceLineNo">058</span>        iModel = model;<a name="line.58"></a>
+<span class="sourceLineNo">059</span>    }<a name="line.59"></a>
+<span class="sourceLineNo">060</span><a name="line.60"></a>
+<span class="sourceLineNo">061</span>    /**<a name="line.61"></a>
+<span class="sourceLineNo">062</span>     * generate report<a name="line.62"></a>
+<span class="sourceLineNo">063</span>     * @param assignment current assignment<a name="line.63"></a>
+<span class="sourceLineNo">064</span>     * @return resultant report<a name="line.64"></a>
+<span class="sourceLineNo">065</span>     */<a name="line.65"></a>
+<span class="sourceLineNo">066</span>    public CSVFile report(Assignment&lt;Exam, ExamPlacement&gt; assignment) {<a name="line.66"></a>
+<span class="sourceLineNo">067</span>        CSVFile csv = new CSVFile();<a name="line.67"></a>
+<span class="sourceLineNo">068</span>        csv.setHeader(new CSVField[] { new CSVField("Exam"), new CSVField("Enrl"), new CSVField("Direct"),<a name="line.68"></a>
+<span class="sourceLineNo">069</span>                new CSVField("Direct [%]"), new CSVField("More-2-Day"), new CSVField("More-2-Day [%]"),<a name="line.69"></a>
+<span class="sourceLineNo">070</span>                new CSVField("Back-To-Back"), new CSVField("Back-To-Back [%]"), new CSVField("Dist Back-To-Back"),<a name="line.70"></a>
+<span class="sourceLineNo">071</span>                new CSVField("Dist Back-To-Back [%]") });<a name="line.71"></a>
+<span class="sourceLineNo">072</span>        DecimalFormat df = new DecimalFormat("0.0");<a name="line.72"></a>
+<span class="sourceLineNo">073</span>        for (Exam exam : iModel.variables()) {<a name="line.73"></a>
+<span class="sourceLineNo">074</span>            ExamPlacement placement = assignment.getValue(exam);<a name="line.74"></a>
+<span class="sourceLineNo">075</span>            if (placement == null)<a name="line.75"></a>
+<span class="sourceLineNo">076</span>                continue;<a name="line.76"></a>
+<span class="sourceLineNo">077</span>            int dc = (int)iModel.getCriterion(StudentDirectConflicts.class).getValue(assignment, placement, null) +<a name="line.77"></a>
+<span class="sourceLineNo">078</span>                     (int)iModel.getCriterion(StudentNotAvailableConflicts.class).getValue(assignment, placement, null);<a name="line.78"></a>
+<span class="sourceLineNo">079</span>            int btb = (int)iModel.getCriterion(StudentBackToBackConflicts.class).getValue(assignment, placement, null);<a name="line.79"></a>
+<span class="sourceLineNo">080</span>            int dbtb = (int)iModel.getCriterion(StudentDistanceBackToBackConflicts.class).getValue(assignment, placement, null);<a name="line.80"></a>
+<span class="sourceLineNo">081</span>            int m2d = (int)iModel.getCriterion(StudentMoreThan2ADayConflicts.class).getValue(assignment, placement, null);<a name="line.81"></a>
+<span class="sourceLineNo">082</span>            if (dc == 0 &amp;&amp; m2d == 0 &amp;&amp; btb == 0 &amp;&amp; dbtb == 0)<a name="line.82"></a>
+<span class="sourceLineNo">083</span>                continue;<a name="line.83"></a>
+<span class="sourceLineNo">084</span>            /*<a name="line.84"></a>
+<span class="sourceLineNo">085</span>             * String section = ""; for (Enumeration<a name="line.85"></a>
+<span class="sourceLineNo">086</span>             * f=exam.getCourseSections().elements();f.hasMoreElements();) {<a name="line.86"></a>
+<span class="sourceLineNo">087</span>             * ExamCourseSection cs = (ExamCourseSection)f.nextElement(); if<a name="line.87"></a>
+<span class="sourceLineNo">088</span>             * (section.length()&gt;0) section+="\n"; section += cs.getName(); }<a name="line.88"></a>
+<span class="sourceLineNo">089</span>             */<a name="line.89"></a>
+<span class="sourceLineNo">090</span>            csv.addLine(new CSVField[] {<a name="line.90"></a>
+<span class="sourceLineNo">091</span>                    new CSVField(exam.getName()),<a name="line.91"></a>
+<span class="sourceLineNo">092</span>                    new CSVField(exam.getStudents().size()),<a name="line.92"></a>
+<span class="sourceLineNo">093</span>                    new CSVField(dc),<a name="line.93"></a>
+<span class="sourceLineNo">094</span>                    new CSVField(df.format(100.0 * dc / exam.getStudents().size())),<a name="line.94"></a>
+<span class="sourceLineNo">095</span>                    new CSVField(m2d),<a name="line.95"></a>
+<span class="sourceLineNo">096</span>                    new CSVField(df.format(100.0 * m2d / exam.getStudents().size())),<a name="line.96"></a>
+<span class="sourceLineNo">097</span>                    new CSVField(btb),<a name="line.97"></a>
+<span class="sourceLineNo">098</span>                    new CSVField(df.format(100.0 * btb / exam.getStudents().size())),<a name="line.98"></a>
+<span class="sourceLineNo">099</span>                    new CSVField(dbtb),<a name="line.99"></a>
+<span class="sourceLineNo">100</span>                    new CSVField(df.format(100.0 * dbtb / exam.getStudents().size())) });<a name="line.100"></a>
+<span class="sourceLineNo">101</span>        }<a name="line.101"></a>
+<span class="sourceLineNo">102</span>        return csv;<a name="line.102"></a>
+<span class="sourceLineNo">103</span>    }<a name="line.103"></a>
+<span class="sourceLineNo">104</span>}<a name="line.104"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

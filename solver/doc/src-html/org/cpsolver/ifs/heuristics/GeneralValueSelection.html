@@ -1,0 +1,371 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.cpsolver.ifs.heuristics;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import java.util.ArrayList;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import java.util.Collection;<a name="line.4"></a>
+<span class="sourceLineNo">005</span>import java.util.Iterator;<a name="line.5"></a>
+<span class="sourceLineNo">006</span>import java.util.List;<a name="line.6"></a>
+<span class="sourceLineNo">007</span>import java.util.Set;<a name="line.7"></a>
+<span class="sourceLineNo">008</span><a name="line.8"></a>
+<span class="sourceLineNo">009</span>import org.cpsolver.ifs.assignment.Assignment;<a name="line.9"></a>
+<span class="sourceLineNo">010</span>import org.cpsolver.ifs.extension.ConflictStatistics;<a name="line.10"></a>
+<span class="sourceLineNo">011</span>import org.cpsolver.ifs.extension.Extension;<a name="line.11"></a>
+<span class="sourceLineNo">012</span>import org.cpsolver.ifs.extension.MacPropagation;<a name="line.12"></a>
+<span class="sourceLineNo">013</span>import org.cpsolver.ifs.extension.ViolatedInitials;<a name="line.13"></a>
+<span class="sourceLineNo">014</span>import org.cpsolver.ifs.model.Model;<a name="line.14"></a>
+<span class="sourceLineNo">015</span>import org.cpsolver.ifs.model.Value;<a name="line.15"></a>
+<span class="sourceLineNo">016</span>import org.cpsolver.ifs.model.Variable;<a name="line.16"></a>
+<span class="sourceLineNo">017</span>import org.cpsolver.ifs.solution.Solution;<a name="line.17"></a>
+<span class="sourceLineNo">018</span>import org.cpsolver.ifs.solver.Solver;<a name="line.18"></a>
+<span class="sourceLineNo">019</span>import org.cpsolver.ifs.util.DataProperties;<a name="line.19"></a>
+<span class="sourceLineNo">020</span>import org.cpsolver.ifs.util.ToolBox;<a name="line.20"></a>
+<span class="sourceLineNo">021</span><a name="line.21"></a>
+<span class="sourceLineNo">022</span><a name="line.22"></a>
+<span class="sourceLineNo">023</span>/**<a name="line.23"></a>
+<span class="sourceLineNo">024</span> * General implementation of value selection criterion. &lt;br&gt;<a name="line.24"></a>
+<span class="sourceLineNo">025</span> * &lt;br&gt;<a name="line.25"></a>
+<span class="sourceLineNo">026</span> * Value selection criterion is based on weighted sum of various criteria. It<a name="line.26"></a>
+<span class="sourceLineNo">027</span> * also allows random walk technique and tabu search. &lt;br&gt;<a name="line.27"></a>
+<span class="sourceLineNo">028</span> * Parameters: &lt;br&gt;<a name="line.28"></a>
+<span class="sourceLineNo">029</span> * &lt;table border='1'&gt;&lt;caption&gt;Related Solver Parameters&lt;/caption&gt;<a name="line.29"></a>
+<span class="sourceLineNo">030</span> * &lt;tr&gt;<a name="line.30"></a>
+<span class="sourceLineNo">031</span> * &lt;th&gt;Parameter&lt;/th&gt;<a name="line.31"></a>
+<span class="sourceLineNo">032</span> * &lt;th&gt;Type&lt;/th&gt;<a name="line.32"></a>
+<span class="sourceLineNo">033</span> * &lt;th&gt;Comment&lt;/th&gt;<a name="line.33"></a>
+<span class="sourceLineNo">034</span> * &lt;/tr&gt;<a name="line.34"></a>
+<span class="sourceLineNo">035</span> * &lt;tr&gt;<a name="line.35"></a>
+<span class="sourceLineNo">036</span> * &lt;td&gt;General.MPP&lt;/td&gt;<a name="line.36"></a>
+<span class="sourceLineNo">037</span> * &lt;td&gt;{@link Boolean}&lt;/td&gt;<a name="line.37"></a>
+<span class="sourceLineNo">038</span> * &lt;td&gt;if true, MPP is being solved&lt;/td&gt;<a name="line.38"></a>
+<span class="sourceLineNo">039</span> * &lt;/tr&gt;<a name="line.39"></a>
+<span class="sourceLineNo">040</span> * &lt;tr&gt;<a name="line.40"></a>
+<span class="sourceLineNo">041</span> * &lt;td&gt;Value.MPPLimit&lt;/td&gt;<a name="line.41"></a>
+<span class="sourceLineNo">042</span> * &lt;td&gt;{@link Integer}&lt;/td&gt;<a name="line.42"></a>
+<span class="sourceLineNo">043</span> * &lt;td&gt;MPP: limitation of the number of allowed perturbations. If a solution<a name="line.43"></a>
+<span class="sourceLineNo">044</span> * within this limit is gound, it is decreased.&lt;/td&gt;<a name="line.44"></a>
+<span class="sourceLineNo">045</span> * &lt;/tr&gt;<a name="line.45"></a>
+<span class="sourceLineNo">046</span> * &lt;tr&gt;<a name="line.46"></a>
+<span class="sourceLineNo">047</span> * &lt;td&gt;Value.InitialSelectionProb&lt;/td&gt;<a name="line.47"></a>
+<span class="sourceLineNo">048</span> * &lt;td&gt;{@link Double}&lt;/td&gt;<a name="line.48"></a>
+<span class="sourceLineNo">049</span> * &lt;td&gt;MPP: probability of selection of the initial value&lt;/td&gt;<a name="line.49"></a>
+<span class="sourceLineNo">050</span> * &lt;/tr&gt;<a name="line.50"></a>
+<span class="sourceLineNo">051</span> * &lt;tr&gt;<a name="line.51"></a>
+<span class="sourceLineNo">052</span> * &lt;td&gt;Value.RandomWalkProb&lt;/td&gt;<a name="line.52"></a>
+<span class="sourceLineNo">053</span> * &lt;td&gt;{@link Double}&lt;/td&gt;<a name="line.53"></a>
+<span class="sourceLineNo">054</span> * &lt;td&gt;Random Walk: probability of selection of a value randomly among all the<a name="line.54"></a>
+<span class="sourceLineNo">055</span> * values&lt;/td&gt;<a name="line.55"></a>
+<span class="sourceLineNo">056</span> * &lt;/tr&gt;<a name="line.56"></a>
+<span class="sourceLineNo">057</span> * &lt;tr&gt;<a name="line.57"></a>
+<span class="sourceLineNo">058</span> * &lt;td&gt;Value.Tabu&lt;/td&gt;<a name="line.58"></a>
+<span class="sourceLineNo">059</span> * &lt;td&gt;{@link Integer}&lt;/td&gt;<a name="line.59"></a>
+<span class="sourceLineNo">060</span> * &lt;td&gt;Tabu Search: length of the tabu-list&lt;/td&gt;<a name="line.60"></a>
+<span class="sourceLineNo">061</span> * &lt;/tr&gt;<a name="line.61"></a>
+<span class="sourceLineNo">062</span> * &lt;tr&gt;<a name="line.62"></a>
+<span class="sourceLineNo">063</span> * &lt;td&gt;Value.GoodSelectionProb&lt;/td&gt;<a name="line.63"></a>
+<span class="sourceLineNo">064</span> * &lt;td&gt;{@link Double}&lt;/td&gt;<a name="line.64"></a>
+<span class="sourceLineNo">065</span> * &lt;td&gt;In case of {@link MacPropagation}, with this probability (1.0 means<a name="line.65"></a>
+<span class="sourceLineNo">066</span> * always), the selection is made only among good values (not removed from the<a name="line.66"></a>
+<span class="sourceLineNo">067</span> * domain).&lt;/td&gt;<a name="line.67"></a>
+<span class="sourceLineNo">068</span> * &lt;/tr&gt;<a name="line.68"></a>
+<span class="sourceLineNo">069</span> * &lt;/table&gt;<a name="line.69"></a>
+<span class="sourceLineNo">070</span> * &lt;br&gt;<a name="line.70"></a>
+<span class="sourceLineNo">071</span> * Following weights are used in the weighted sum (computed for all values). The<a name="line.71"></a>
+<span class="sourceLineNo">072</span> * value with the lowest weighted sum is selected. If there are more than one of<a name="line.72"></a>
+<span class="sourceLineNo">073</span> * such values, one of them is selected randomly. &lt;br&gt;<a name="line.73"></a>
+<span class="sourceLineNo">074</span> * &lt;table border='1'&gt;&lt;caption&gt;Related Solver Parameters&lt;/caption&gt;<a name="line.74"></a>
+<span class="sourceLineNo">075</span> * &lt;tr&gt;<a name="line.75"></a>
+<span class="sourceLineNo">076</span> * &lt;th&gt;Parameter&lt;/th&gt;<a name="line.76"></a>
+<span class="sourceLineNo">077</span> * &lt;th&gt;Type&lt;/th&gt;<a name="line.77"></a>
+<span class="sourceLineNo">078</span> * &lt;th&gt;Comment&lt;/th&gt;<a name="line.78"></a>
+<span class="sourceLineNo">079</span> * &lt;/tr&gt;<a name="line.79"></a>
+<span class="sourceLineNo">080</span> * &lt;tr&gt;<a name="line.80"></a>
+<span class="sourceLineNo">081</span> * &lt;td&gt;Value.WeightDeltaInitialAssignments&lt;/td&gt;<a name="line.81"></a>
+<span class="sourceLineNo">082</span> * &lt;td&gt;{@link Double}&lt;/td&gt;<a name="line.82"></a>
+<span class="sourceLineNo">083</span> * &lt;td&gt;MPP: Difference in the number of assigned initial values if the value is<a name="line.83"></a>
+<span class="sourceLineNo">084</span> * assigned to the variable (weighted by this<a name="line.84"></a>
+<span class="sourceLineNo">085</span> * Value.WeightDeltaInitialAssignments): -1 if the value is initial, 0<a name="line.85"></a>
+<span class="sourceLineNo">086</span> * otherwise, increased by the number of initial values assigned to variables<a name="line.86"></a>
+<span class="sourceLineNo">087</span> * with hard conflicts with the value&lt;/td&gt;<a name="line.87"></a>
+<span class="sourceLineNo">088</span> * &lt;/tr&gt;<a name="line.88"></a>
+<span class="sourceLineNo">089</span> * &lt;tr&gt;<a name="line.89"></a>
+<span class="sourceLineNo">090</span> * &lt;td&gt;Value.WeightWeightedConflicts&lt;/td&gt;<a name="line.90"></a>
+<span class="sourceLineNo">091</span> * &lt;td&gt;{@link Double}&lt;/td&gt;<a name="line.91"></a>
+<span class="sourceLineNo">092</span> * &lt;td&gt;When {@link ConflictStatistics} is used: weighted number of conflicting<a name="line.92"></a>
+<span class="sourceLineNo">093</span> * variables&lt;/td&gt;<a name="line.93"></a>
+<span class="sourceLineNo">094</span> * &lt;/tr&gt;<a name="line.94"></a>
+<span class="sourceLineNo">095</span> * &lt;tr&gt;<a name="line.95"></a>
+<span class="sourceLineNo">096</span> * &lt;td&gt;Value.WeightPotentialConflicts&lt;/td&gt;<a name="line.96"></a>
+<span class="sourceLineNo">097</span> * &lt;td&gt;{@link Double}&lt;/td&gt;<a name="line.97"></a>
+<span class="sourceLineNo">098</span> * &lt;td&gt;When {@link ConflictStatistics} is used: weighted number of potentially<a name="line.98"></a>
+<span class="sourceLineNo">099</span> * conflicting variables&lt;/td&gt;<a name="line.99"></a>
+<span class="sourceLineNo">100</span> * &lt;/tr&gt;<a name="line.100"></a>
+<span class="sourceLineNo">101</span> * &lt;tr&gt;<a name="line.101"></a>
+<span class="sourceLineNo">102</span> * &lt;td&gt;Value.WeightConflicts&lt;/td&gt;<a name="line.102"></a>
+<span class="sourceLineNo">103</span> * &lt;td&gt;{@link Double}&lt;/td&gt;<a name="line.103"></a>
+<span class="sourceLineNo">104</span> * &lt;td&gt;Number of conflicting variables {@link Model#conflictValues(Assignment, Value)}.&lt;/td&gt;<a name="line.104"></a>
+<span class="sourceLineNo">105</span> * &lt;/tr&gt;<a name="line.105"></a>
+<span class="sourceLineNo">106</span> * &lt;tr&gt;<a name="line.106"></a>
+<span class="sourceLineNo">107</span> * &lt;td&gt;Value.WeightValue&lt;/td&gt;<a name="line.107"></a>
+<span class="sourceLineNo">108</span> * &lt;td&gt;{@link Double}&lt;/td&gt;<a name="line.108"></a>
+<span class="sourceLineNo">109</span> * &lt;td&gt;Value {@link Value#toDouble(Assignment)}&lt;/td&gt;<a name="line.109"></a>
+<span class="sourceLineNo">110</span> * &lt;/tr&gt;<a name="line.110"></a>
+<span class="sourceLineNo">111</span> * &lt;/table&gt;<a name="line.111"></a>
+<span class="sourceLineNo">112</span> * <a name="line.112"></a>
+<span class="sourceLineNo">113</span> * @see VariableSelection<a name="line.113"></a>
+<span class="sourceLineNo">114</span> * @see Solver<a name="line.114"></a>
+<span class="sourceLineNo">115</span> * <a name="line.115"></a>
+<span class="sourceLineNo">116</span> * @author  Tom&#225;&#353; M&#252;ller<a name="line.116"></a>
+<span class="sourceLineNo">117</span> * @version IFS 1.3 (Iterative Forward Search)&lt;br&gt;<a name="line.117"></a>
+<span class="sourceLineNo">118</span> *          Copyright (C) 2006 - 2014 Tom&#225;&#353; M&#252;ller&lt;br&gt;<a name="line.118"></a>
+<span class="sourceLineNo">119</span> *          &lt;a href="mailto:muller@unitime.org"&gt;muller@unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.119"></a>
+<span class="sourceLineNo">120</span> *          &lt;a href="http://muller.unitime.org"&gt;http://muller.unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.120"></a>
+<span class="sourceLineNo">121</span> * &lt;br&gt;<a name="line.121"></a>
+<span class="sourceLineNo">122</span> *          This library is free software; you can redistribute it and/or modify<a name="line.122"></a>
+<span class="sourceLineNo">123</span> *          it under the terms of the GNU Lesser General Public License as<a name="line.123"></a>
+<span class="sourceLineNo">124</span> *          published by the Free Software Foundation; either version 3 of the<a name="line.124"></a>
+<span class="sourceLineNo">125</span> *          License, or (at your option) any later version. &lt;br&gt;<a name="line.125"></a>
+<span class="sourceLineNo">126</span> * &lt;br&gt;<a name="line.126"></a>
+<span class="sourceLineNo">127</span> *          This library is distributed in the hope that it will be useful, but<a name="line.127"></a>
+<span class="sourceLineNo">128</span> *          WITHOUT ANY WARRANTY; without even the implied warranty of<a name="line.128"></a>
+<span class="sourceLineNo">129</span> *          MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU<a name="line.129"></a>
+<span class="sourceLineNo">130</span> *          Lesser General Public License for more details. &lt;br&gt;<a name="line.130"></a>
+<span class="sourceLineNo">131</span> * &lt;br&gt;<a name="line.131"></a>
+<span class="sourceLineNo">132</span> *          You should have received a copy of the GNU Lesser General Public<a name="line.132"></a>
+<span class="sourceLineNo">133</span> *          License along with this library; if not see &lt;a href='http://www.gnu.org/licenses'&gt;http://www.gnu.org/licenses&lt;/a&gt;.<a name="line.133"></a>
+<span class="sourceLineNo">134</span> * <a name="line.134"></a>
+<span class="sourceLineNo">135</span> * @param &lt;V&gt; Variable<a name="line.135"></a>
+<span class="sourceLineNo">136</span> * @param &lt;T&gt; Value<a name="line.136"></a>
+<span class="sourceLineNo">137</span> **/<a name="line.137"></a>
+<span class="sourceLineNo">138</span>public class GeneralValueSelection&lt;V extends Variable&lt;V, T&gt;, T extends Value&lt;V, T&gt;&gt; implements ValueSelection&lt;V, T&gt; {<a name="line.138"></a>
+<span class="sourceLineNo">139</span>    private double iRandomWalkProb = 0.0;<a name="line.139"></a>
+<span class="sourceLineNo">140</span>    private double iInitialSelectionProb = 0.0;<a name="line.140"></a>
+<span class="sourceLineNo">141</span>    private double iGoodSelectionProb = 0.0;<a name="line.141"></a>
+<span class="sourceLineNo">142</span>    private int iMPPLimit = -1;<a name="line.142"></a>
+<span class="sourceLineNo">143</span><a name="line.143"></a>
+<span class="sourceLineNo">144</span>    private double iWeightDeltaInitialAssignment = 0.0;<a name="line.144"></a>
+<span class="sourceLineNo">145</span>    private double iWeightPotentialConflicts = 0.0;<a name="line.145"></a>
+<span class="sourceLineNo">146</span>    private double iWeightWeightedCoflicts = 0.0;<a name="line.146"></a>
+<span class="sourceLineNo">147</span>    private double iWeightCoflicts = 1.0;<a name="line.147"></a>
+<span class="sourceLineNo">148</span>    private double iWeightValue = 0.0;<a name="line.148"></a>
+<span class="sourceLineNo">149</span><a name="line.149"></a>
+<span class="sourceLineNo">150</span>    protected int iTabuSize = 0;<a name="line.150"></a>
+<span class="sourceLineNo">151</span>    protected ArrayList&lt;T&gt; iTabu = null;<a name="line.151"></a>
+<span class="sourceLineNo">152</span>    protected int iTabuPos = 0;<a name="line.152"></a>
+<span class="sourceLineNo">153</span><a name="line.153"></a>
+<span class="sourceLineNo">154</span>    private boolean iMPP = false;<a name="line.154"></a>
+<span class="sourceLineNo">155</span>    private ConflictStatistics&lt;V, T&gt; iStat = null;<a name="line.155"></a>
+<span class="sourceLineNo">156</span>    private MacPropagation&lt;V, T&gt; iProp = null;<a name="line.156"></a>
+<span class="sourceLineNo">157</span>    private ViolatedInitials&lt;V, T&gt; iViolatedInitials = null;<a name="line.157"></a>
+<span class="sourceLineNo">158</span><a name="line.158"></a>
+<span class="sourceLineNo">159</span>    public GeneralValueSelection() {<a name="line.159"></a>
+<span class="sourceLineNo">160</span>    }<a name="line.160"></a>
+<span class="sourceLineNo">161</span><a name="line.161"></a>
+<span class="sourceLineNo">162</span>    /**<a name="line.162"></a>
+<span class="sourceLineNo">163</span>     * Constructor<a name="line.163"></a>
+<span class="sourceLineNo">164</span>     * <a name="line.164"></a>
+<span class="sourceLineNo">165</span>     * @param properties<a name="line.165"></a>
+<span class="sourceLineNo">166</span>     *            input configuration<a name="line.166"></a>
+<span class="sourceLineNo">167</span>     */<a name="line.167"></a>
+<span class="sourceLineNo">168</span>    public GeneralValueSelection(DataProperties properties) {<a name="line.168"></a>
+<span class="sourceLineNo">169</span>        iMPP = properties.getPropertyBoolean("General.MPP", false);<a name="line.169"></a>
+<span class="sourceLineNo">170</span>        if (iMPP) {<a name="line.170"></a>
+<span class="sourceLineNo">171</span>            iMPPLimit = properties.getPropertyInt("Value.MPPLimit", -1);<a name="line.171"></a>
+<span class="sourceLineNo">172</span>            iInitialSelectionProb = properties.getPropertyDouble("Value.InitialSelectionProb", 0.75);<a name="line.172"></a>
+<span class="sourceLineNo">173</span>            iWeightDeltaInitialAssignment = properties.getPropertyDouble("Value.WeightDeltaInitialAssignments", 0.0);<a name="line.173"></a>
+<span class="sourceLineNo">174</span>        }<a name="line.174"></a>
+<span class="sourceLineNo">175</span>        iGoodSelectionProb = properties.getPropertyDouble("Value.GoodSelectionProb", 0.00);<a name="line.175"></a>
+<span class="sourceLineNo">176</span>        iWeightWeightedCoflicts = properties.getPropertyDouble("Value.WeightWeightedConflicts", 1.0);<a name="line.176"></a>
+<span class="sourceLineNo">177</span>        iWeightPotentialConflicts = properties.getPropertyDouble("Value.WeightPotentialConflicts", 0.0);<a name="line.177"></a>
+<span class="sourceLineNo">178</span><a name="line.178"></a>
+<span class="sourceLineNo">179</span>        iRandomWalkProb = properties.getPropertyDouble("Value.RandomWalkProb", 0.0);<a name="line.179"></a>
+<span class="sourceLineNo">180</span>        iWeightCoflicts = properties.getPropertyDouble("Value.WeightConflicts", 1.0);<a name="line.180"></a>
+<span class="sourceLineNo">181</span>        iWeightValue = properties.getPropertyDouble("Value.WeightValue", 0.0);<a name="line.181"></a>
+<span class="sourceLineNo">182</span>        iTabuSize = properties.getPropertyInt("Value.Tabu", 0);<a name="line.182"></a>
+<span class="sourceLineNo">183</span>        if (iTabuSize &gt; 0)<a name="line.183"></a>
+<span class="sourceLineNo">184</span>            iTabu = new ArrayList&lt;T&gt;(iTabuSize);<a name="line.184"></a>
+<span class="sourceLineNo">185</span>    }<a name="line.185"></a>
+<span class="sourceLineNo">186</span><a name="line.186"></a>
+<span class="sourceLineNo">187</span>    /** Initialization */<a name="line.187"></a>
+<span class="sourceLineNo">188</span>    @Override<a name="line.188"></a>
+<span class="sourceLineNo">189</span>    public void init(Solver&lt;V, T&gt; solver) {<a name="line.189"></a>
+<span class="sourceLineNo">190</span>        for (Extension&lt;V, T&gt; extension : solver.getExtensions()) {<a name="line.190"></a>
+<span class="sourceLineNo">191</span>            if (ConflictStatistics.class.isInstance(extension))<a name="line.191"></a>
+<span class="sourceLineNo">192</span>                iStat = (ConflictStatistics&lt;V, T&gt;) extension;<a name="line.192"></a>
+<span class="sourceLineNo">193</span>            if (MacPropagation.class.isInstance(extension))<a name="line.193"></a>
+<span class="sourceLineNo">194</span>                iProp = (MacPropagation&lt;V, T&gt;) extension;<a name="line.194"></a>
+<span class="sourceLineNo">195</span>            if (ViolatedInitials.class.isInstance(extension))<a name="line.195"></a>
+<span class="sourceLineNo">196</span>                iViolatedInitials = (ViolatedInitials&lt;V, T&gt;) extension;<a name="line.196"></a>
+<span class="sourceLineNo">197</span>        }<a name="line.197"></a>
+<span class="sourceLineNo">198</span>    }<a name="line.198"></a>
+<span class="sourceLineNo">199</span><a name="line.199"></a>
+<span class="sourceLineNo">200</span>    /** Value selection */<a name="line.200"></a>
+<span class="sourceLineNo">201</span>    @Override<a name="line.201"></a>
+<span class="sourceLineNo">202</span>    public T selectValue(Solution&lt;V, T&gt; solution, V selectedVariable) {<a name="line.202"></a>
+<span class="sourceLineNo">203</span>        if (iMPP) {<a name="line.203"></a>
+<span class="sourceLineNo">204</span>            if (selectedVariable.getInitialAssignment() != null) {<a name="line.204"></a>
+<span class="sourceLineNo">205</span>                if (solution.getModel().variables().size() == solution.getAssignment().nrAssignedVariables()) {<a name="line.205"></a>
+<span class="sourceLineNo">206</span>                    if (solution.getModel().perturbVariables(solution.getAssignment()).size() &lt;= iMPPLimit)<a name="line.206"></a>
+<span class="sourceLineNo">207</span>                        iMPPLimit = solution.getModel().perturbVariables(solution.getAssignment()).size() - 1;<a name="line.207"></a>
+<span class="sourceLineNo">208</span>                }<a name="line.208"></a>
+<span class="sourceLineNo">209</span>                if (iMPPLimit &gt;= 0 &amp;&amp; solution.getModel().perturbVariables(solution.getAssignment()).size() &gt; iMPPLimit)<a name="line.209"></a>
+<span class="sourceLineNo">210</span>                    return selectedVariable.getInitialAssignment();<a name="line.210"></a>
+<span class="sourceLineNo">211</span>                if (selectedVariable.getInitialAssignment() != null &amp;&amp; ToolBox.random() &lt;= iInitialSelectionProb)<a name="line.211"></a>
+<span class="sourceLineNo">212</span>                    return selectedVariable.getInitialAssignment();<a name="line.212"></a>
+<span class="sourceLineNo">213</span>            }<a name="line.213"></a>
+<span class="sourceLineNo">214</span>        }<a name="line.214"></a>
+<span class="sourceLineNo">215</span><a name="line.215"></a>
+<span class="sourceLineNo">216</span>        T oldValue = solution.getAssignment().getValue(selectedVariable);<a name="line.216"></a>
+<span class="sourceLineNo">217</span>        List&lt;T&gt; values = selectedVariable.values(solution.getAssignment());<a name="line.217"></a>
+<span class="sourceLineNo">218</span>        if (ToolBox.random() &lt;= iRandomWalkProb)<a name="line.218"></a>
+<span class="sourceLineNo">219</span>            return ToolBox.random(values);<a name="line.219"></a>
+<span class="sourceLineNo">220</span>        if (iProp != null &amp;&amp; oldValue == null &amp;&amp; ToolBox.random() &lt;= iGoodSelectionProb) {<a name="line.220"></a>
+<span class="sourceLineNo">221</span>            Collection&lt;T&gt; goodValues = iProp.goodValues(solution.getAssignment(), selectedVariable);<a name="line.221"></a>
+<span class="sourceLineNo">222</span>            if (!goodValues.isEmpty())<a name="line.222"></a>
+<span class="sourceLineNo">223</span>                values = new ArrayList&lt;T&gt;(goodValues);<a name="line.223"></a>
+<span class="sourceLineNo">224</span>        }<a name="line.224"></a>
+<span class="sourceLineNo">225</span>        if (values.size() == 1)<a name="line.225"></a>
+<span class="sourceLineNo">226</span>            return values.get(0);<a name="line.226"></a>
+<span class="sourceLineNo">227</span><a name="line.227"></a>
+<span class="sourceLineNo">228</span>        List&lt;T&gt; bestValues = null;<a name="line.228"></a>
+<span class="sourceLineNo">229</span>        double bestWeightedSum = 0;<a name="line.229"></a>
+<span class="sourceLineNo">230</span><a name="line.230"></a>
+<span class="sourceLineNo">231</span>        for (T value : values) {<a name="line.231"></a>
+<span class="sourceLineNo">232</span>            if (iTabu != null &amp;&amp; iTabu.contains(value))<a name="line.232"></a>
+<span class="sourceLineNo">233</span>                continue;<a name="line.233"></a>
+<span class="sourceLineNo">234</span>            if (oldValue != null &amp;&amp; oldValue.equals(value))<a name="line.234"></a>
+<span class="sourceLineNo">235</span>                continue;<a name="line.235"></a>
+<span class="sourceLineNo">236</span><a name="line.236"></a>
+<span class="sourceLineNo">237</span>            Collection&lt;T&gt; conf = solution.getModel().conflictValues(solution.getAssignment(), value);<a name="line.237"></a>
+<span class="sourceLineNo">238</span>            if (conf.contains(value))<a name="line.238"></a>
+<span class="sourceLineNo">239</span>                continue;<a name="line.239"></a>
+<span class="sourceLineNo">240</span><a name="line.240"></a>
+<span class="sourceLineNo">241</span>            double weightedConflicts = (iStat == null || iWeightWeightedCoflicts == 0.0 ? 0.0 : iStat.countRemovals(solution.getIteration(), conf, value));<a name="line.241"></a>
+<span class="sourceLineNo">242</span>            double potentialConflicts = (iStat == null || iWeightPotentialConflicts == 0.0 ? 0.0 : iStat.countPotentialConflicts(solution.getAssignment(), solution.getIteration(), value, 3));<a name="line.242"></a>
+<span class="sourceLineNo">243</span><a name="line.243"></a>
+<span class="sourceLineNo">244</span>            long deltaInitialAssignments = 0;<a name="line.244"></a>
+<span class="sourceLineNo">245</span>            if (iMPP &amp;&amp; iWeightDeltaInitialAssignment != 0.0) {<a name="line.245"></a>
+<span class="sourceLineNo">246</span>                if (iViolatedInitials != null) {<a name="line.246"></a>
+<span class="sourceLineNo">247</span>                    Set&lt;T&gt; violations = iViolatedInitials.getViolatedInitials(value);<a name="line.247"></a>
+<span class="sourceLineNo">248</span>                    if (violations != null) {<a name="line.248"></a>
+<span class="sourceLineNo">249</span>                        for (T aValue : violations) {<a name="line.249"></a>
+<span class="sourceLineNo">250</span>                            T aOld = solution.getAssignment().getValue(aValue.variable());<a name="line.250"></a>
+<span class="sourceLineNo">251</span>                            if (aOld == null || aOld.equals(aValue))<a name="line.251"></a>
+<span class="sourceLineNo">252</span>                                deltaInitialAssignments += 2;<a name="line.252"></a>
+<span class="sourceLineNo">253</span>                        }<a name="line.253"></a>
+<span class="sourceLineNo">254</span>                    }<a name="line.254"></a>
+<span class="sourceLineNo">255</span>                }<a name="line.255"></a>
+<span class="sourceLineNo">256</span>                for (Iterator&lt;T&gt; it1 = conf.iterator(); it1.hasNext();) {<a name="line.256"></a>
+<span class="sourceLineNo">257</span>                    T aValue = it1.next();<a name="line.257"></a>
+<span class="sourceLineNo">258</span>                    if (aValue.variable().getInitialAssignment() != null)<a name="line.258"></a>
+<span class="sourceLineNo">259</span>                        deltaInitialAssignments--;<a name="line.259"></a>
+<span class="sourceLineNo">260</span>                }<a name="line.260"></a>
+<span class="sourceLineNo">261</span>                if (selectedVariable.getInitialAssignment() != null<a name="line.261"></a>
+<span class="sourceLineNo">262</span>                        &amp;&amp; !selectedVariable.getInitialAssignment().equals(value)) {<a name="line.262"></a>
+<span class="sourceLineNo">263</span>                    deltaInitialAssignments++;<a name="line.263"></a>
+<span class="sourceLineNo">264</span>                }<a name="line.264"></a>
+<span class="sourceLineNo">265</span>                if (iMPPLimit &gt;= 0 &amp;&amp; (solution.getModel().perturbVariables(solution.getAssignment()).size() + deltaInitialAssignments) &gt; iMPPLimit)<a name="line.265"></a>
+<span class="sourceLineNo">266</span>                    continue;<a name="line.266"></a>
+<span class="sourceLineNo">267</span>            }<a name="line.267"></a>
+<span class="sourceLineNo">268</span><a name="line.268"></a>
+<span class="sourceLineNo">269</span>            double weightedSum = (iWeightDeltaInitialAssignment * deltaInitialAssignments)<a name="line.269"></a>
+<span class="sourceLineNo">270</span>                    + (iWeightPotentialConflicts * potentialConflicts) + (iWeightWeightedCoflicts * weightedConflicts)<a name="line.270"></a>
+<span class="sourceLineNo">271</span>                    + (iWeightCoflicts * conf.size()) + (iWeightValue * value.toDouble(solution.getAssignment()));<a name="line.271"></a>
+<span class="sourceLineNo">272</span><a name="line.272"></a>
+<span class="sourceLineNo">273</span>            if (bestValues == null || bestWeightedSum &gt; weightedSum) {<a name="line.273"></a>
+<span class="sourceLineNo">274</span>                bestWeightedSum = weightedSum;<a name="line.274"></a>
+<span class="sourceLineNo">275</span>                if (bestValues == null)<a name="line.275"></a>
+<span class="sourceLineNo">276</span>                    bestValues = new ArrayList&lt;T&gt;();<a name="line.276"></a>
+<span class="sourceLineNo">277</span>                else<a name="line.277"></a>
+<span class="sourceLineNo">278</span>                    bestValues.clear();<a name="line.278"></a>
+<span class="sourceLineNo">279</span>                bestValues.add(value);<a name="line.279"></a>
+<span class="sourceLineNo">280</span>            } else {<a name="line.280"></a>
+<span class="sourceLineNo">281</span>                if (bestWeightedSum == weightedSum)<a name="line.281"></a>
+<span class="sourceLineNo">282</span>                    bestValues.add(value);<a name="line.282"></a>
+<span class="sourceLineNo">283</span>            }<a name="line.283"></a>
+<span class="sourceLineNo">284</span>        }<a name="line.284"></a>
+<span class="sourceLineNo">285</span><a name="line.285"></a>
+<span class="sourceLineNo">286</span>        T selectedValue = (bestValues == null ? null : ToolBox.random(bestValues));<a name="line.286"></a>
+<span class="sourceLineNo">287</span>        if (selectedValue == null)<a name="line.287"></a>
+<span class="sourceLineNo">288</span>            selectedValue = ToolBox.random(values);<a name="line.288"></a>
+<span class="sourceLineNo">289</span>        if (iTabu != null) {<a name="line.289"></a>
+<span class="sourceLineNo">290</span>            if (iTabu.size() == iTabuPos)<a name="line.290"></a>
+<span class="sourceLineNo">291</span>                iTabu.add(selectedValue);<a name="line.291"></a>
+<span class="sourceLineNo">292</span>            else<a name="line.292"></a>
+<span class="sourceLineNo">293</span>                iTabu.set(iTabuPos, selectedValue);<a name="line.293"></a>
+<span class="sourceLineNo">294</span>            iTabuPos = (iTabuPos + 1) % iTabuSize;<a name="line.294"></a>
+<span class="sourceLineNo">295</span>        }<a name="line.295"></a>
+<span class="sourceLineNo">296</span>        return (bestValues == null ? null : selectedValue);<a name="line.296"></a>
+<span class="sourceLineNo">297</span>    }<a name="line.297"></a>
+<span class="sourceLineNo">298</span><a name="line.298"></a>
+<span class="sourceLineNo">299</span>}<a name="line.299"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

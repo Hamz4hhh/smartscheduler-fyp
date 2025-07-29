@@ -1,0 +1,202 @@
+30-Jul-25 03:09:09.549 [main] INFO  util.Progress> [Restoring from backup ...]
+30-Jul-25 03:09:09.791 [main] INFO  util.Progress> Model successfully loaded.
+30-Jul-25 03:09:09.796 [Solver] INFO  util.Progress> [Solving problem ...]
+30-Jul-25 03:09:09.797 [Solver] INFO  solver.Solver> Using org.cpsolver.ifs.termination.MPPTerminationCondition
+30-Jul-25 03:09:09.799 [Solver] INFO  solver.Solver> Using org.cpsolver.coursett.heuristics.TimetableComparator
+30-Jul-25 03:09:09.802 [Solver] INFO  solver.Solver> Using org.cpsolver.ifs.algorithms.SimpleSearch
+30-Jul-25 03:09:09.806 [Solver] INFO  heuristics.StandardNeighbourSelection> Using org.cpsolver.coursett.heuristics.PlacementSelection
+30-Jul-25 03:09:09.809 [Solver] INFO  heuristics.StandardNeighbourSelection> Using org.cpsolver.coursett.heuristics.LectureSelection
+30-Jul-25 03:09:09.858 [Solver] INFO  heuristics.StandardNeighbourSelection> Using org.cpsolver.coursett.heuristics.PlacementSelection
+30-Jul-25 03:09:09.860 [Solver] INFO  heuristics.StandardNeighbourSelection> Using org.cpsolver.coursett.heuristics.LectureSelection
+30-Jul-25 03:09:09.867 [Solver] INFO  heuristics.StandardNeighbourSelection> Using org.cpsolver.coursett.heuristics.PlacementSelection
+30-Jul-25 03:09:09.867 [Solver] INFO  heuristics.StandardNeighbourSelection> Using org.cpsolver.coursett.heuristics.LectureSelection
+30-Jul-25 03:09:09.868 [Solver] INFO  heuristics.StandardNeighbourSelection> Using org.cpsolver.coursett.heuristics.PlacementSelection
+30-Jul-25 03:09:09.869 [Solver] INFO  heuristics.StandardNeighbourSelection> Using org.cpsolver.coursett.heuristics.LectureSelection
+30-Jul-25 03:09:09.871 [Solver] INFO  heuristics.StandardNeighbourSelection> Using org.cpsolver.coursett.heuristics.PlacementSelection
+30-Jul-25 03:09:09.871 [Solver] INFO  heuristics.StandardNeighbourSelection> Using org.cpsolver.coursett.heuristics.LectureSelection
+30-Jul-25 03:09:09.872 [Solver] INFO  solver.Solver> Using org.cpsolver.coursett.heuristics.UniversalPerturbationsCounter
+30-Jul-25 03:09:09.875 [Solver] INFO  solver.Solver> Using org.cpsolver.ifs.extension.ConflictStatistics
+30-Jul-25 03:09:09.883 [Solver] INFO  util.JProf> Using wall time.
+30-Jul-25 03:09:09.890 [Solver] INFO  solver.Solver> Initial solution:[
+    Assigned variables: 0.00% (0/150)
+    Back-to-back instructor preferences: 100.00% (0)
+    Distribution preferences: 100.00% (0.00)
+    Iteration: 0
+    Memory usage: 21.23M
+    Overall solution value: 0.00
+    Room preferences: 100.00% (0)
+    Same subpart balancing penalty: 0.00
+    Student conflicts: 0 [committed:0, distance:0, hard:0]
+    Time: 0.00 min
+    Time preferences: 100.00% (0.00)
+    Too big rooms: 0.00% (0)
+    Useless half-hours: 0.00% (0 + 0)
+  ]
+30-Jul-25 03:09:09.894 [Solver] INFO  coursett.Test> **BEST[0]** V:0/150, T:0.00
+30-Jul-25 03:09:09.895 [Solver] INFO  util.Progress> [Solver] Construction...
+30-Jul-25 03:09:09.907 [Solver] INFO  coursett.Test> **BEST[1]** V:1/150, T:0.00
+30-Jul-25 03:09:09.915 [Solver] INFO  coursett.Test> **BEST[2]** V:2/150, T:0.00
+30-Jul-25 03:09:09.928 [Solver] INFO  coursett.Test> **BEST[3]** V:3/150, T:0.00
+30-Jul-25 03:09:09.938 [Solver] INFO  coursett.Test> **BEST[4]** V:4/150, T:0.00
+30-Jul-25 03:09:09.949 [Solver] INFO  coursett.Test> **BEST[5]** V:5/150, T:0.00
+30-Jul-25 03:09:09.954 [Solver] INFO  coursett.Test> **BEST[6]** V:6/150, T:0.00
+30-Jul-25 03:09:09.969 [Solver] INFO  coursett.Test> **BEST[7]** V:7/150, T:0.00
+30-Jul-25 03:09:10.066 [Solver] INFO  coursett.Test> **BEST[8]** V:8/150, T:0.00
+30-Jul-25 03:09:10.071 [Solver] INFO  coursett.Test> **BEST[9]** V:9/150, T:0.00
+30-Jul-25 03:09:10.075 [Solver] INFO  coursett.Test> **BEST[10]** V:10/150, T:0.00
+30-Jul-25 03:09:10.086 [Solver] INFO  coursett.Test> **BEST[11]** V:11/150, T:0.00
+30-Jul-25 03:09:10.091 [Solver] INFO  coursett.Test> **BEST[12]** V:12/150, T:0.00
+30-Jul-25 03:09:10.101 [Solver] INFO  coursett.Test> **BEST[13]** V:13/150, T:0.00
+30-Jul-25 03:09:10.107 [Solver] INFO  coursett.Test> **BEST[14]** V:14/150, T:0.00
+30-Jul-25 03:09:10.115 [Solver] INFO  coursett.Test> **BEST[15]** V:15/150, T:0.00
+30-Jul-25 03:09:10.118 [Solver] INFO  coursett.Test> **BEST[16]** V:16/150, T:0.00
+30-Jul-25 03:09:10.121 [Solver] INFO  coursett.Test> **BEST[17]** V:17/150, T:0.00
+30-Jul-25 03:09:10.129 [Solver] INFO  coursett.Test> **BEST[18]** V:18/150, T:0.00
+30-Jul-25 03:09:10.134 [Solver] INFO  coursett.Test> **BEST[19]** V:19/150, T:0.00
+30-Jul-25 03:09:10.153 [Solver] INFO  coursett.Test> **BEST[20]** V:20/150, T:0.00
+30-Jul-25 03:09:10.188 [Solver] INFO  coursett.Test> **BEST[21]** V:21/150, T:0.00
+30-Jul-25 03:09:10.341 [Solver] INFO  coursett.Test> **BEST[22]** V:22/150, T:0.00
+30-Jul-25 03:09:10.366 [Solver] INFO  coursett.Test> **BEST[23]** V:23/150, T:0.00
+30-Jul-25 03:09:10.378 [Solver] INFO  coursett.Test> **BEST[24]** V:24/150, T:0.00
+30-Jul-25 03:09:10.387 [Solver] INFO  coursett.Test> **BEST[25]** V:25/150, T:0.00
+30-Jul-25 03:09:10.390 [Solver] INFO  coursett.Test> **BEST[26]** V:26/150, T:0.00
+30-Jul-25 03:09:10.398 [Solver] INFO  coursett.Test> **BEST[27]** V:27/150, T:0.00
+30-Jul-25 03:09:10.404 [Solver] INFO  coursett.Test> **BEST[28]** V:28/150, T:0.00
+30-Jul-25 03:09:10.408 [Solver] INFO  coursett.Test> **BEST[29]** V:29/150, T:0.00
+30-Jul-25 03:09:10.413 [Solver] INFO  coursett.Test> **BEST[30]** V:30/150, T:0.00
+30-Jul-25 03:09:10.419 [Solver] INFO  coursett.Test> **BEST[31]** V:31/150, T:0.00
+30-Jul-25 03:09:10.422 [Solver] INFO  coursett.Test> **BEST[32]** V:32/150, T:0.10, BTP:1
+30-Jul-25 03:09:10.426 [Solver] INFO  coursett.Test> **BEST[33]** V:33/150, T:0.10, BTP:1
+30-Jul-25 03:09:10.430 [Solver] INFO  coursett.Test> **BEST[34]** V:34/150, T:0.10, BTP:1
+30-Jul-25 03:09:10.474 [Solver] INFO  coursett.Test> **BEST[35]** V:35/150, T:0.00
+30-Jul-25 03:09:10.540 [Solver] INFO  coursett.Test> **BEST[36]** V:36/150, T:0.00
+30-Jul-25 03:09:10.545 [Solver] INFO  coursett.Test> **BEST[37]** V:37/150, T:0.20, BTP:2
+30-Jul-25 03:09:10.580 [Solver] INFO  coursett.Test> **BEST[38]** V:38/150, T:0.40, BTP:4
+30-Jul-25 03:09:10.584 [Solver] INFO  coursett.Test> **BEST[39]** V:39/150, T:0.40, BTP:4
+30-Jul-25 03:09:10.589 [Solver] INFO  coursett.Test> **BEST[40]** V:40/150, T:0.40, BTP:4
+30-Jul-25 03:09:10.597 [Solver] INFO  coursett.Test> **BEST[41]** V:41/150, T:0.40, BTP:4
+30-Jul-25 03:09:10.605 [Solver] INFO  coursett.Test> **BEST[42]** V:42/150, T:0.80, BTP:8
+30-Jul-25 03:09:10.612 [Solver] INFO  coursett.Test> **BEST[43]** V:43/150, T:0.60, BTP:6
+30-Jul-25 03:09:10.616 [Solver] INFO  coursett.Test> **BEST[44]** V:44/150, T:0.60, BTP:6
+30-Jul-25 03:09:10.622 [Solver] INFO  coursett.Test> **BEST[45]** V:45/150, T:0.70, BTP:6, TBR:1
+30-Jul-25 03:09:10.629 [Solver] INFO  coursett.Test> **BEST[46]** V:46/150, T:0.90, BTP:8, TBR:1
+30-Jul-25 03:09:10.635 [Solver] INFO  coursett.Test> **BEST[47]** V:47/150, T:0.90, BTP:8, TBR:1
+30-Jul-25 03:09:10.640 [Solver] INFO  coursett.Test> **BEST[48]** V:48/150, T:0.70, BTP:6, TBR:1
+30-Jul-25 03:09:10.643 [Solver] INFO  coursett.Test> **BEST[49]** V:49/150, T:0.90, BTP:8, TBR:1
+30-Jul-25 03:09:10.648 [Solver] INFO  coursett.Test> **BEST[50]** V:50/150, T:1.00, BTP:8, TBR:2
+30-Jul-25 03:09:10.707 [Solver] INFO  coursett.Test> **BEST[51]** V:51/150, T:1.20, BTP:10, TBR:2
+30-Jul-25 03:09:10.725 [Solver] INFO  coursett.Test> **BEST[52]** V:52/150, T:1.60, BTP:14, TBR:2
+30-Jul-25 03:09:10.746 [Solver] INFO  coursett.Test> **BEST[53]** V:53/150, T:1.70, BTP:14, TBR:3
+30-Jul-25 03:09:10.759 [Solver] INFO  coursett.Test> **BEST[54]** V:54/150, T:1.70, BTP:14, TBR:3
+30-Jul-25 03:09:10.778 [Solver] INFO  coursett.Test> **BEST[55]** V:55/150, T:1.70, BTP:14, TBR:3
+30-Jul-25 03:09:10.792 [Solver] INFO  coursett.Test> **BEST[56]** V:56/150, T:1.70, BTP:14, TBR:3
+30-Jul-25 03:09:10.795 [Solver] INFO  coursett.Test> **BEST[57]** V:57/150, T:1.50, BTP:12, TBR:3
+30-Jul-25 03:09:10.808 [Solver] INFO  coursett.Test> **BEST[58]** V:58/150, T:1.30, BTP:10, TBR:3
+30-Jul-25 03:09:10.831 [Solver] INFO  coursett.Test> **BEST[59]** V:59/150, T:0.90, BTP:6, TBR:3
+30-Jul-25 03:09:10.851 [Solver] INFO  coursett.Test> **BEST[60]** V:60/150, T:1.30, BTP:10, TBR:3
+30-Jul-25 03:09:11.356 [Solver] INFO  coursett.Test> **BEST[61]** V:61/150, T:1.30, BTP:10, TBR:3
+30-Jul-25 03:09:11.360 [Solver] INFO  coursett.Test> **BEST[62]** V:62/150, T:1.70, BTP:14, TBR:3
+30-Jul-25 03:09:11.363 [Solver] INFO  coursett.Test> **BEST[63]** V:63/150, T:1.80, BTP:14, TBR:4
+30-Jul-25 03:09:11.368 [Solver] INFO  coursett.Test> **BEST[64]** V:64/150, T:2.20, BTP:18, TBR:4
+30-Jul-25 03:09:11.373 [Solver] INFO  coursett.Test> **BEST[65]** V:65/150, T:2.40, BTP:20, TBR:4
+30-Jul-25 03:09:11.390 [Solver] INFO  coursett.Test> **BEST[66]** V:66/150, T:2.50, BTP:20, TBR:5, RSP:5
+30-Jul-25 03:09:11.393 [Solver] INFO  coursett.Test> **BEST[67]** V:67/150, T:2.31, BTP:18, TBR:5, RSP:5
+30-Jul-25 03:09:11.435 [Solver] INFO  coursett.Test> **BEST[68]** V:68/150, T:2.10, BTP:16, TBR:5, RSP:5
+30-Jul-25 03:09:11.457 [Solver] INFO  coursett.Test> **BEST[69]** V:69/150, T:2.31, BTP:18, TBR:5, RSP:5
+30-Jul-25 03:09:11.463 [Solver] INFO  coursett.Test> **BEST[70]** V:70/150, T:2.50, BTP:20, TBR:5, RSP:5
+30-Jul-25 03:09:11.467 [Solver] INFO  coursett.Test> **BEST[71]** V:71/150, T:2.31, BTP:18, TBR:5, RSP:5
+30-Jul-25 03:09:11.510 [Solver] INFO  coursett.Test> **BEST[72]** V:72/150, T:2.10, BTP:16, TBR:5, RSP:5
+30-Jul-25 03:09:11.516 [Solver] INFO  coursett.Test> **BEST[73]** V:73/150, T:1.91, BTP:14, TBR:5, RSP:5
+30-Jul-25 03:09:11.518 [Solver] INFO  coursett.Test> **BEST[74]** V:74/150, T:1.91, BTP:14, TBR:5, RSP:5
+30-Jul-25 03:09:11.521 [Solver] INFO  coursett.Test> **BEST[75]** V:75/150, T:2.10, BTP:16, TBR:5, RSP:5
+30-Jul-25 03:09:11.526 [Solver] INFO  coursett.Test> **BEST[76]** V:76/150, T:2.31, BTP:18, TBR:5, RSP:5
+30-Jul-25 03:09:11.530 [Solver] INFO  coursett.Test> **BEST[77]** V:77/150, T:2.31, BTP:18, TBR:5, RSP:5
+30-Jul-25 03:09:11.533 [Solver] INFO  coursett.Test> **BEST[78]** V:78/150, T:2.10, BTP:16, TBR:5, RSP:5
+30-Jul-25 03:09:11.535 [Solver] INFO  coursett.Test> **BEST[79]** V:79/150, T:2.50, BTP:20, TBR:5, RSP:5
+30-Jul-25 03:09:11.537 [Solver] INFO  coursett.Test> **BEST[80]** V:80/150, T:2.50, BTP:20, TBR:5, RSP:5
+30-Jul-25 03:09:11.539 [Solver] INFO  coursett.Test> **BEST[81]** V:81/150, T:2.31, BTP:18, TBR:5, RSP:5
+30-Jul-25 03:09:11.542 [Solver] INFO  coursett.Test> **BEST[82]** V:82/150, T:2.31, BTP:18, TBR:5, RSP:5
+30-Jul-25 03:09:11.546 [Solver] INFO  coursett.Test> **BEST[83]** V:83/150, T:2.10, BTP:16, TBR:5, RSP:5
+30-Jul-25 03:09:11.548 [Solver] INFO  coursett.Test> **BEST[84]** V:84/150, T:2.50, BTP:20, TBR:5, RSP:5
+30-Jul-25 03:09:11.551 [Solver] INFO  coursett.Test> **BEST[85]** V:85/150, T:2.91, BTP:24, TBR:5, RSP:5
+30-Jul-25 03:09:11.554 [Solver] INFO  coursett.Test> **BEST[86]** V:86/150, T:2.91, BTP:24, TBR:5, RSP:5
+30-Jul-25 03:09:11.560 [Solver] INFO  coursett.Test> **BEST[87]** V:87/150, T:2.71, BTP:22, TBR:5, RSP:5
+30-Jul-25 03:09:11.564 [Solver] INFO  coursett.Test> **BEST[88]** V:88/150, T:2.71, BTP:22, TBR:5, RSP:5
+30-Jul-25 03:09:11.569 [Solver] INFO  coursett.Test> **BEST[89]** V:89/150, T:2.91, BTP:24, TBR:5, RSP:5
+30-Jul-25 03:09:11.573 [Solver] INFO  coursett.Test> **BEST[90]** V:90/150, T:2.71, BTP:22, TBR:5, RSP:5
+30-Jul-25 03:09:11.575 [Solver] INFO  coursett.Test> **BEST[91]** V:91/150, T:2.71, BTP:22, TBR:5, RSP:5
+30-Jul-25 03:09:11.603 [Solver] INFO  coursett.Test> **BEST[92]** V:92/150, T:2.71, BTP:22, TBR:5, RSP:5
+30-Jul-25 03:09:11.608 [Solver] INFO  coursett.Test> **BEST[93]** V:93/150, T:2.91, BTP:24, TBR:5, RSP:5
+30-Jul-25 03:09:11.611 [Solver] INFO  coursett.Test> **BEST[94]** V:94/150, T:2.71, BTP:22, TBR:5, RSP:5
+30-Jul-25 03:09:11.618 [Solver] INFO  coursett.Test> **BEST[95]** V:95/150, T:2.50, BTP:20, TBR:5, RSP:5
+30-Jul-25 03:09:11.622 [Solver] INFO  coursett.Test> **BEST[96]** V:96/150, T:2.71, BTP:22, TBR:5, RSP:5
+30-Jul-25 03:09:11.626 [Solver] INFO  coursett.Test> **BEST[97]** V:97/150, T:2.50, BTP:20, TBR:5, RSP:5
+30-Jul-25 03:09:11.649 [Solver] INFO  coursett.Test> **BEST[98]** V:98/150, T:2.50, BTP:20, TBR:5, RSP:5
+30-Jul-25 03:09:11.652 [Solver] INFO  coursett.Test> **BEST[99]** V:99/150, T:2.31, BTP:18, TBR:5, RSP:5
+30-Jul-25 03:09:11.657 [Solver] INFO  coursett.Test> **BEST[100]** V:100/150, T:2.41, BTP:18, TBR:6, RSP:6
+30-Jul-25 03:09:11.660 [Solver] INFO  coursett.Test> **BEST[101]** V:101/150, T:2.61, BTP:20, TBR:6, RSP:6
+30-Jul-25 03:09:11.662 [Solver] INFO  coursett.Test> **BEST[102]** V:102/150, T:2.61, BTP:20, TBR:6, RSP:6
+30-Jul-25 03:09:11.665 [Solver] INFO  coursett.Test> **BEST[103]** V:103/150, T:2.71, BTP:20, TBR:7, RSP:7
+30-Jul-25 03:09:11.667 [Solver] INFO  coursett.Test> **BEST[104]** V:104/150, T:3.11, BTP:24, TBR:7, RSP:7
+30-Jul-25 03:09:11.670 [Solver] INFO  coursett.Test> **BEST[105]** V:105/150, T:2.71, BTP:20, TBR:7, RSP:7
+30-Jul-25 03:09:11.675 [Solver] INFO  coursett.Test> **BEST[106]** V:106/150, T:2.91, BTP:22, TBR:7, RSP:7
+30-Jul-25 03:09:11.677 [Solver] INFO  coursett.Test> **BEST[107]** V:107/150, T:3.31, BTP:26, TBR:7, RSP:7
+30-Jul-25 03:09:11.683 [Solver] INFO  coursett.Test> **BEST[108]** V:108/150, T:3.51, BTP:28, TBR:7, RSP:7
+30-Jul-25 03:09:11.687 [Solver] INFO  coursett.Test> **BEST[109]** V:109/150, T:3.31, BTP:26, TBR:7, RSP:7
+30-Jul-25 03:09:11.690 [Solver] INFO  coursett.Test> **BEST[110]** V:110/150, T:3.31, BTP:26, TBR:7, RSP:7
+30-Jul-25 03:09:11.695 [Solver] INFO  coursett.Test> **BEST[111]** V:111/150, T:3.11, BTP:24, TBR:7, RSP:7
+30-Jul-25 03:09:11.705 [Solver] INFO  coursett.Test> **BEST[112]** V:112/150, T:3.71, BTP:30, TBR:7, RSP:7
+30-Jul-25 03:09:11.713 [Solver] INFO  coursett.Test> **BEST[113]** V:113/150, T:3.81, BTP:30, TBR:8, RSP:8
+30-Jul-25 03:09:11.716 [Solver] INFO  coursett.Test> **BEST[114]** V:114/150, T:3.41, BTP:26, TBR:8, RSP:8
+30-Jul-25 03:09:11.720 [Solver] INFO  coursett.Test> **BEST[116]** V:115/150, T:16.01, TP:40 (91.07%), SOC:3, BTP:26, TBR:8, RSP:8
+30-Jul-25 03:09:11.723 [Solver] INFO  coursett.Test> **BEST[117]** V:116/150, T:15.61, TP:40 (91.07%), SOC:3, BTP:22, TBR:8, RSP:8
+30-Jul-25 03:09:11.735 [Solver] INFO  coursett.Test> **BEST[118]** V:117/150, T:15.61, TP:40 (91.07%), SOC:3, BTP:22, TBR:8, RSP:8
+30-Jul-25 03:09:11.739 [Solver] INFO  coursett.Test> **BEST[119]** V:118/150, T:15.71, TP:40 (91.07%), SOC:3, BTP:22, TBR:9, RSP:9
+30-Jul-25 03:09:11.743 [Solver] INFO  coursett.Test> **BEST[120]** V:119/150, T:15.81, TP:40 (91.07%), SOC:3, BTP:22, TBR:10, RSP:10
+30-Jul-25 03:09:11.746 [Solver] INFO  coursett.Test> **BEST[121]** V:120/150, T:15.61, TP:40 (91.07%), SOC:3, BTP:20, TBR:10, RSP:10
+30-Jul-25 03:09:11.749 [Solver] INFO  coursett.Test> **BEST[122]** V:121/150, T:15.41, TP:40 (91.07%), SOC:3, BTP:18, TBR:10, RSP:10
+30-Jul-25 03:09:11.752 [Solver] INFO  coursett.Test> **BEST[123]** V:122/150, T:15.61, TP:40 (91.07%), SOC:3, BTP:20, TBR:10, RSP:10
+30-Jul-25 03:09:11.757 [Solver] INFO  coursett.Test> **BEST[124]** V:123/150, T:15.81, TP:40 (91.07%), SOC:4, BTP:20, TBR:10, RSP:10
+30-Jul-25 03:09:11.761 [Solver] INFO  coursett.Test> **BEST[125]** V:124/150, T:15.91, TP:40 (91.07%), SOC:4, BTP:20, TBR:11, RSP:11
+30-Jul-25 03:09:11.771 [Solver] INFO  coursett.Test> **BEST[126]** V:125/150, T:16.51, TP:40 (91.07%), SOC:4, BTP:26, TBR:11, RSP:11
+30-Jul-25 03:09:11.775 [Solver] INFO  coursett.Test> **BEST[127]** V:126/150, T:16.81, TP:40 (91.07%), SOC:5, BTP:26, TBR:12, RSP:12
+30-Jul-25 03:09:11.778 [Solver] INFO  coursett.Test> **BEST[128]** V:127/150, T:16.81, TP:40 (91.07%), SOC:5, BTP:26, TBR:12, RSP:12
+30-Jul-25 03:09:11.783 [Solver] INFO  coursett.Test> **BEST[129]** V:128/150, T:16.61, TP:40 (91.07%), SOC:5, BTP:24, TBR:12, RSP:12
+30-Jul-25 03:09:11.787 [Solver] INFO  coursett.Test> **BEST[130]** V:129/150, T:16.61, TP:40 (91.07%), SOC:5, BTP:24, TBR:12, RSP:12
+30-Jul-25 03:09:11.793 [Solver] INFO  coursett.Test> **BEST[131]** V:130/150, T:17.21, TP:40 (91.07%), SOC:5, BTP:30, TBR:12, RSP:12
+30-Jul-25 03:09:11.800 [Solver] INFO  coursett.Test> **BEST[132]** V:131/150, T:18.01, TP:40 (91.07%), SOC:6, BTP:36, TBR:12, RSP:12
+30-Jul-25 03:09:11.804 [Solver] INFO  coursett.Test> **BEST[133]** V:132/150, T:18.21, TP:40 (91.07%), SOC:6, BTP:38, TBR:12, RSP:12
+30-Jul-25 03:09:11.808 [Solver] INFO  coursett.Test> **BEST[134]** V:133/150, T:18.41, TP:40 (91.07%), SOC:6, BTP:40, TBR:12, RSP:12
+30-Jul-25 03:09:11.824 [Solver] INFO  coursett.Test> **BEST[135]** V:134/150, T:18.51, TP:40 (91.07%), SOC:6, BTP:40, TBR:13, RSP:13
+30-Jul-25 03:09:11.829 [Solver] INFO  coursett.Test> **BEST[136]** V:135/150, T:18.41, TP:40 (91.07%), SOC:6, BTP:38, TBR:14, RSP:14
+30-Jul-25 03:09:11.832 [Solver] INFO  coursett.Test> **BEST[137]** V:136/150, T:18.61, TP:40 (91.07%), SOC:7, BTP:38, TBR:14, RSP:14
+30-Jul-25 03:09:11.835 [Solver] INFO  coursett.Test> **BEST[138]** V:137/150, T:19.01, TP:40 (91.07%), SOC:7, BTP:42, TBR:14, RSP:14
+30-Jul-25 03:09:11.838 [Solver] INFO  coursett.Test> **BEST[139]** V:138/150, T:19.12, TP:40 (91.07%), SOC:7, BTP:42, TBR:15, RSP:15
+30-Jul-25 03:09:11.846 [Solver] INFO  coursett.Test> **BEST[141]** V:139/150, T:19.72, TP:40 (91.07%), SOC:8, BTP:44, TBR:17, RSP:17
+30-Jul-25 03:09:11.852 [Solver] INFO  coursett.Test> **BEST[142]** V:140/150, T:21.92, SHC:2, TP:40 (91.07%), SOC:11, BTP:44, TBR:17, RSP:17
+30-Jul-25 03:09:11.858 [Solver] INFO  coursett.Test> **BEST[143]** V:140/150, T:9.72, SHC:2, SOC:10, BTP:44, TBR:17, RSP:17
+30-Jul-25 03:09:11.866 [Solver] INFO  coursett.Test> **BEST[144]** V:141/150, T:9.72, SHC:2, SOC:10, BTP:44, TBR:17, RSP:17
+30-Jul-25 03:09:11.924 [Solver] INFO  coursett.Test> **BEST[145]** V:142/150, T:9.72, SHC:2, SOC:10, BTP:44, TBR:17, RSP:17
+30-Jul-25 03:09:11.929 [Solver] INFO  coursett.Test> **BEST[146]** V:143/150, T:11.12, SHC:2, TP:4 (99.11%), SOC:11, BTP:44, TBR:17, RSP:17
+30-Jul-25 03:09:11.944 [Solver] INFO  coursett.Test> **BEST[147]** V:144/150, T:10.92, SHC:2, TP:4 (99.11%), SOC:11, BTP:42, TBR:17, RSP:17
+30-Jul-25 03:09:11.960 [Solver] INFO  coursett.Test> **BEST[149]** V:145/150, T:23.32, SHC:1, UHH:1, TP:44 (90.18%), SOC:12, BTP:48, TBR:17, RSP:17
+30-Jul-25 03:09:11.974 [Solver] INFO  coursett.Test> **BEST[150]** V:146/150, T:23.22, SHC:1, UHH:1, TP:44 (90.18%), SOC:12, BTP:46, TBR:18, RSP:18
+30-Jul-25 03:09:11.981 [Solver] INFO  coursett.Test> **BEST[151]** V:146/150, T:10.62, UHH:3, TP:4 (99.11%), SOC:9, BTP:46, TBR:18, RSP:18
+30-Jul-25 03:09:12.166 [Solver] INFO  coursett.Test> **BEST[152]** V:147/150, T:10.52, UHH:3, TP:4 (99.11%), SOC:8, BTP:46, TBR:19, RSP:19
+30-Jul-25 03:09:12.172 [Solver] INFO  coursett.Test> **BEST[153]** V:148/150, T:10.62, UHH:3, TP:4 (99.11%), SOC:8, BTP:46, TBR:20, RSP:20
+30-Jul-25 03:09:12.176 [Solver] INFO  coursett.Test> **BEST[155]** V:149/150, T:22.82, SHC:1, UHH:1, TP:44 (90.18%), SOC:11, BTP:42, TBR:20, RSP:20
+30-Jul-25 03:09:12.177 [Solver] INFO  coursett.Test> **BEST[156]** V:149/150, T:9.42, UHH:1, TP:4 (99.11%), SOC:8, BTP:42, TBR:20, RSP:20
+30-Jul-25 03:09:12.226 [Solver] INFO  coursett.Test> **BEST[163]** T:22.62, UHH:1, TP:44 (90.18%), SOC:13, BTP:44, TBR:20, RSP:20
+30-Jul-25 03:09:12.228 [Solver] INFO  util.Progress> [Solver] IFS...
+30-Jul-25 03:09:12.229 [Solver] INFO  util.Progress> [Solver] Hill Climber...
+30-Jul-25 03:09:12.259 [Solver] INFO  coursett.Test> **BEST[195]** T:21.42, UHH:1, TP:44 (90.18%), SOC:13, BTP:32, TBR:20, RSP:20
+30-Jul-25 03:09:12.297 [Solver] INFO  coursett.Test> **BEST[298]** T:21.22, UHH:1, TP:44 (90.18%), SOC:12, BTP:32, TBR:20, RSP:20
+30-Jul-25 03:09:12.309 [Solver] INFO  coursett.Test> **BEST[328]** T:21.02, UHH:1, TP:44 (90.18%), SOC:11, BTP:32, TBR:20, RSP:20
+30-Jul-25 03:09:12.354 [Solver] INFO  coursett.Test> **BEST[453]** T:20.62, UHH:1, TP:44 (90.18%), SOC:11, BTP:28, TBR:20, RSP:20
+30-Jul-25 03:09:12.439 [Solver] INFO  coursett.Test> **BEST[658]** T:20.42, UHH:1, TP:44 (90.18%), SOC:10, BTP:28, TBR:20, RSP:20
+30-Jul-25 03:09:12.452 [Solver] INFO  coursett.Test> **BEST[703]** T:20.22, UHH:1, TP:44 (90.18%), SOC:9, BTP:28, TBR:20, RSP:20
+30-Jul-25 03:09:12.475 [Solver] INFO  coursett.Test> **BEST[763]** T:20.02, UHH:1, TP:44 (90.18%), SOC:8, BTP:28, TBR:20, RSP:20
+30-Jul-25 03:09:12.485 [Solver] INFO  coursett.Test> **BEST[781]** T:19.02, UHH:1, TP:40 (91.07%), SOC:8, BTP:30, TBR:20, RSP:20
+30-Jul-25 03:09:12.491 [Solver] INFO  coursett.Test> **BEST[797]** T:18.82, UHH:1, TP:40 (91.07%), SOC:8, BTP:28, TBR:20, RSP:20
+30-Jul-25 03:09:12.785 [Solver] INFO  coursett.Test> **BEST[2007]** T:18.72, UHH:1, TP:40 (91.07%), SOC:7, BTP:28, TBR:21, RSP:21
+30-Jul-25 03:09:12.810 [Solver] INFO  coursett.Test> **BEST[2123]** T:18.62, UHH:1, TP:40 (91.07%), SOC:7, BTP:28, TBR:20, RSP:20

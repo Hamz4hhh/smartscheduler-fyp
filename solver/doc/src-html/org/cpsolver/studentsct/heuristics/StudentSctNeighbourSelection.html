@@ -1,0 +1,391 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.cpsolver.studentsct.heuristics;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import java.util.Iterator;<a name="line.3"></a>
+<span class="sourceLineNo">004</span><a name="line.4"></a>
+<span class="sourceLineNo">005</span>import org.cpsolver.ifs.assignment.Assignment;<a name="line.5"></a>
+<span class="sourceLineNo">006</span>import org.cpsolver.ifs.heuristics.NeighbourSelection;<a name="line.6"></a>
+<span class="sourceLineNo">007</span>import org.cpsolver.ifs.heuristics.RoundRobinNeighbourSelection;<a name="line.7"></a>
+<span class="sourceLineNo">008</span>import org.cpsolver.ifs.model.Neighbour;<a name="line.8"></a>
+<span class="sourceLineNo">009</span>import org.cpsolver.ifs.solver.Solver;<a name="line.9"></a>
+<span class="sourceLineNo">010</span>import org.cpsolver.ifs.solver.SolverListener;<a name="line.10"></a>
+<span class="sourceLineNo">011</span>import org.cpsolver.ifs.util.DataProperties;<a name="line.11"></a>
+<span class="sourceLineNo">012</span>import org.cpsolver.studentsct.StudentSectioningModel;<a name="line.12"></a>
+<span class="sourceLineNo">013</span>import org.cpsolver.studentsct.filter.PriortyStudentFilter;<a name="line.13"></a>
+<span class="sourceLineNo">014</span>import org.cpsolver.studentsct.filter.StudentFilter;<a name="line.14"></a>
+<span class="sourceLineNo">015</span>import org.cpsolver.studentsct.heuristics.selection.AssignInitialSelection;<a name="line.15"></a>
+<span class="sourceLineNo">016</span>import org.cpsolver.studentsct.heuristics.selection.BacktrackSelection;<a name="line.16"></a>
+<span class="sourceLineNo">017</span>import org.cpsolver.studentsct.heuristics.selection.BranchBoundSelection;<a name="line.17"></a>
+<span class="sourceLineNo">018</span>import org.cpsolver.studentsct.heuristics.selection.CriticalBacktrackSelection;<a name="line.18"></a>
+<span class="sourceLineNo">019</span>import org.cpsolver.studentsct.heuristics.selection.CriticalCoursesBranchAndBoundSelection;<a name="line.19"></a>
+<span class="sourceLineNo">020</span>import org.cpsolver.studentsct.heuristics.selection.CriticalStandardSelection;<a name="line.20"></a>
+<span class="sourceLineNo">021</span>import org.cpsolver.studentsct.heuristics.selection.MinCreditBranchAndBoundSelection;<a name="line.21"></a>
+<span class="sourceLineNo">022</span>import org.cpsolver.studentsct.heuristics.selection.PriorityConstructionSelection;<a name="line.22"></a>
+<span class="sourceLineNo">023</span>import org.cpsolver.studentsct.heuristics.selection.RandomUnassignmentSelection;<a name="line.23"></a>
+<span class="sourceLineNo">024</span>import org.cpsolver.studentsct.heuristics.selection.ResectionIncompleteStudentsSelection;<a name="line.24"></a>
+<span class="sourceLineNo">025</span>import org.cpsolver.studentsct.heuristics.selection.ResectionUnassignedStudentsSelection;<a name="line.25"></a>
+<span class="sourceLineNo">026</span>import org.cpsolver.studentsct.heuristics.selection.RndUnProblStudSelection;<a name="line.26"></a>
+<span class="sourceLineNo">027</span>import org.cpsolver.studentsct.heuristics.selection.ShuffleStudentsSelection;<a name="line.27"></a>
+<span class="sourceLineNo">028</span>import org.cpsolver.studentsct.heuristics.selection.StandardSelection;<a name="line.28"></a>
+<span class="sourceLineNo">029</span>import org.cpsolver.studentsct.heuristics.selection.StudentEnrollmentSwapSelection;<a name="line.29"></a>
+<span class="sourceLineNo">030</span>import org.cpsolver.studentsct.heuristics.selection.SwapStudentSelection;<a name="line.30"></a>
+<span class="sourceLineNo">031</span>import org.cpsolver.studentsct.heuristics.selection.UnassignedRequestSelection;<a name="line.31"></a>
+<span class="sourceLineNo">032</span>import org.cpsolver.studentsct.model.Enrollment;<a name="line.32"></a>
+<span class="sourceLineNo">033</span>import org.cpsolver.studentsct.model.Request;<a name="line.33"></a>
+<span class="sourceLineNo">034</span>import org.cpsolver.studentsct.model.Request.RequestPriority;<a name="line.34"></a>
+<span class="sourceLineNo">035</span>import org.cpsolver.studentsct.model.Student.StudentPriority;<a name="line.35"></a>
+<span class="sourceLineNo">036</span><a name="line.36"></a>
+<span class="sourceLineNo">037</span>/**<a name="line.37"></a>
+<span class="sourceLineNo">038</span> * (Batch) student sectioning neighbour selection. It is based on<a name="line.38"></a>
+<span class="sourceLineNo">039</span> * {@link RoundRobinNeighbourSelection}, the following steps are involved:<a name="line.39"></a>
+<span class="sourceLineNo">040</span> * &lt;ul&gt;<a name="line.40"></a>
+<span class="sourceLineNo">041</span> * &lt;li&gt;Phase 1: section all students using incremental branch &amp;amp; bound (no<a name="line.41"></a>
+<span class="sourceLineNo">042</span> * unassignments) ({@link BranchBoundSelection} is used)<a name="line.42"></a>
+<span class="sourceLineNo">043</span> * &lt;li&gt;Phase 2: pick a student (one by one) with an incomplete schedule, try to<a name="line.43"></a>
+<span class="sourceLineNo">044</span> * find an improvement ({@link SwapStudentSelection} is used)<a name="line.44"></a>
+<span class="sourceLineNo">045</span> * &lt;li&gt;Phase 3: use standard value selection for some time (<a name="line.45"></a>
+<span class="sourceLineNo">046</span> * {@link StandardSelection} is used)<a name="line.46"></a>
+<span class="sourceLineNo">047</span> * &lt;li&gt;Phase 4: use backtrack neighbour selection ({@link BacktrackSelection} is<a name="line.47"></a>
+<span class="sourceLineNo">048</span> * used)<a name="line.48"></a>
+<span class="sourceLineNo">049</span> * &lt;li&gt;Phase 5: pick a student (one by one) with an incomplete schedule, try to<a name="line.49"></a>
+<span class="sourceLineNo">050</span> * find an improvement, identify problematic students (<a name="line.50"></a>
+<span class="sourceLineNo">051</span> * {@link SwapStudentSelection} is used)<a name="line.51"></a>
+<span class="sourceLineNo">052</span> * &lt;li&gt;Phase 6: random unassignment of some problematic students (<a name="line.52"></a>
+<span class="sourceLineNo">053</span> * {@link RndUnProblStudSelection} is used)<a name="line.53"></a>
+<span class="sourceLineNo">054</span> * &lt;li&gt;Phase 7: resection incomplete students (<a name="line.54"></a>
+<span class="sourceLineNo">055</span> * {@link ResectionIncompleteStudentsSelection} is used)<a name="line.55"></a>
+<span class="sourceLineNo">056</span> * &lt;li&gt;Phase 8: resection of students that were unassigned in step 6 (<a name="line.56"></a>
+<span class="sourceLineNo">057</span> * {@link ResectionUnassignedStudentsSelection} is used)<a name="line.57"></a>
+<span class="sourceLineNo">058</span> * &lt;li&gt;Phase 9: pick a student (one by one) with an incomplete schedule, try to<a name="line.58"></a>
+<span class="sourceLineNo">059</span> * find an improvement ({@link SwapStudentSelection} is used)<a name="line.59"></a>
+<span class="sourceLineNo">060</span> * &lt;li&gt;Phase 10: use standard value selection for some time (<a name="line.60"></a>
+<span class="sourceLineNo">061</span> * {@link StandardSelection} with {@link RouletteWheelRequestSelection} is used)<a name="line.61"></a>
+<span class="sourceLineNo">062</span> * &lt;li&gt;Phase 11: pick a student (one by one) with an incomplete schedule, try to<a name="line.62"></a>
+<span class="sourceLineNo">063</span> * find an improvement ({@link SwapStudentSelection} is used)<a name="line.63"></a>
+<span class="sourceLineNo">064</span> * &lt;li&gt;Phase 12: use backtrack neighbour selection ({@link BacktrackSelection}<a name="line.64"></a>
+<span class="sourceLineNo">065</span> * is used)<a name="line.65"></a>
+<span class="sourceLineNo">066</span> * &lt;li&gt;Phase 13: random unassignment of some students (<a name="line.66"></a>
+<span class="sourceLineNo">067</span> * {@link RandomUnassignmentSelection} is used)<a name="line.67"></a>
+<span class="sourceLineNo">068</span> * &lt;/ul&gt;<a name="line.68"></a>
+<span class="sourceLineNo">069</span> * <a name="line.69"></a>
+<span class="sourceLineNo">070</span> * &lt;br&gt;<a name="line.70"></a>
+<span class="sourceLineNo">071</span> * &lt;br&gt;<a name="line.71"></a>
+<span class="sourceLineNo">072</span> * <a name="line.72"></a>
+<span class="sourceLineNo">073</span> * @author  Tom&#225;&#353; M&#252;ller<a name="line.73"></a>
+<span class="sourceLineNo">074</span> * @version StudentSct 1.3 (Student Sectioning)&lt;br&gt;<a name="line.74"></a>
+<span class="sourceLineNo">075</span> *          Copyright (C) 2007 - 2014 Tom&#225;&#353; M&#252;ller&lt;br&gt;<a name="line.75"></a>
+<span class="sourceLineNo">076</span> *          &lt;a href="mailto:muller@unitime.org"&gt;muller@unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.76"></a>
+<span class="sourceLineNo">077</span> *          &lt;a href="http://muller.unitime.org"&gt;http://muller.unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.77"></a>
+<span class="sourceLineNo">078</span> * &lt;br&gt;<a name="line.78"></a>
+<span class="sourceLineNo">079</span> *          This library is free software; you can redistribute it and/or modify<a name="line.79"></a>
+<span class="sourceLineNo">080</span> *          it under the terms of the GNU Lesser General Public License as<a name="line.80"></a>
+<span class="sourceLineNo">081</span> *          published by the Free Software Foundation; either version 3 of the<a name="line.81"></a>
+<span class="sourceLineNo">082</span> *          License, or (at your option) any later version. &lt;br&gt;<a name="line.82"></a>
+<span class="sourceLineNo">083</span> * &lt;br&gt;<a name="line.83"></a>
+<span class="sourceLineNo">084</span> *          This library is distributed in the hope that it will be useful, but<a name="line.84"></a>
+<span class="sourceLineNo">085</span> *          WITHOUT ANY WARRANTY; without even the implied warranty of<a name="line.85"></a>
+<span class="sourceLineNo">086</span> *          MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU<a name="line.86"></a>
+<span class="sourceLineNo">087</span> *          Lesser General Public License for more details. &lt;br&gt;<a name="line.87"></a>
+<span class="sourceLineNo">088</span> * &lt;br&gt;<a name="line.88"></a>
+<span class="sourceLineNo">089</span> *          You should have received a copy of the GNU Lesser General Public<a name="line.89"></a>
+<span class="sourceLineNo">090</span> *          License along with this library; if not see<a name="line.90"></a>
+<span class="sourceLineNo">091</span> *          &lt;a href='http://www.gnu.org/licenses/'&gt;http://www.gnu.org/licenses/&lt;/a&gt;.<a name="line.91"></a>
+<span class="sourceLineNo">092</span> */<a name="line.92"></a>
+<span class="sourceLineNo">093</span><a name="line.93"></a>
+<span class="sourceLineNo">094</span>public class StudentSctNeighbourSelection extends RoundRobinNeighbourSelection&lt;Request, Enrollment&gt; implements SolverListener&lt;Request, Enrollment&gt; {<a name="line.94"></a>
+<span class="sourceLineNo">095</span>    private boolean iUseConstruction = false;<a name="line.95"></a>
+<span class="sourceLineNo">096</span>    private boolean iUseCriticalCoursesSelection = true;<a name="line.96"></a>
+<span class="sourceLineNo">097</span>    private boolean iUseMinCreditSelection = true;<a name="line.97"></a>
+<span class="sourceLineNo">098</span>    private boolean iMPP = false;<a name="line.98"></a>
+<span class="sourceLineNo">099</span>    private boolean iShuffleStudentsSelection = false;<a name="line.99"></a>
+<span class="sourceLineNo">100</span>    private boolean iPriorityStudentsFirstSelection = true;<a name="line.100"></a>
+<span class="sourceLineNo">101</span>    private boolean iPriorityStudentsFirstAllIn = true;<a name="line.101"></a>
+<span class="sourceLineNo">102</span>    private int iPriorityRounds = 1, iCriticalRounds = 1;<a name="line.102"></a>
+<span class="sourceLineNo">103</span>    private boolean iPriorityLastRoundAllStudents = false;<a name="line.103"></a>
+<span class="sourceLineNo">104</span><a name="line.104"></a>
+<span class="sourceLineNo">105</span>    public StudentSctNeighbourSelection(DataProperties properties) throws Exception {<a name="line.105"></a>
+<span class="sourceLineNo">106</span>        super(properties);<a name="line.106"></a>
+<span class="sourceLineNo">107</span>        iUseConstruction = properties.getPropertyBoolean("Sectioning.UsePriorityConstruction", iUseConstruction);<a name="line.107"></a>
+<span class="sourceLineNo">108</span>        iUseCriticalCoursesSelection = properties.getPropertyBoolean("Sectioning.UseCriticalCoursesSelection", iUseCriticalCoursesSelection);<a name="line.108"></a>
+<span class="sourceLineNo">109</span>        iUseMinCreditSelection = properties.getPropertyBoolean("Sectioning.UseMinCreditSelection", iUseMinCreditSelection);<a name="line.109"></a>
+<span class="sourceLineNo">110</span>        iMPP = properties.getPropertyBoolean("General.MPP", false);<a name="line.110"></a>
+<span class="sourceLineNo">111</span>        iShuffleStudentsSelection = properties.getPropertyBoolean("Shuffle.Enabled", true) &amp;&amp; properties.getPropertyBoolean("Load.RequestGroups", false);<a name="line.111"></a>
+<span class="sourceLineNo">112</span>        iPriorityStudentsFirstSelection = properties.getPropertyBoolean("Sectioning.PriorityStudentsFirstSelection", iPriorityStudentsFirstSelection);<a name="line.112"></a>
+<span class="sourceLineNo">113</span>        iPriorityStudentsFirstAllIn = properties.getPropertyBoolean("Sectioning.PriorityStudentsFirstSelection.AllIn", iPriorityStudentsFirstAllIn);<a name="line.113"></a>
+<span class="sourceLineNo">114</span>        iCriticalRounds = properties.getPropertyInt("Sectioning.CriticalRounds", iCriticalRounds);<a name="line.114"></a>
+<span class="sourceLineNo">115</span>        iPriorityRounds = properties.getPropertyInt("Sectioning.PriorityRounds", iPriorityRounds);<a name="line.115"></a>
+<span class="sourceLineNo">116</span>        iPriorityLastRoundAllStudents = properties.getPropertyBoolean("Sectioning.PriorityLastRoundAllStudents", iPriorityLastRoundAllStudents);<a name="line.116"></a>
+<span class="sourceLineNo">117</span>    }<a name="line.117"></a>
+<span class="sourceLineNo">118</span><a name="line.118"></a>
+<span class="sourceLineNo">119</span>    @Override<a name="line.119"></a>
+<span class="sourceLineNo">120</span>    public void init(Solver&lt;Request, Enrollment&gt; solver) {<a name="line.120"></a>
+<span class="sourceLineNo">121</span>        super.init(solver);<a name="line.121"></a>
+<span class="sourceLineNo">122</span>        setup(solver);<a name="line.122"></a>
+<span class="sourceLineNo">123</span>        solver.setUpdateProgress(false);<a name="line.123"></a>
+<span class="sourceLineNo">124</span>        for (Iterator&lt;SolverListener&lt;Request, Enrollment&gt;&gt; i = solver.getSolverListeners().iterator(); i.hasNext(); ) {<a name="line.124"></a>
+<span class="sourceLineNo">125</span>            SolverListener&lt;Request, Enrollment&gt; listener = i.next();<a name="line.125"></a>
+<span class="sourceLineNo">126</span>            if (listener instanceof StudentSctNeighbourSelection)<a name="line.126"></a>
+<span class="sourceLineNo">127</span>                i.remove();<a name="line.127"></a>
+<span class="sourceLineNo">128</span>        }<a name="line.128"></a>
+<span class="sourceLineNo">129</span>        solver.addSolverListener(this);<a name="line.129"></a>
+<span class="sourceLineNo">130</span>    }<a name="line.130"></a>
+<span class="sourceLineNo">131</span><a name="line.131"></a>
+<span class="sourceLineNo">132</span>    public void setup(Solver&lt;Request, Enrollment&gt; solver) {<a name="line.132"></a>
+<span class="sourceLineNo">133</span>        if (iMPP)<a name="line.133"></a>
+<span class="sourceLineNo">134</span>            registerSelection(new AssignInitialSelection(solver.getProperties()));<a name="line.134"></a>
+<span class="sourceLineNo">135</span>        <a name="line.135"></a>
+<span class="sourceLineNo">136</span>        if (iPriorityStudentsFirstSelection &amp;&amp; iPriorityStudentsFirstAllIn) {<a name="line.136"></a>
+<span class="sourceLineNo">137</span>            if (iUseCriticalCoursesSelection) {<a name="line.137"></a>
+<span class="sourceLineNo">138</span>                for (StudentPriority sp: StudentPriority.values()) {<a name="line.138"></a>
+<span class="sourceLineNo">139</span>                    if (sp == StudentPriority.Normal) break;<a name="line.139"></a>
+<span class="sourceLineNo">140</span>                    for (int pr = 0; pr &lt; iPriorityRounds; pr++ ) {<a name="line.140"></a>
+<span class="sourceLineNo">141</span>                        // last round &gt;&gt; include all students up to the selected priority<a name="line.141"></a>
+<span class="sourceLineNo">142</span>                        boolean includeHigherPriority = (iPriorityLastRoundAllStudents &amp;&amp; sp.ordinal() &gt; 0 &amp;&amp; (pr + 1 == iPriorityRounds));<a name="line.142"></a>
+<span class="sourceLineNo">143</span>                        <a name="line.143"></a>
+<span class="sourceLineNo">144</span>                        StudentFilter filter = new PriortyStudentFilter(sp, includeHigherPriority);<a name="line.144"></a>
+<span class="sourceLineNo">145</span>                        <a name="line.145"></a>
+<span class="sourceLineNo">146</span>                        for (RequestPriority rp: RequestPriority.values()) {<a name="line.146"></a>
+<span class="sourceLineNo">147</span>                            for (int cr = 0; cr &lt; iCriticalRounds; cr++ ) {<a name="line.147"></a>
+<span class="sourceLineNo">148</span>                                registerSelection(new CriticalCoursesBranchAndBoundSelection(solver.getProperties(), rp).withFilter(filter));<a name="line.148"></a>
+<span class="sourceLineNo">149</span>                                <a name="line.149"></a>
+<span class="sourceLineNo">150</span>                                registerSelection(new CriticalBacktrackSelection(solver.getProperties(), rp).withFilter(filter));<a name="line.150"></a>
+<span class="sourceLineNo">151</span>                                <a name="line.151"></a>
+<span class="sourceLineNo">152</span>                                registerSelection(new CriticalStandardSelection(solver.getProperties(), new UnassignedRequestSelection().withFilter(filter), getValueSelection(), rp));<a name="line.152"></a>
+<span class="sourceLineNo">153</span>                                <a name="line.153"></a>
+<span class="sourceLineNo">154</span>                                registerSelection(new CriticalBacktrackSelection(solver.getProperties(), rp).withFilter(filter));<a name="line.154"></a>
+<span class="sourceLineNo">155</span>                            }<a name="line.155"></a>
+<span class="sourceLineNo">156</span>                        }<a name="line.156"></a>
+<span class="sourceLineNo">157</span>                    }<a name="line.157"></a>
+<span class="sourceLineNo">158</span>                }<a name="line.158"></a>
+<span class="sourceLineNo">159</span>            } else {<a name="line.159"></a>
+<span class="sourceLineNo">160</span>                for (StudentPriority sp: StudentPriority.values()) {<a name="line.160"></a>
+<span class="sourceLineNo">161</span>                    if (sp == StudentPriority.Normal) break;<a name="line.161"></a>
+<span class="sourceLineNo">162</span>                <a name="line.162"></a>
+<span class="sourceLineNo">163</span>                    for (int pr = 0; pr &lt; iPriorityRounds; pr++ ) {<a name="line.163"></a>
+<span class="sourceLineNo">164</span>                        // last round &gt;&gt; include all students up to the selected priority<a name="line.164"></a>
+<span class="sourceLineNo">165</span>                        boolean includeHigherPriority = (iPriorityLastRoundAllStudents &amp;&amp; sp.ordinal() &gt; 0 &amp;&amp; (pr + 1 == iPriorityRounds));<a name="line.165"></a>
+<span class="sourceLineNo">166</span><a name="line.166"></a>
+<span class="sourceLineNo">167</span>                        StudentFilter filter = new PriortyStudentFilter(sp, includeHigherPriority);<a name="line.167"></a>
+<span class="sourceLineNo">168</span>                        <a name="line.168"></a>
+<span class="sourceLineNo">169</span>                        registerSelection(new BranchBoundSelection(solver.getProperties()).withFilter(filter));<a name="line.169"></a>
+<span class="sourceLineNo">170</span>                        <a name="line.170"></a>
+<span class="sourceLineNo">171</span>                        registerSelection(new BacktrackSelection(solver.getProperties()).withFilter(filter));<a name="line.171"></a>
+<span class="sourceLineNo">172</span>                        <a name="line.172"></a>
+<span class="sourceLineNo">173</span>                        registerSelection(new StandardSelection(solver.getProperties(), new UnassignedRequestSelection().withFilter(filter), getValueSelection()));<a name="line.173"></a>
+<span class="sourceLineNo">174</span>                        <a name="line.174"></a>
+<span class="sourceLineNo">175</span>                        registerSelection(new BacktrackSelection(solver.getProperties()).withFilter(filter));<a name="line.175"></a>
+<span class="sourceLineNo">176</span>                    }<a name="line.176"></a>
+<span class="sourceLineNo">177</span>                }<a name="line.177"></a>
+<span class="sourceLineNo">178</span>            }<a name="line.178"></a>
+<span class="sourceLineNo">179</span>        }<a name="line.179"></a>
+<span class="sourceLineNo">180</span>        <a name="line.180"></a>
+<span class="sourceLineNo">181</span>        if (iUseCriticalCoursesSelection) {<a name="line.181"></a>
+<span class="sourceLineNo">182</span>            for (RequestPriority rp: RequestPriority.values()) {<a name="line.182"></a>
+<span class="sourceLineNo">183</span>                if (rp == RequestPriority.Normal) break;<a name="line.183"></a>
+<span class="sourceLineNo">184</span>                for (int cr = 0; cr &lt; iCriticalRounds; cr++ ) {<a name="line.184"></a>
+<span class="sourceLineNo">185</span>                    registerSelection(new CriticalCoursesBranchAndBoundSelection(solver.getProperties(), rp));<a name="line.185"></a>
+<span class="sourceLineNo">186</span>                    <a name="line.186"></a>
+<span class="sourceLineNo">187</span>                    registerSelection(new CriticalBacktrackSelection(solver.getProperties(), rp));<a name="line.187"></a>
+<span class="sourceLineNo">188</span>                    <a name="line.188"></a>
+<span class="sourceLineNo">189</span>                    registerSelection(new CriticalStandardSelection(solver.getProperties(), getValueSelection(), rp));<a name="line.189"></a>
+<span class="sourceLineNo">190</span>                    <a name="line.190"></a>
+<span class="sourceLineNo">191</span>                    registerSelection(new CriticalBacktrackSelection(solver.getProperties(), rp));<a name="line.191"></a>
+<span class="sourceLineNo">192</span>                }<a name="line.192"></a>
+<span class="sourceLineNo">193</span>            }<a name="line.193"></a>
+<span class="sourceLineNo">194</span>        }<a name="line.194"></a>
+<span class="sourceLineNo">195</span>        <a name="line.195"></a>
+<span class="sourceLineNo">196</span>        if (iPriorityStudentsFirstSelection &amp;&amp; !iPriorityStudentsFirstAllIn) {<a name="line.196"></a>
+<span class="sourceLineNo">197</span>            for (StudentPriority sp: StudentPriority.values()) {<a name="line.197"></a>
+<span class="sourceLineNo">198</span>                if (sp == StudentPriority.Normal) break;<a name="line.198"></a>
+<span class="sourceLineNo">199</span>                if (((StudentSectioningModel)solver.currentSolution().getModel()).getNbrStudents(sp) == 0) continue;<a name="line.199"></a>
+<span class="sourceLineNo">200</span>            <a name="line.200"></a>
+<span class="sourceLineNo">201</span>                for (int pr = 0; pr &lt; iPriorityRounds; pr++ ) {<a name="line.201"></a>
+<span class="sourceLineNo">202</span>                    // last round &gt;&gt; include all students up to the selected priority<a name="line.202"></a>
+<span class="sourceLineNo">203</span>                    boolean includeHigherPriority = (iPriorityLastRoundAllStudents &amp;&amp; sp.ordinal() &gt; 0 &amp;&amp; (pr + 1 == iPriorityRounds));<a name="line.203"></a>
+<span class="sourceLineNo">204</span><a name="line.204"></a>
+<span class="sourceLineNo">205</span>                    StudentFilter filter = new PriortyStudentFilter(sp, includeHigherPriority);<a name="line.205"></a>
+<span class="sourceLineNo">206</span><a name="line.206"></a>
+<span class="sourceLineNo">207</span>                    registerSelection(new BranchBoundSelection(solver.getProperties()).withFilter(filter));<a name="line.207"></a>
+<span class="sourceLineNo">208</span>                    <a name="line.208"></a>
+<span class="sourceLineNo">209</span>                    registerSelection(new BacktrackSelection(solver.getProperties()).withFilter(filter));<a name="line.209"></a>
+<span class="sourceLineNo">210</span>                    <a name="line.210"></a>
+<span class="sourceLineNo">211</span>                    registerSelection(new StandardSelection(solver.getProperties(), new UnassignedRequestSelection().withFilter(filter), getValueSelection()));<a name="line.211"></a>
+<span class="sourceLineNo">212</span>                    <a name="line.212"></a>
+<span class="sourceLineNo">213</span>                    registerSelection(new BacktrackSelection(solver.getProperties()).withFilter(filter));<a name="line.213"></a>
+<span class="sourceLineNo">214</span>                }<a name="line.214"></a>
+<span class="sourceLineNo">215</span>            }<a name="line.215"></a>
+<span class="sourceLineNo">216</span>        }<a name="line.216"></a>
+<span class="sourceLineNo">217</span>        <a name="line.217"></a>
+<span class="sourceLineNo">218</span>        if (iUseMinCreditSelection)<a name="line.218"></a>
+<span class="sourceLineNo">219</span>            registerSelection(new MinCreditBranchAndBoundSelection(solver.getProperties()));<a name="line.219"></a>
+<span class="sourceLineNo">220</span>        <a name="line.220"></a>
+<span class="sourceLineNo">221</span>        // Phase 1: section all students using incremental branch &amp; bound (no<a name="line.221"></a>
+<span class="sourceLineNo">222</span>        // unassignments)<a name="line.222"></a>
+<span class="sourceLineNo">223</span>        registerSelection(iUseConstruction &amp;&amp; !iUseMinCreditSelection ?<a name="line.223"></a>
+<span class="sourceLineNo">224</span>                new PriorityConstructionSelection(solver.getProperties()) :<a name="line.224"></a>
+<span class="sourceLineNo">225</span>                new BranchBoundSelection(solver.getProperties()));<a name="line.225"></a>
+<span class="sourceLineNo">226</span><a name="line.226"></a>
+<span class="sourceLineNo">227</span>        // Phase 2: pick a student (one by one) with an incomplete schedule, try<a name="line.227"></a>
+<span class="sourceLineNo">228</span>        // to find an improvement<a name="line.228"></a>
+<span class="sourceLineNo">229</span>        registerSelection(new SwapStudentSelection(solver.getProperties()));<a name="line.229"></a>
+<span class="sourceLineNo">230</span><a name="line.230"></a>
+<span class="sourceLineNo">231</span>        // Phase 3A: use backtrack neighbour selection<a name="line.231"></a>
+<span class="sourceLineNo">232</span>        registerSelection(new BacktrackSelection(solver.getProperties()));<a name="line.232"></a>
+<span class="sourceLineNo">233</span>        <a name="line.233"></a>
+<span class="sourceLineNo">234</span>        // Phase 3B: enrollment swap selection<a name="line.234"></a>
+<span class="sourceLineNo">235</span>        registerSelection(new StudentEnrollmentSwapSelection(solver.getProperties()));<a name="line.235"></a>
+<span class="sourceLineNo">236</span>        <a name="line.236"></a>
+<span class="sourceLineNo">237</span>        // Phase 4: use standard value selection for some time<a name="line.237"></a>
+<span class="sourceLineNo">238</span>        registerSelection(new StandardSelection(solver.getProperties(), getVariableSelection(), getValueSelection()));<a name="line.238"></a>
+<span class="sourceLineNo">239</span><a name="line.239"></a>
+<span class="sourceLineNo">240</span>        // Phase 5: pick a student (one by one) with an incomplete schedule, try<a name="line.240"></a>
+<span class="sourceLineNo">241</span>        // to find an improvement, identify problematic students<a name="line.241"></a>
+<span class="sourceLineNo">242</span>        SwapStudentSelection swapStudentSelection = new SwapStudentSelection(solver.getProperties());<a name="line.242"></a>
+<span class="sourceLineNo">243</span>        registerSelection(swapStudentSelection);<a name="line.243"></a>
+<span class="sourceLineNo">244</span><a name="line.244"></a>
+<span class="sourceLineNo">245</span>        // Phase 6: random unassignment of some problematic students<a name="line.245"></a>
+<span class="sourceLineNo">246</span>        registerSelection(new RndUnProblStudSelection(solver.getProperties(), swapStudentSelection));<a name="line.246"></a>
+<span class="sourceLineNo">247</span><a name="line.247"></a>
+<span class="sourceLineNo">248</span>        // Phase 7: resection incomplete students<a name="line.248"></a>
+<span class="sourceLineNo">249</span>        registerSelection(new ResectionIncompleteStudentsSelection(solver.getProperties()));<a name="line.249"></a>
+<span class="sourceLineNo">250</span><a name="line.250"></a>
+<span class="sourceLineNo">251</span>        // Phase 8: resection of students that were unassigned in step 6<a name="line.251"></a>
+<span class="sourceLineNo">252</span>        registerSelection(new ResectionUnassignedStudentsSelection(solver.getProperties()));<a name="line.252"></a>
+<span class="sourceLineNo">253</span><a name="line.253"></a>
+<span class="sourceLineNo">254</span>        // Phase 9: pick a student (one by one) with an incomplete schedule, try<a name="line.254"></a>
+<span class="sourceLineNo">255</span>        // to find an improvement<a name="line.255"></a>
+<span class="sourceLineNo">256</span>        registerSelection(new SwapStudentSelection(solver.getProperties()));<a name="line.256"></a>
+<span class="sourceLineNo">257</span><a name="line.257"></a>
+<span class="sourceLineNo">258</span>        // Phase 10: use standard value selection for some time<a name="line.258"></a>
+<span class="sourceLineNo">259</span>        registerSelection(new StandardSelection(solver.getProperties(), new RouletteWheelRequestSelection(solver.getProperties()), getValueSelection()));<a name="line.259"></a>
+<span class="sourceLineNo">260</span><a name="line.260"></a>
+<span class="sourceLineNo">261</span>        // Phase 11: pick a student (one by one) with an incomplete schedule,<a name="line.261"></a>
+<span class="sourceLineNo">262</span>        // try to find an improvement<a name="line.262"></a>
+<span class="sourceLineNo">263</span>        registerSelection(new SwapStudentSelection(solver.getProperties()));<a name="line.263"></a>
+<span class="sourceLineNo">264</span>        <a name="line.264"></a>
+<span class="sourceLineNo">265</span>        // Phase 12A: enrollment swap selection<a name="line.265"></a>
+<span class="sourceLineNo">266</span>        registerSelection(new StudentEnrollmentSwapSelection(solver.getProperties()));<a name="line.266"></a>
+<span class="sourceLineNo">267</span><a name="line.267"></a>
+<span class="sourceLineNo">268</span>        // Phase 12B: use backtrack neighbour selection<a name="line.268"></a>
+<span class="sourceLineNo">269</span>        registerSelection(new BacktrackSelection(solver.getProperties()));<a name="line.269"></a>
+<span class="sourceLineNo">270</span>        <a name="line.270"></a>
+<span class="sourceLineNo">271</span>        if (iShuffleStudentsSelection) {<a name="line.271"></a>
+<span class="sourceLineNo">272</span>            // Phase 13: try shuffling students around request groups<a name="line.272"></a>
+<span class="sourceLineNo">273</span>            registerSelection(new ShuffleStudentsSelection(solver.getProperties()));<a name="line.273"></a>
+<span class="sourceLineNo">274</span>            <a name="line.274"></a>
+<span class="sourceLineNo">275</span>            // Phase 14: use backtrack neighbour selection to fix unassignments from the previous phase<a name="line.275"></a>
+<span class="sourceLineNo">276</span>            registerSelection(new BacktrackSelection(solver.getProperties()));<a name="line.276"></a>
+<span class="sourceLineNo">277</span>        }<a name="line.277"></a>
+<span class="sourceLineNo">278</span>        <a name="line.278"></a>
+<span class="sourceLineNo">279</span>        // Phase 15: reset to best if no improvement has been done in the last cycle<a name="line.279"></a>
+<span class="sourceLineNo">280</span>        registerSelection(new RestoreBestSolution(solver.getProperties()));<a name="line.280"></a>
+<span class="sourceLineNo">281</span>        <a name="line.281"></a>
+<span class="sourceLineNo">282</span>        // Phase 16: use backtrack neighbour selection<a name="line.282"></a>
+<span class="sourceLineNo">283</span>        registerSelection(new BacktrackSelection(solver.getProperties()));<a name="line.283"></a>
+<span class="sourceLineNo">284</span><a name="line.284"></a>
+<span class="sourceLineNo">285</span>        // Phase 17: section all students using incremental branch &amp; bound<a name="line.285"></a>
+<span class="sourceLineNo">286</span>        registerSelection(new BranchBoundSelection(solver.getProperties()));<a name="line.286"></a>
+<span class="sourceLineNo">287</span>                <a name="line.287"></a>
+<span class="sourceLineNo">288</span>        // Phase 18: random unassignment of some students<a name="line.288"></a>
+<span class="sourceLineNo">289</span>        registerSelection(new RandomUnassignmentSelection(solver.getProperties()));<a name="line.289"></a>
+<span class="sourceLineNo">290</span>    }<a name="line.290"></a>
+<span class="sourceLineNo">291</span><a name="line.291"></a>
+<span class="sourceLineNo">292</span>    @Override<a name="line.292"></a>
+<span class="sourceLineNo">293</span>    public void changeSelection(int selectionIndex) {<a name="line.293"></a>
+<span class="sourceLineNo">294</span>        super.changeSelection(selectionIndex);<a name="line.294"></a>
+<span class="sourceLineNo">295</span>    }<a name="line.295"></a>
+<span class="sourceLineNo">296</span><a name="line.296"></a>
+<span class="sourceLineNo">297</span>    @Override<a name="line.297"></a>
+<span class="sourceLineNo">298</span>    public boolean variableSelected(Assignment&lt;Request, Enrollment&gt; assignment, long iteration, Request variable) {<a name="line.298"></a>
+<span class="sourceLineNo">299</span>        return true;<a name="line.299"></a>
+<span class="sourceLineNo">300</span>    }<a name="line.300"></a>
+<span class="sourceLineNo">301</span><a name="line.301"></a>
+<span class="sourceLineNo">302</span>    @Override<a name="line.302"></a>
+<span class="sourceLineNo">303</span>    public boolean valueSelected(Assignment&lt;Request, Enrollment&gt; assignment, long iteration, Request variable, Enrollment value) {<a name="line.303"></a>
+<span class="sourceLineNo">304</span>        return true;<a name="line.304"></a>
+<span class="sourceLineNo">305</span>    }<a name="line.305"></a>
+<span class="sourceLineNo">306</span><a name="line.306"></a>
+<span class="sourceLineNo">307</span>    @Override<a name="line.307"></a>
+<span class="sourceLineNo">308</span>    public boolean neighbourSelected(Assignment&lt;Request, Enrollment&gt; assignment, long iteration, Neighbour&lt;Request, Enrollment&gt; neighbour) {<a name="line.308"></a>
+<span class="sourceLineNo">309</span>        return true;<a name="line.309"></a>
+<span class="sourceLineNo">310</span>    }<a name="line.310"></a>
+<span class="sourceLineNo">311</span><a name="line.311"></a>
+<span class="sourceLineNo">312</span>    @SuppressWarnings("unchecked")<a name="line.312"></a>
+<span class="sourceLineNo">313</span>    @Override<a name="line.313"></a>
+<span class="sourceLineNo">314</span>    public void neighbourFailed(Assignment&lt;Request, Enrollment&gt; assignment, long iteration, Neighbour&lt;Request, Enrollment&gt; neighbour) {<a name="line.314"></a>
+<span class="sourceLineNo">315</span>        NeighbourSelection&lt;Request, Enrollment&gt; selection = getSelection();<a name="line.315"></a>
+<span class="sourceLineNo">316</span>        if (selection instanceof SolverListener)<a name="line.316"></a>
+<span class="sourceLineNo">317</span>            ((SolverListener&lt;Request, Enrollment&gt;)selection).neighbourFailed(assignment, iteration, neighbour);<a name="line.317"></a>
+<span class="sourceLineNo">318</span>    }<a name="line.318"></a>
+<span class="sourceLineNo">319</span>}<a name="line.319"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

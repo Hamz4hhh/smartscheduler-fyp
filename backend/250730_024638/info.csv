@@ -1,0 +1,68 @@
+Instance,timetable
+Assigned variables,100.00%
+Back-to-back instructor preferences,100.00%
+Distribution preferences,100.00%
+Overall solution value,3.12
+Room Size Penalty,0.13
+Room preferences,100.00%
+Same subpart balancing penalty,0.00
+Speed,7627.05
+Student conflicts,0
+Time preferences,100.00%
+Too big rooms,2.83%
+Useless half-hours,0.08%
+Number of classes,150
+Avg. classes per instruction,4.286
+Classes with single value,0
+Avg. domain size,66.880
+Avg. number of avail. times/rooms,30.780/2.873
+Average requested room size,2.142
+Number of students,19
+Number of inevitable student conflicts,0
+Number of student enrollments,199
+Number of joint student enrollments,1002
+Avg. number of classes per student,10.474
+Avg. number of committed classes per student,0.000
+Avg. number of meetings per class,1.540
+Avg. number of hours per class,1.967
+Number of rooms,7
+Room size min/max,1/4
+Average distance between two rooms [min],0.000
+Maximal distance between two rooms [min],0.000
+"Room frequency (size>=0, used/avaiable times)",84.286%
+"Room utilization (size>=0, used/available seats)",79.167%
+"Number of rooms (size>=0)",7
+"Min/max room size (size>=0)",1-4
+"Room frequency (size>=25, used/avaiable times)",NaN%
+"Room utilization (size>=25, used/available seats)",NaN%
+"Number of rooms (size>=25)",0
+"Min/max room size (size>=25)",0-0
+"Room frequency (size>=50, used/avaiable times)",NaN%
+"Room utilization (size>=50, used/available seats)",NaN%
+"Number of rooms (size>=50)",0
+"Min/max room size (size>=50)",0-0
+"Room frequency (size>=75, used/avaiable times)",NaN%
+"Room utilization (size>=75, used/available seats)",NaN%
+"Number of rooms (size>=75)",0
+"Min/max room size (size>=75)",0-0
+"Room frequency (size>=100, used/avaiable times)",NaN%
+"Room utilization (size>=100, used/available seats)",NaN%
+"Number of rooms (size>=100)",0
+"Min/max room size (size>=100)",0-0
+"Room frequency (size>=150, used/avaiable times)",NaN%
+"Room utilization (size>=150, used/available seats)",NaN%
+"Number of rooms (size>=150)",0
+"Min/max room size (size>=150)",0-0
+"Room frequency (size>=200, used/avaiable times)",NaN%
+"Room utilization (size>=200, used/available seats)",NaN%
+"Number of rooms (size>=200)",0
+"Min/max room size (size>=200)",0-0
+"Room frequency (size>=400, used/avaiable times)",NaN%
+"Room utilization (size>=400, used/available seats)",NaN%
+"Number of rooms (size>=400)",0
+"Min/max room size (size>=400)",0-0
+Number of instructors,3
+Number of class-instructor assignments,24
+Average classes per instructor,8.000
+Avg. number distribution constraints per class,1.760
+Joint enrollment constraints,957

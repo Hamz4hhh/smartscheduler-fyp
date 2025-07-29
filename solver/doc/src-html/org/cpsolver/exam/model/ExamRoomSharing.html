@@ -1,0 +1,227 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.cpsolver.exam.model;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import java.util.ArrayList;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import java.util.Collection;<a name="line.4"></a>
+<span class="sourceLineNo">005</span>import java.util.List;<a name="line.5"></a>
+<span class="sourceLineNo">006</span>import java.util.Set;<a name="line.6"></a>
+<span class="sourceLineNo">007</span><a name="line.7"></a>
+<span class="sourceLineNo">008</span>import org.cpsolver.coursett.IdConvertor;<a name="line.8"></a>
+<span class="sourceLineNo">009</span>import org.cpsolver.ifs.model.Model;<a name="line.9"></a>
+<span class="sourceLineNo">010</span>import org.cpsolver.ifs.util.DataProperties;<a name="line.10"></a>
+<span class="sourceLineNo">011</span>import org.cpsolver.ifs.util.ToolBox;<a name="line.11"></a>
+<span class="sourceLineNo">012</span>import org.dom4j.Element;<a name="line.12"></a>
+<span class="sourceLineNo">013</span><a name="line.13"></a>
+<span class="sourceLineNo">014</span><a name="line.14"></a>
+<span class="sourceLineNo">015</span>/**<a name="line.15"></a>
+<span class="sourceLineNo">016</span> * Abstract room sharing model. Defines when and under what conditions two or more exams can share a room.&lt;br&gt;<a name="line.16"></a>
+<span class="sourceLineNo">017</span> * &lt;br&gt;<a name="line.17"></a>
+<span class="sourceLineNo">018</span> * <a name="line.18"></a>
+<span class="sourceLineNo">019</span> * @author  Tom&#225;&#353; M&#252;ller<a name="line.19"></a>
+<span class="sourceLineNo">020</span> * @version ExamTT 1.3 (Examination Timetabling)&lt;br&gt;<a name="line.20"></a>
+<span class="sourceLineNo">021</span> *          Copyright (C) 2008 - 2014 Tom&#225;&#353; M&#252;ller&lt;br&gt;<a name="line.21"></a>
+<span class="sourceLineNo">022</span> *          &lt;a href="mailto:muller@unitime.org"&gt;muller@unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.22"></a>
+<span class="sourceLineNo">023</span> *          &lt;a href="http://muller.unitime.org"&gt;http://muller.unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.23"></a>
+<span class="sourceLineNo">024</span> * &lt;br&gt;<a name="line.24"></a>
+<span class="sourceLineNo">025</span> *          This library is free software; you can redistribute it and/or modify<a name="line.25"></a>
+<span class="sourceLineNo">026</span> *          it under the terms of the GNU Lesser General Public License as<a name="line.26"></a>
+<span class="sourceLineNo">027</span> *          published by the Free Software Foundation; either version 3 of the<a name="line.27"></a>
+<span class="sourceLineNo">028</span> *          License, or (at your option) any later version. &lt;br&gt;<a name="line.28"></a>
+<span class="sourceLineNo">029</span> * &lt;br&gt;<a name="line.29"></a>
+<span class="sourceLineNo">030</span> *          This library is distributed in the hope that it will be useful, but<a name="line.30"></a>
+<span class="sourceLineNo">031</span> *          WITHOUT ANY WARRANTY; without even the implied warranty of<a name="line.31"></a>
+<span class="sourceLineNo">032</span> *          MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU<a name="line.32"></a>
+<span class="sourceLineNo">033</span> *          Lesser General Public License for more details. &lt;br&gt;<a name="line.33"></a>
+<span class="sourceLineNo">034</span> * &lt;br&gt;<a name="line.34"></a>
+<span class="sourceLineNo">035</span> *          You should have received a copy of the GNU Lesser General Public<a name="line.35"></a>
+<span class="sourceLineNo">036</span> *          License along with this library; if not see<a name="line.36"></a>
+<span class="sourceLineNo">037</span> *          &lt;a href='http://www.gnu.org/licenses/'&gt;http://www.gnu.org/licenses/&lt;/a&gt;.<a name="line.37"></a>
+<span class="sourceLineNo">038</span> */<a name="line.38"></a>
+<span class="sourceLineNo">039</span>public abstract class ExamRoomSharing  {<a name="line.39"></a>
+<span class="sourceLineNo">040</span>    <a name="line.40"></a>
+<span class="sourceLineNo">041</span>    public ExamRoomSharing(Model&lt;Exam, ExamPlacement&gt; model, DataProperties config) {}<a name="line.41"></a>
+<span class="sourceLineNo">042</span>        <a name="line.42"></a>
+<span class="sourceLineNo">043</span>    /**<a name="line.43"></a>
+<span class="sourceLineNo">044</span>     * True if given examination can not be placed in the same room at the same period as the other examinations<a name="line.44"></a>
+<span class="sourceLineNo">045</span>     * @param exam examination placement in question<a name="line.45"></a>
+<span class="sourceLineNo">046</span>     * @param other exams currently assigned in the room at the requested period<a name="line.46"></a>
+<span class="sourceLineNo">047</span>     * @param room examination room in questions<a name="line.47"></a>
+<span class="sourceLineNo">048</span>     * @return true if there is a conflict<a name="line.48"></a>
+<span class="sourceLineNo">049</span>     */<a name="line.49"></a>
+<span class="sourceLineNo">050</span>    public boolean inConflict(ExamPlacement exam, Collection&lt;ExamPlacement&gt; other, ExamRoom room) {<a name="line.50"></a>
+<span class="sourceLineNo">051</span>        if (exam.getRoomPlacements().size() != 1)<a name="line.51"></a>
+<span class="sourceLineNo">052</span>            return !other.isEmpty();<a name="line.52"></a>
+<span class="sourceLineNo">053</span>        <a name="line.53"></a>
+<span class="sourceLineNo">054</span>        return inConflict(exam.variable(), other, room);<a name="line.54"></a>
+<span class="sourceLineNo">055</span>    }<a name="line.55"></a>
+<span class="sourceLineNo">056</span>    <a name="line.56"></a>
+<span class="sourceLineNo">057</span>    /**<a name="line.57"></a>
+<span class="sourceLineNo">058</span>     * True if given examination can not be placed in the same room at the same period as the other examinations<a name="line.58"></a>
+<span class="sourceLineNo">059</span>     * @param exam examination in question<a name="line.59"></a>
+<span class="sourceLineNo">060</span>     * @param other exams currently assigned in the room at the requested period<a name="line.60"></a>
+<span class="sourceLineNo">061</span>     * @param room examination room in questions<a name="line.61"></a>
+<span class="sourceLineNo">062</span>     * @return true if there is a conflict<a name="line.62"></a>
+<span class="sourceLineNo">063</span>     */<a name="line.63"></a>
+<span class="sourceLineNo">064</span>    public boolean inConflict(Exam exam, Collection&lt;ExamPlacement&gt; other, ExamRoom room) {<a name="line.64"></a>
+<span class="sourceLineNo">065</span>        int total = exam.getSize();<a name="line.65"></a>
+<span class="sourceLineNo">066</span>        boolean altSeating = exam.hasAltSeating();<a name="line.66"></a>
+<span class="sourceLineNo">067</span>        for (ExamPlacement x: other) {<a name="line.67"></a>
+<span class="sourceLineNo">068</span>            if (x.variable().equals(exam)) continue;<a name="line.68"></a>
+<span class="sourceLineNo">069</span>            if (x.getRoomPlacements().size() != 1) return true; // already split into multiple rooms<a name="line.69"></a>
+<span class="sourceLineNo">070</span>            if (!canShareRoom(exam, x.variable())) return true; // sharing not allowed between the pair<a name="line.70"></a>
+<span class="sourceLineNo">071</span>            total += x.variable().getSize();<a name="line.71"></a>
+<span class="sourceLineNo">072</span>            if (x.variable().hasAltSeating()) altSeating = true;<a name="line.72"></a>
+<span class="sourceLineNo">073</span>        }<a name="line.73"></a>
+<span class="sourceLineNo">074</span>        <a name="line.74"></a>
+<span class="sourceLineNo">075</span>        return total &gt; (altSeating ? room.getAltSize() : room.getSize()); // check size limit<a name="line.75"></a>
+<span class="sourceLineNo">076</span>    }<a name="line.76"></a>
+<span class="sourceLineNo">077</span>    <a name="line.77"></a>
+<span class="sourceLineNo">078</span>    /**<a name="line.78"></a>
+<span class="sourceLineNo">079</span>     * Compute conflicting placement for the case when a given examination needs to be placed in the same room at the same period as the other examinations<a name="line.79"></a>
+<span class="sourceLineNo">080</span>     * @param exam examination placement in question<a name="line.80"></a>
+<span class="sourceLineNo">081</span>     * @param other exams currently assigned in the room at the requested period<a name="line.81"></a>
+<span class="sourceLineNo">082</span>     * @param room examination room in questions<a name="line.82"></a>
+<span class="sourceLineNo">083</span>     * @param conflicts set of conflicting assignments<a name="line.83"></a>
+<span class="sourceLineNo">084</span>     */<a name="line.84"></a>
+<span class="sourceLineNo">085</span>    public void computeConflicts(ExamPlacement exam, Collection&lt;ExamPlacement&gt; other, ExamRoom room, Set&lt;ExamPlacement&gt; conflicts) {<a name="line.85"></a>
+<span class="sourceLineNo">086</span>        // more than one room is required -&gt; no sharing<a name="line.86"></a>
+<span class="sourceLineNo">087</span>        if (exam.getRoomPlacements().size() != 1) {<a name="line.87"></a>
+<span class="sourceLineNo">088</span>            conflicts.addAll(other);<a name="line.88"></a>
+<span class="sourceLineNo">089</span>            return;<a name="line.89"></a>
+<span class="sourceLineNo">090</span>        }<a name="line.90"></a>
+<span class="sourceLineNo">091</span>        <a name="line.91"></a>
+<span class="sourceLineNo">092</span>        computeConflicts(exam.variable(), other, room, conflicts);<a name="line.92"></a>
+<span class="sourceLineNo">093</span>    }<a name="line.93"></a>
+<span class="sourceLineNo">094</span>    <a name="line.94"></a>
+<span class="sourceLineNo">095</span>    /**<a name="line.95"></a>
+<span class="sourceLineNo">096</span>     * Compute conflicting placement for the case when a given examination needs to be placed in the same room at the same period as the other examinations<a name="line.96"></a>
+<span class="sourceLineNo">097</span>     * @param exam examination in question<a name="line.97"></a>
+<span class="sourceLineNo">098</span>     * @param other exams currently assigned in the room at the requested period<a name="line.98"></a>
+<span class="sourceLineNo">099</span>     * @param room examination room in questions<a name="line.99"></a>
+<span class="sourceLineNo">100</span>     * @param conflicts set of conflicting assignments<a name="line.100"></a>
+<span class="sourceLineNo">101</span>     */<a name="line.101"></a>
+<span class="sourceLineNo">102</span>    public void computeConflicts(Exam exam, Collection&lt;ExamPlacement&gt; other, ExamRoom room, Set&lt;ExamPlacement&gt; conflicts) {<a name="line.102"></a>
+<span class="sourceLineNo">103</span>        int total = exam.getSize();<a name="line.103"></a>
+<span class="sourceLineNo">104</span>        boolean altSeating = exam.hasAltSeating();<a name="line.104"></a>
+<span class="sourceLineNo">105</span>        List&lt;ExamPlacement&gt; adepts = new ArrayList&lt;ExamPlacement&gt;();<a name="line.105"></a>
+<span class="sourceLineNo">106</span>        for (ExamPlacement x: other) {<a name="line.106"></a>
+<span class="sourceLineNo">107</span>            if (x.variable().equals(exam)) continue;<a name="line.107"></a>
+<span class="sourceLineNo">108</span>            // already a conflict -&gt; do not count<a name="line.108"></a>
+<span class="sourceLineNo">109</span>            if (conflicts.contains(x)) continue;<a name="line.109"></a>
+<span class="sourceLineNo">110</span>            // already split into multiple rooms<a name="line.110"></a>
+<span class="sourceLineNo">111</span>            if (x.getRoomPlacements().size() != 1) {<a name="line.111"></a>
+<span class="sourceLineNo">112</span>                conflicts.add(x); continue;<a name="line.112"></a>
+<span class="sourceLineNo">113</span>            }<a name="line.113"></a>
+<span class="sourceLineNo">114</span>            // sharing not allowed between the pair<a name="line.114"></a>
+<span class="sourceLineNo">115</span>            if (!canShareRoom(exam, x.variable())) {<a name="line.115"></a>
+<span class="sourceLineNo">116</span>                conflicts.add(x); continue;<a name="line.116"></a>
+<span class="sourceLineNo">117</span>            }<a name="line.117"></a>
+<span class="sourceLineNo">118</span>            if (x.variable().hasAltSeating()) altSeating = true;<a name="line.118"></a>
+<span class="sourceLineNo">119</span>            total += x.variable().getSize();<a name="line.119"></a>
+<span class="sourceLineNo">120</span>            adepts.add(x);<a name="line.120"></a>
+<span class="sourceLineNo">121</span>        }<a name="line.121"></a>
+<span class="sourceLineNo">122</span>        <a name="line.122"></a>
+<span class="sourceLineNo">123</span>        // fix the total size if needed<a name="line.123"></a>
+<span class="sourceLineNo">124</span>        while (total &gt; (altSeating ? room.getAltSize() : room.getSize()) &amp;&amp; !adepts.isEmpty()) {<a name="line.124"></a>
+<span class="sourceLineNo">125</span>            ExamPlacement x = ToolBox.random(adepts);<a name="line.125"></a>
+<span class="sourceLineNo">126</span>            adepts.remove(x);<a name="line.126"></a>
+<span class="sourceLineNo">127</span>            conflicts.add(x);<a name="line.127"></a>
+<span class="sourceLineNo">128</span>            total -= x.variable().getSize();<a name="line.128"></a>
+<span class="sourceLineNo">129</span>        }<a name="line.129"></a>
+<span class="sourceLineNo">130</span>    }<a name="line.130"></a>
+<span class="sourceLineNo">131</span><a name="line.131"></a>
+<span class="sourceLineNo">132</span>    <a name="line.132"></a>
+<span class="sourceLineNo">133</span>    /**<a name="line.133"></a>
+<span class="sourceLineNo">134</span>     * True if given two exams can share a room<a name="line.134"></a>
+<span class="sourceLineNo">135</span>     * @param x1 first exam<a name="line.135"></a>
+<span class="sourceLineNo">136</span>     * @param x2 second exam<a name="line.136"></a>
+<span class="sourceLineNo">137</span>     * @return true if the two exams can share a room<a name="line.137"></a>
+<span class="sourceLineNo">138</span>     */<a name="line.138"></a>
+<span class="sourceLineNo">139</span>    public abstract boolean canShareRoom(Exam x1, Exam x2);<a name="line.139"></a>
+<span class="sourceLineNo">140</span>    <a name="line.140"></a>
+<span class="sourceLineNo">141</span>    /**<a name="line.141"></a>
+<span class="sourceLineNo">142</span>     * Save sharing information (if needed) for a given exam<a name="line.142"></a>
+<span class="sourceLineNo">143</span>     * @param exam exam in question<a name="line.143"></a>
+<span class="sourceLineNo">144</span>     * @param element XML exam element to include sharing information<a name="line.144"></a>
+<span class="sourceLineNo">145</span>     * @param idConvertor id converter<a name="line.145"></a>
+<span class="sourceLineNo">146</span>     */<a name="line.146"></a>
+<span class="sourceLineNo">147</span>    public void save(Exam exam, Element element, IdConvertor idConvertor) {}<a name="line.147"></a>
+<span class="sourceLineNo">148</span>    <a name="line.148"></a>
+<span class="sourceLineNo">149</span>    /**<a name="line.149"></a>
+<span class="sourceLineNo">150</span>     * Load sharing information (if needed) for a given exam<a name="line.150"></a>
+<span class="sourceLineNo">151</span>     * @param exam exam in question<a name="line.151"></a>
+<span class="sourceLineNo">152</span>     * @param element XML exam element including sharing information<a name="line.152"></a>
+<span class="sourceLineNo">153</span>     */<a name="line.153"></a>
+<span class="sourceLineNo">154</span>    public void load(Exam exam, Element element) {}<a name="line.154"></a>
+<span class="sourceLineNo">155</span>}<a name="line.155"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

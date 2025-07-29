@@ -1,0 +1,280 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.cpsolver.studentsct.heuristics.selection;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import java.util.ConcurrentModificationException;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import java.util.Set;<a name="line.4"></a>
+<span class="sourceLineNo">005</span><a name="line.5"></a>
+<span class="sourceLineNo">006</span>import org.cpsolver.ifs.assignment.Assignment;<a name="line.6"></a>
+<span class="sourceLineNo">007</span>import org.cpsolver.ifs.heuristics.NeighbourSelection;<a name="line.7"></a>
+<span class="sourceLineNo">008</span>import org.cpsolver.ifs.heuristics.ValueSelection;<a name="line.8"></a>
+<span class="sourceLineNo">009</span>import org.cpsolver.ifs.heuristics.VariableSelection;<a name="line.9"></a>
+<span class="sourceLineNo">010</span>import org.cpsolver.ifs.model.Neighbour;<a name="line.10"></a>
+<span class="sourceLineNo">011</span>import org.cpsolver.ifs.model.SimpleNeighbour;<a name="line.11"></a>
+<span class="sourceLineNo">012</span>import org.cpsolver.ifs.solution.Solution;<a name="line.12"></a>
+<span class="sourceLineNo">013</span>import org.cpsolver.ifs.solver.Solver;<a name="line.13"></a>
+<span class="sourceLineNo">014</span>import org.cpsolver.ifs.util.DataProperties;<a name="line.14"></a>
+<span class="sourceLineNo">015</span>import org.cpsolver.ifs.util.Progress;<a name="line.15"></a>
+<span class="sourceLineNo">016</span>import org.cpsolver.studentsct.filter.StudentFilter;<a name="line.16"></a>
+<span class="sourceLineNo">017</span>import org.cpsolver.studentsct.heuristics.AssignmentCheck;<a name="line.17"></a>
+<span class="sourceLineNo">018</span>import org.cpsolver.studentsct.heuristics.EnrollmentSelection;<a name="line.18"></a>
+<span class="sourceLineNo">019</span>import org.cpsolver.studentsct.model.Enrollment;<a name="line.19"></a>
+<span class="sourceLineNo">020</span>import org.cpsolver.studentsct.model.Request;<a name="line.20"></a>
+<span class="sourceLineNo">021</span>import org.cpsolver.studentsct.model.Request.RequestPriority;<a name="line.21"></a>
+<span class="sourceLineNo">022</span><a name="line.22"></a>
+<span class="sourceLineNo">023</span><a name="line.23"></a>
+<span class="sourceLineNo">024</span>/**<a name="line.24"></a>
+<span class="sourceLineNo">025</span> * Use the provided variable and value selection for some time. The provided<a name="line.25"></a>
+<span class="sourceLineNo">026</span> * variable and value selection is used for the number of iterations equal to<a name="line.26"></a>
+<span class="sourceLineNo">027</span> * the number of all variables in the problem. If a complete solution is found,<a name="line.27"></a>
+<span class="sourceLineNo">028</span> * the neighbour selection is stopped (it returns null).<a name="line.28"></a>
+<span class="sourceLineNo">029</span> * <a name="line.29"></a>
+<span class="sourceLineNo">030</span> * &lt;br&gt;<a name="line.30"></a>
+<span class="sourceLineNo">031</span> * &lt;br&gt;<a name="line.31"></a>
+<span class="sourceLineNo">032</span> * Parameters: &lt;br&gt;<a name="line.32"></a>
+<span class="sourceLineNo">033</span> * &lt;table border='1'&gt;&lt;caption&gt;Related Solver Parameters&lt;/caption&gt;<a name="line.33"></a>
+<span class="sourceLineNo">034</span> * &lt;tr&gt;<a name="line.34"></a>
+<span class="sourceLineNo">035</span> * &lt;th&gt;Parameter&lt;/th&gt;<a name="line.35"></a>
+<span class="sourceLineNo">036</span> * &lt;th&gt;Type&lt;/th&gt;<a name="line.36"></a>
+<span class="sourceLineNo">037</span> * &lt;th&gt;Comment&lt;/th&gt;<a name="line.37"></a>
+<span class="sourceLineNo">038</span> * &lt;/tr&gt;<a name="line.38"></a>
+<span class="sourceLineNo">039</span> * &lt;tr&gt;<a name="line.39"></a>
+<span class="sourceLineNo">040</span> * &lt;td&gt;Neighbour.StandardIterations&lt;/td&gt;<a name="line.40"></a>
+<span class="sourceLineNo">041</span> * &lt;td&gt;{@link Long}&lt;/td&gt;<a name="line.41"></a>
+<span class="sourceLineNo">042</span> * &lt;td&gt;Number of iterations to perform. If -1, number of iterations is set to<a name="line.42"></a>
+<span class="sourceLineNo">043</span> * the number of unassigned variables.&lt;/td&gt;<a name="line.43"></a>
+<span class="sourceLineNo">044</span> * &lt;/tr&gt;<a name="line.44"></a>
+<span class="sourceLineNo">045</span> * &lt;/table&gt;<a name="line.45"></a>
+<span class="sourceLineNo">046</span> * &lt;br&gt;<a name="line.46"></a>
+<span class="sourceLineNo">047</span> * &lt;br&gt;<a name="line.47"></a>
+<span class="sourceLineNo">048</span> * <a name="line.48"></a>
+<span class="sourceLineNo">049</span> * @author  Tom&#225;&#353; M&#252;ller<a name="line.49"></a>
+<span class="sourceLineNo">050</span> * @version StudentSct 1.3 (Student Sectioning)&lt;br&gt;<a name="line.50"></a>
+<span class="sourceLineNo">051</span> *          Copyright (C) 2007 - 2014 Tom&#225;&#353; M&#252;ller&lt;br&gt;<a name="line.51"></a>
+<span class="sourceLineNo">052</span> *          &lt;a href="mailto:muller@unitime.org"&gt;muller@unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.52"></a>
+<span class="sourceLineNo">053</span> *          &lt;a href="http://muller.unitime.org"&gt;http://muller.unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.53"></a>
+<span class="sourceLineNo">054</span> * &lt;br&gt;<a name="line.54"></a>
+<span class="sourceLineNo">055</span> *          This library is free software; you can redistribute it and/or modify<a name="line.55"></a>
+<span class="sourceLineNo">056</span> *          it under the terms of the GNU Lesser General Public License as<a name="line.56"></a>
+<span class="sourceLineNo">057</span> *          published by the Free Software Foundation; either version 3 of the<a name="line.57"></a>
+<span class="sourceLineNo">058</span> *          License, or (at your option) any later version. &lt;br&gt;<a name="line.58"></a>
+<span class="sourceLineNo">059</span> * &lt;br&gt;<a name="line.59"></a>
+<span class="sourceLineNo">060</span> *          This library is distributed in the hope that it will be useful, but<a name="line.60"></a>
+<span class="sourceLineNo">061</span> *          WITHOUT ANY WARRANTY; without even the implied warranty of<a name="line.61"></a>
+<span class="sourceLineNo">062</span> *          MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU<a name="line.62"></a>
+<span class="sourceLineNo">063</span> *          Lesser General Public License for more details. &lt;br&gt;<a name="line.63"></a>
+<span class="sourceLineNo">064</span> * &lt;br&gt;<a name="line.64"></a>
+<span class="sourceLineNo">065</span> *          You should have received a copy of the GNU Lesser General Public<a name="line.65"></a>
+<span class="sourceLineNo">066</span> *          License along with this library; if not see<a name="line.66"></a>
+<span class="sourceLineNo">067</span> *          &lt;a href='http://www.gnu.org/licenses/'&gt;http://www.gnu.org/licenses/&lt;/a&gt;.<a name="line.67"></a>
+<span class="sourceLineNo">068</span> */<a name="line.68"></a>
+<span class="sourceLineNo">069</span>public class StandardSelection implements NeighbourSelection&lt;Request, Enrollment&gt;, AssignmentCheck&lt;Request, Enrollment&gt; {<a name="line.69"></a>
+<span class="sourceLineNo">070</span>    private long iIteration = 0;<a name="line.70"></a>
+<span class="sourceLineNo">071</span>    protected ValueSelection&lt;Request, Enrollment&gt; iValueSelection = null;<a name="line.71"></a>
+<span class="sourceLineNo">072</span>    protected VariableSelection&lt;Request, Enrollment&gt; iVariableSelection = null;<a name="line.72"></a>
+<span class="sourceLineNo">073</span>    protected long iNrIterations = -1;<a name="line.73"></a>
+<span class="sourceLineNo">074</span>    protected boolean iPreferPriorityStudents = true;<a name="line.74"></a>
+<span class="sourceLineNo">075</span>    protected long iConflictTimeOut = -7200;<a name="line.75"></a>
+<span class="sourceLineNo">076</span>    protected long iWorsenTimeOut = -7200;<a name="line.76"></a>
+<span class="sourceLineNo">077</span>    protected long iTimeOut = -3600;<a name="line.77"></a>
+<span class="sourceLineNo">078</span>    protected boolean iCanConflict = true;<a name="line.78"></a>
+<span class="sourceLineNo">079</span>    protected boolean iCanWorsen = true;<a name="line.79"></a>
+<span class="sourceLineNo">080</span>    protected boolean iCanWorsenCritical = false;<a name="line.80"></a>
+<span class="sourceLineNo">081</span>    protected boolean iCanHigherPriorityConflict = true;<a name="line.81"></a>
+<span class="sourceLineNo">082</span><a name="line.82"></a>
+<span class="sourceLineNo">083</span>    /**<a name="line.83"></a>
+<span class="sourceLineNo">084</span>     * Constructor (variable and value selection are expected to be already<a name="line.84"></a>
+<span class="sourceLineNo">085</span>     * initialized).<a name="line.85"></a>
+<span class="sourceLineNo">086</span>     * <a name="line.86"></a>
+<span class="sourceLineNo">087</span>     * @param properties<a name="line.87"></a>
+<span class="sourceLineNo">088</span>     *            configuration<a name="line.88"></a>
+<span class="sourceLineNo">089</span>     * @param variableSelection<a name="line.89"></a>
+<span class="sourceLineNo">090</span>     *            variable selection<a name="line.90"></a>
+<span class="sourceLineNo">091</span>     * @param valueSelection<a name="line.91"></a>
+<span class="sourceLineNo">092</span>     *            value selection<a name="line.92"></a>
+<span class="sourceLineNo">093</span>     */<a name="line.93"></a>
+<span class="sourceLineNo">094</span>    public StandardSelection(DataProperties properties, VariableSelection&lt;Request, Enrollment&gt; variableSelection,<a name="line.94"></a>
+<span class="sourceLineNo">095</span>            ValueSelection&lt;Request, Enrollment&gt; valueSelection) {<a name="line.95"></a>
+<span class="sourceLineNo">096</span>        iVariableSelection = variableSelection;<a name="line.96"></a>
+<span class="sourceLineNo">097</span>        iValueSelection = valueSelection;<a name="line.97"></a>
+<span class="sourceLineNo">098</span>        iPreferPriorityStudents = properties.getPropertyBoolean("Sectioning.PriorityStudentsFirstSelection.AllIn", true);<a name="line.98"></a>
+<span class="sourceLineNo">099</span>        iTimeOut = properties.getPropertyLong("Neighbour.StandardTimeOut", 0);<a name="line.99"></a>
+<span class="sourceLineNo">100</span>        if (iTimeOut &lt; 0)<a name="line.100"></a>
+<span class="sourceLineNo">101</span>            iTimeOut = Math.max(0, properties.getPropertyLong("Termination.TimeOut", -1l) + iTimeOut);<a name="line.101"></a>
+<span class="sourceLineNo">102</span>        iConflictTimeOut = properties.getPropertyLong("Neighbour.StandardConflictTimeOut", - properties.getPropertyLong("Termination.TimeOut", 0) / 10);<a name="line.102"></a>
+<span class="sourceLineNo">103</span>        if (iConflictTimeOut &lt; 0)<a name="line.103"></a>
+<span class="sourceLineNo">104</span>            iConflictTimeOut = Math.max(0, properties.getPropertyLong("Termination.TimeOut", -1l) + iConflictTimeOut);<a name="line.104"></a>
+<span class="sourceLineNo">105</span>        iWorsenTimeOut = properties.getPropertyLong("Neighbour.StandardWorsenTimeOut", - 3 * properties.getPropertyLong("Termination.TimeOut", 0) / 10);<a name="line.105"></a>
+<span class="sourceLineNo">106</span>        if (iWorsenTimeOut &lt; 0)<a name="line.106"></a>
+<span class="sourceLineNo">107</span>            iWorsenTimeOut = Math.max(0, properties.getPropertyLong("Termination.TimeOut", -1l) + iWorsenTimeOut);<a name="line.107"></a>
+<span class="sourceLineNo">108</span>        iCanConflict = properties.getPropertyBoolean("Neighbour.StandardCanConflict", true);<a name="line.108"></a>
+<span class="sourceLineNo">109</span>        iCanWorsen = properties.getPropertyBoolean("Neighbour.StandardCanWorsen", true);<a name="line.109"></a>
+<span class="sourceLineNo">110</span>        iCanHigherPriorityConflict = properties.getPropertyBoolean("Neighbour.StandardCanHigherPriorityConflict", true);<a name="line.110"></a>
+<span class="sourceLineNo">111</span>        iCanWorsenCritical = properties.getPropertyBoolean("Neighbour.CriticalStandardCanWorsen", false);<a name="line.111"></a>
+<span class="sourceLineNo">112</span>    }<a name="line.112"></a>
+<span class="sourceLineNo">113</span><a name="line.113"></a>
+<span class="sourceLineNo">114</span>    /** Initialization */<a name="line.114"></a>
+<span class="sourceLineNo">115</span>    @Override<a name="line.115"></a>
+<span class="sourceLineNo">116</span>    public void init(Solver&lt;Request, Enrollment&gt; solver) {<a name="line.116"></a>
+<span class="sourceLineNo">117</span>        StudentFilter filter = null;<a name="line.117"></a>
+<span class="sourceLineNo">118</span>        if (iVariableSelection instanceof UnassignedRequestSelection)<a name="line.118"></a>
+<span class="sourceLineNo">119</span>            filter = ((UnassignedRequestSelection)iVariableSelection).getFilter();<a name="line.119"></a>
+<span class="sourceLineNo">120</span>        init(solver, "Ifs" + (filter == null ? "" : " (" + filter.getName().toLowerCase() + " students)") + "...");<a name="line.120"></a>
+<span class="sourceLineNo">121</span>    }<a name="line.121"></a>
+<span class="sourceLineNo">122</span>    <a name="line.122"></a>
+<span class="sourceLineNo">123</span>    protected void init(Solver&lt;Request, Enrollment&gt; solver, String name) {<a name="line.123"></a>
+<span class="sourceLineNo">124</span>        iVariableSelection.init(solver);<a name="line.124"></a>
+<span class="sourceLineNo">125</span>        iValueSelection.init(solver);<a name="line.125"></a>
+<span class="sourceLineNo">126</span>        iIteration = 0;<a name="line.126"></a>
+<span class="sourceLineNo">127</span>        iNrIterations = solver.getProperties().getPropertyLong("Neighbour.StandardIterations", -1);<a name="line.127"></a>
+<span class="sourceLineNo">128</span>        if (iNrIterations &lt; 0)<a name="line.128"></a>
+<span class="sourceLineNo">129</span>            iNrIterations = solver.currentSolution().getModel().nrUnassignedVariables(solver.currentSolution().getAssignment());<a name="line.129"></a>
+<span class="sourceLineNo">130</span>        if (iTimeOut &gt; 0 &amp;&amp; solver.currentSolution().getTime() &gt; iTimeOut)<a name="line.130"></a>
+<span class="sourceLineNo">131</span>            iNrIterations = 0;<a name="line.131"></a>
+<span class="sourceLineNo">132</span>        iCanConflict = solver.getProperties().getPropertyBoolean("Neighbour.StandardCanConflict", true);<a name="line.132"></a>
+<span class="sourceLineNo">133</span>        if (iCanConflict &amp;&amp; iConflictTimeOut &gt; 0 &amp;&amp; solver.currentSolution().getTime() &gt; iConflictTimeOut)<a name="line.133"></a>
+<span class="sourceLineNo">134</span>            iCanConflict = false;<a name="line.134"></a>
+<span class="sourceLineNo">135</span>        if (iCanWorsen &amp;&amp; iWorsenTimeOut &gt; 0 &amp;&amp; solver.currentSolution().getTime() &gt; iWorsenTimeOut)<a name="line.135"></a>
+<span class="sourceLineNo">136</span>            iCanWorsen = false;<a name="line.136"></a>
+<span class="sourceLineNo">137</span>        if (!iCanConflict)<a name="line.137"></a>
+<span class="sourceLineNo">138</span>            name = "No-Conf " + name;<a name="line.138"></a>
+<span class="sourceLineNo">139</span>        else if (!iCanWorsen)<a name="line.139"></a>
+<span class="sourceLineNo">140</span>            name = "Improving " + name;<a name="line.140"></a>
+<span class="sourceLineNo">141</span>        if (iNrIterations &gt; 0)<a name="line.141"></a>
+<span class="sourceLineNo">142</span>            Progress.getInstance(solver.currentSolution().getModel()).setPhase(name, iNrIterations);<a name="line.142"></a>
+<span class="sourceLineNo">143</span>    }<a name="line.143"></a>
+<span class="sourceLineNo">144</span>    <a name="line.144"></a>
+<span class="sourceLineNo">145</span>    /**<a name="line.145"></a>
+<span class="sourceLineNo">146</span>     * Check if the given conflicting enrollment can be unassigned<a name="line.146"></a>
+<span class="sourceLineNo">147</span>     * @param conflict given enrollment<a name="line.147"></a>
+<span class="sourceLineNo">148</span>     * @return if running MPP, do not unassign initial enrollments<a name="line.148"></a>
+<span class="sourceLineNo">149</span>     */<a name="line.149"></a>
+<span class="sourceLineNo">150</span>    @Override<a name="line.150"></a>
+<span class="sourceLineNo">151</span>    public boolean canUnassign(Enrollment enrollment, Enrollment conflict, Assignment&lt;Request, Enrollment&gt; assignment) {<a name="line.151"></a>
+<span class="sourceLineNo">152</span>        if (!iCanConflict) return false;<a name="line.152"></a>
+<span class="sourceLineNo">153</span>        if (!iCanHigherPriorityConflict &amp;&amp; conflict.getRequest().getPriority() &lt; enrollment.getRequest().getPriority()) return false;<a name="line.153"></a>
+<span class="sourceLineNo">154</span>        if (conflict.getRequest().isMPP() &amp;&amp; conflict.equals(conflict.getRequest().getInitialAssignment())) return false;<a name="line.154"></a>
+<span class="sourceLineNo">155</span>        if (conflict.getRequest().getStudent().hasMinCredit()) {<a name="line.155"></a>
+<span class="sourceLineNo">156</span>            float credit = conflict.getRequest().getStudent().getAssignedCredit(assignment) - conflict.getCredit();<a name="line.156"></a>
+<span class="sourceLineNo">157</span>            if (credit &lt; conflict.getRequest().getStudent().getMinCredit()) return false;<a name="line.157"></a>
+<span class="sourceLineNo">158</span>        }<a name="line.158"></a>
+<span class="sourceLineNo">159</span>        if (!conflict.getRequest().isAlternative() &amp;&amp; conflict.getRequest().getRequestPriority().isHigher(enrollment.getRequest())) return false;<a name="line.159"></a>
+<span class="sourceLineNo">160</span>        if (iPreferPriorityStudents || conflict.getRequest().getRequestPriority().isSame(enrollment.getRequest())) {<a name="line.160"></a>
+<span class="sourceLineNo">161</span>            if (conflict.getStudent().getPriority().isHigher(enrollment.getStudent())) return false;<a name="line.161"></a>
+<span class="sourceLineNo">162</span>        }<a name="line.162"></a>
+<span class="sourceLineNo">163</span>        return true;<a name="line.163"></a>
+<span class="sourceLineNo">164</span>    }<a name="line.164"></a>
+<span class="sourceLineNo">165</span>    <a name="line.165"></a>
+<span class="sourceLineNo">166</span>    /**<a name="line.166"></a>
+<span class="sourceLineNo">167</span>     * Check whether the given neighbors can be returned<a name="line.167"></a>
+<span class="sourceLineNo">168</span>     * @return by default, any neighbors is accepted<a name="line.168"></a>
+<span class="sourceLineNo">169</span>     */<a name="line.169"></a>
+<span class="sourceLineNo">170</span>    public boolean accept(SimpleNeighbour&lt;Request, Enrollment&gt; n, Solution&lt;Request, Enrollment&gt; solution) {<a name="line.170"></a>
+<span class="sourceLineNo">171</span>        if (!iCanWorsenCritical &amp;&amp; RequestPriority.Important.isCritical(n.getVariable()))<a name="line.171"></a>
+<span class="sourceLineNo">172</span>            return n.value(solution.getAssignment()) &lt;= 0.0;<a name="line.172"></a>
+<span class="sourceLineNo">173</span>        if (iCanWorsen) return true;<a name="line.173"></a>
+<span class="sourceLineNo">174</span>        return n.value(solution.getAssignment()) &lt;= 0.0;<a name="line.174"></a>
+<span class="sourceLineNo">175</span>    }<a name="line.175"></a>
+<span class="sourceLineNo">176</span><a name="line.176"></a>
+<span class="sourceLineNo">177</span>    /**<a name="line.177"></a>
+<span class="sourceLineNo">178</span>     * Employ the provided {@link VariableSelection} and {@link ValueSelection}<a name="line.178"></a>
+<span class="sourceLineNo">179</span>     * and return the selected value as {@link SimpleNeighbour}. The selection<a name="line.179"></a>
+<span class="sourceLineNo">180</span>     * is stopped (null is returned) after the number of iterations equal to the<a name="line.180"></a>
+<span class="sourceLineNo">181</span>     * number of variables in the problem or when a complete solution is found.<a name="line.181"></a>
+<span class="sourceLineNo">182</span>     */<a name="line.182"></a>
+<span class="sourceLineNo">183</span>    @Override<a name="line.183"></a>
+<span class="sourceLineNo">184</span>    public Neighbour&lt;Request, Enrollment&gt; selectNeighbour(Solution&lt;Request, Enrollment&gt; solution) {<a name="line.184"></a>
+<span class="sourceLineNo">185</span>        if (solution.getModel().unassignedVariables(solution.getAssignment()).isEmpty() || ++iIteration &gt;= iNrIterations)<a name="line.185"></a>
+<span class="sourceLineNo">186</span>            return null;<a name="line.186"></a>
+<span class="sourceLineNo">187</span>        Progress.getInstance(solution.getModel()).incProgress();<a name="line.187"></a>
+<span class="sourceLineNo">188</span>        attempts: for (int i = 0; i &lt; 10; i++) {<a name="line.188"></a>
+<span class="sourceLineNo">189</span>            try {<a name="line.189"></a>
+<span class="sourceLineNo">190</span>                Request request = iVariableSelection.selectVariable(solution);<a name="line.190"></a>
+<span class="sourceLineNo">191</span>                if (request == null) continue;<a name="line.191"></a>
+<span class="sourceLineNo">192</span>                Enrollment enrollment =<a name="line.192"></a>
+<span class="sourceLineNo">193</span>                        (iValueSelection instanceof EnrollmentSelection)<a name="line.193"></a>
+<span class="sourceLineNo">194</span>                                ? ((EnrollmentSelection)iValueSelection).selectValue(solution, request, this)<a name="line.194"></a>
+<span class="sourceLineNo">195</span>                                : iValueSelection.selectValue(solution, request);<a name="line.195"></a>
+<span class="sourceLineNo">196</span>                if (enrollment == null) continue;<a name="line.196"></a>
+<span class="sourceLineNo">197</span>                Set&lt;Enrollment&gt; conflicts = enrollment.variable().getModel().conflictValues(solution.getAssignment(), enrollment);<a name="line.197"></a>
+<span class="sourceLineNo">198</span>                if (conflicts.contains(enrollment)) continue;<a name="line.198"></a>
+<span class="sourceLineNo">199</span>                for (Enrollment conflict: conflicts)<a name="line.199"></a>
+<span class="sourceLineNo">200</span>                    if (!canUnassign(enrollment, conflict, solution.getAssignment())) continue attempts;<a name="line.200"></a>
+<span class="sourceLineNo">201</span>                SimpleNeighbour&lt;Request, Enrollment&gt; n = new SimpleNeighbour&lt;Request, Enrollment&gt;(request, enrollment, conflicts);<a name="line.201"></a>
+<span class="sourceLineNo">202</span>                if (accept(n, solution)) return n;<a name="line.202"></a>
+<span class="sourceLineNo">203</span>            } catch (ConcurrentModificationException e) {}<a name="line.203"></a>
+<span class="sourceLineNo">204</span>        }<a name="line.204"></a>
+<span class="sourceLineNo">205</span>        return null;<a name="line.205"></a>
+<span class="sourceLineNo">206</span>    }<a name="line.206"></a>
+<span class="sourceLineNo">207</span><a name="line.207"></a>
+<span class="sourceLineNo">208</span>}<a name="line.208"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

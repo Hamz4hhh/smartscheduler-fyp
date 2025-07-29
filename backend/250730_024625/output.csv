@@ -1,0 +1,72 @@
+000.001 Assigned variables,150
+000.002 Time [sec],1724.877
+000.003 Hard student conflicts,0
+000.004 Distance student conf.,0
+000.005 Student conflicts,0
+000.006 Committed student conflicts,0
+000.007 All Student conflicts,0
+000.008 Time preferences,0.000
+000.009 Room preferences,0
+000.010 Useless half-hours,0
+000.011 Broken time patterns,6
+000.012 Too big room,21
+000.013 Distribution preferences,0.000
+000.014 Back-to-back instructor pref.,0
+000.015 Same subpart balancing penalty,0.000
+000.101 Assigned variables max,150
+000.102 Student enrollments,199
+000.103 Student commited enrollments,0
+000.104 All student enrollments,199
+000.105 Time preferences min,0
+000.106 Time preferences max,448
+000.107 Room preferences min,0
+000.108 Room preferences max,0
+000.109 Useless half-hours max,16800
+000.110 Too big room max,600
+000.111 Distribution preferences min,0
+000.112 Distribution preferences max,0
+000.113 Back-to-back instructor pref max,84
+231382.001 Assigned variables,17
+231382.101 Assigned variables max,17
+231382.002 Hard student conflicts,0
+231382.102 Student enrollments,59
+231382.003 Distance student conf.,0
+231382.004 Student conflicts,0
+231382.005 Time preferences,-40.0
+231382.103 Time preferences min,-40
+231382.104 Time preferences max,0
+231382.006 Room preferences,0
+231382.105 Room preferences min,0
+231382.106 Room preferences max,0
+231382.007 Useless half-hours,0
+231382.107 Useless half-hours max,2400
+231382.008 Too big room,0
+231382.108 Too big room max,68
+231382.009 Distribution preferences,0.0
+231382.109 Distribution preferences min,0
+231382.110 Distribution preferences max,0
+231382.010 Back-to-back instructor pref,0
+231382.111 Back-to-back instructor pref max,40
+231382.011 Same subpart balancing penalty,0.000
+231383.001 Assigned variables,133
+231383.101 Assigned variables max,133
+231383.002 Hard student conflicts,0
+231383.102 Student enrollments,140
+231383.003 Distance student conf.,0
+231383.004 Student conflicts,0
+231383.005 Time preferences,-16.0
+231383.103 Time preferences min,-16
+231383.104 Time preferences max,392
+231383.006 Room preferences,-12
+231383.105 Room preferences min,-12
+231383.106 Room preferences max,-12
+231383.007 Useless half-hours,36
+231383.107 Useless half-hours max,16800
+231383.008 Too big room,21
+231383.108 Too big room max,532
+231383.009 Distribution preferences,0.0
+231383.109 Distribution preferences min,0
+231383.110 Distribution preferences max,0
+231383.010 Back-to-back instructor pref,0
+231383.111 Back-to-back instructor pref max,64
+231383.011 Same subpart balancing penalty,0.000

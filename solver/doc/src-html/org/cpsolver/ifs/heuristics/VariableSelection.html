@@ -1,0 +1,151 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.cpsolver.ifs.heuristics;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import org.cpsolver.ifs.model.Value;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import org.cpsolver.ifs.model.Variable;<a name="line.4"></a>
+<span class="sourceLineNo">005</span>import org.cpsolver.ifs.solution.Solution;<a name="line.5"></a>
+<span class="sourceLineNo">006</span>import org.cpsolver.ifs.solver.Solver;<a name="line.6"></a>
+<span class="sourceLineNo">007</span><a name="line.7"></a>
+<span class="sourceLineNo">008</span>/**<a name="line.8"></a>
+<span class="sourceLineNo">009</span> * Variable selection criterion. &lt;br&gt;<a name="line.9"></a>
+<span class="sourceLineNo">010</span> * &lt;br&gt;<a name="line.10"></a>
+<span class="sourceLineNo">011</span> * The IFS algorithm requires a function that selects a variable to be<a name="line.11"></a>
+<span class="sourceLineNo">012</span> * (re)assigned during the current iteration step. This problem is equivalent to<a name="line.12"></a>
+<span class="sourceLineNo">013</span> * a variable selection criterion in constraint programming. There are several<a name="line.13"></a>
+<span class="sourceLineNo">014</span> * guidelines for selecting a variable. In local search, the variable<a name="line.14"></a>
+<span class="sourceLineNo">015</span> * participating in the largest number of violations is usually selected first.<a name="line.15"></a>
+<span class="sourceLineNo">016</span> * In backtracking-based algorithms, the first-fail principle is often used,<a name="line.16"></a>
+<span class="sourceLineNo">017</span> * i.e., a variable whose instantiation is most complicated is selected first.<a name="line.17"></a>
+<span class="sourceLineNo">018</span> * This could be the variable involved in the largest set of constraints or the<a name="line.18"></a>
+<span class="sourceLineNo">019</span> * variable with the smallest domain, etc. &lt;br&gt;<a name="line.19"></a>
+<span class="sourceLineNo">020</span> * &lt;br&gt;<a name="line.20"></a>
+<span class="sourceLineNo">021</span> * We can split the variable selection criterion into two cases. If some<a name="line.21"></a>
+<span class="sourceLineNo">022</span> * variables remain unassigned, the "worst" variable among them is selected,<a name="line.22"></a>
+<span class="sourceLineNo">023</span> * i.e., first-fail principle is applied. This may, for example, be the variable<a name="line.23"></a>
+<span class="sourceLineNo">024</span> * with the smallest domain or with the highest number of hard and/or soft<a name="line.24"></a>
+<span class="sourceLineNo">025</span> * constraints. &lt;br&gt;<a name="line.25"></a>
+<span class="sourceLineNo">026</span> * &lt;br&gt;<a name="line.26"></a>
+<span class="sourceLineNo">027</span> * The second case occurs when all variables are assigned. Because the algorithm<a name="line.27"></a>
+<span class="sourceLineNo">028</span> * does not need to stop when a complete feasible solution is found, the<a name="line.28"></a>
+<span class="sourceLineNo">029</span> * variable selection criterion for such case has to be considered as well. Here<a name="line.29"></a>
+<span class="sourceLineNo">030</span> * all variables are assigned but the solution is not good enough, e.g., in the<a name="line.30"></a>
+<span class="sourceLineNo">031</span> * sense of violated soft constraints. We choose a variable whose change of a<a name="line.31"></a>
+<span class="sourceLineNo">032</span> * value can introduce the best improvement of the solution. It may, for<a name="line.32"></a>
+<span class="sourceLineNo">033</span> * example, be a variable whose value violates the highest number of soft<a name="line.33"></a>
+<span class="sourceLineNo">034</span> * constraints. &lt;br&gt;<a name="line.34"></a>
+<span class="sourceLineNo">035</span> * &lt;br&gt;<a name="line.35"></a>
+<span class="sourceLineNo">036</span> * It is possible for the solution to become incomplete again after such an<a name="line.36"></a>
+<span class="sourceLineNo">037</span> * iteration because a value which is not consistent with all hard constraints<a name="line.37"></a>
+<span class="sourceLineNo">038</span> * can be selected in the value selection criterion. This can also be taken into<a name="line.38"></a>
+<span class="sourceLineNo">039</span> * account in the variable selection heuristics.<a name="line.39"></a>
+<span class="sourceLineNo">040</span> * <a name="line.40"></a>
+<span class="sourceLineNo">041</span> * @see Solver<a name="line.41"></a>
+<span class="sourceLineNo">042</span> * <a name="line.42"></a>
+<span class="sourceLineNo">043</span> * @author  Tom&#225;&#353; M&#252;ller<a name="line.43"></a>
+<span class="sourceLineNo">044</span> * @version IFS 1.3 (Iterative Forward Search)&lt;br&gt;<a name="line.44"></a>
+<span class="sourceLineNo">045</span> *          Copyright (C) 2006 - 2014 Tom&#225;&#353; M&#252;ller&lt;br&gt;<a name="line.45"></a>
+<span class="sourceLineNo">046</span> *          &lt;a href="mailto:muller@unitime.org"&gt;muller@unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.46"></a>
+<span class="sourceLineNo">047</span> *          &lt;a href="http://muller.unitime.org"&gt;http://muller.unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.47"></a>
+<span class="sourceLineNo">048</span> * &lt;br&gt;<a name="line.48"></a>
+<span class="sourceLineNo">049</span> *          This library is free software; you can redistribute it and/or modify<a name="line.49"></a>
+<span class="sourceLineNo">050</span> *          it under the terms of the GNU Lesser General Public License as<a name="line.50"></a>
+<span class="sourceLineNo">051</span> *          published by the Free Software Foundation; either version 3 of the<a name="line.51"></a>
+<span class="sourceLineNo">052</span> *          License, or (at your option) any later version. &lt;br&gt;<a name="line.52"></a>
+<span class="sourceLineNo">053</span> * &lt;br&gt;<a name="line.53"></a>
+<span class="sourceLineNo">054</span> *          This library is distributed in the hope that it will be useful, but<a name="line.54"></a>
+<span class="sourceLineNo">055</span> *          WITHOUT ANY WARRANTY; without even the implied warranty of<a name="line.55"></a>
+<span class="sourceLineNo">056</span> *          MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU<a name="line.56"></a>
+<span class="sourceLineNo">057</span> *          Lesser General Public License for more details. &lt;br&gt;<a name="line.57"></a>
+<span class="sourceLineNo">058</span> * &lt;br&gt;<a name="line.58"></a>
+<span class="sourceLineNo">059</span> *          You should have received a copy of the GNU Lesser General Public<a name="line.59"></a>
+<span class="sourceLineNo">060</span> *          License along with this library; if not see &lt;a href='http://www.gnu.org/licenses'&gt;http://www.gnu.org/licenses&lt;/a&gt;.<a name="line.60"></a>
+<span class="sourceLineNo">061</span> *<a name="line.61"></a>
+<span class="sourceLineNo">062</span> * @param &lt;V&gt; Variable<a name="line.62"></a>
+<span class="sourceLineNo">063</span> * @param &lt;T&gt; Value<a name="line.63"></a>
+<span class="sourceLineNo">064</span> **/<a name="line.64"></a>
+<span class="sourceLineNo">065</span>public interface VariableSelection&lt;V extends Variable&lt;V, T&gt;, T extends Value&lt;V, T&gt;&gt; {<a name="line.65"></a>
+<span class="sourceLineNo">066</span>    /** Initialization <a name="line.66"></a>
+<span class="sourceLineNo">067</span>     * @param solver current solver<a name="line.67"></a>
+<span class="sourceLineNo">068</span>     **/<a name="line.68"></a>
+<span class="sourceLineNo">069</span>    public void init(Solver&lt;V, T&gt; solver);<a name="line.69"></a>
+<span class="sourceLineNo">070</span><a name="line.70"></a>
+<span class="sourceLineNo">071</span>    /**<a name="line.71"></a>
+<span class="sourceLineNo">072</span>     * Variable selection<a name="line.72"></a>
+<span class="sourceLineNo">073</span>     * <a name="line.73"></a>
+<span class="sourceLineNo">074</span>     * @param solution<a name="line.74"></a>
+<span class="sourceLineNo">075</span>     *            current solution<a name="line.75"></a>
+<span class="sourceLineNo">076</span>     * @return selected variable<a name="line.76"></a>
+<span class="sourceLineNo">077</span>     */<a name="line.77"></a>
+<span class="sourceLineNo">078</span>    public V selectVariable(Solution&lt;V, T&gt; solution);<a name="line.78"></a>
+<span class="sourceLineNo">079</span>}<a name="line.79"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

@@ -1,0 +1,223 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.cpsolver.studentsct.heuristics;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import java.util.Collections;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import java.util.Comparator;<a name="line.4"></a>
+<span class="sourceLineNo">005</span>import java.util.HashMap;<a name="line.5"></a>
+<span class="sourceLineNo">006</span>import java.util.Iterator;<a name="line.6"></a>
+<span class="sourceLineNo">007</span>import java.util.List;<a name="line.7"></a>
+<span class="sourceLineNo">008</span>import java.util.Set;<a name="line.8"></a>
+<span class="sourceLineNo">009</span><a name="line.9"></a>
+<span class="sourceLineNo">010</span>import org.cpsolver.ifs.assignment.Assignment;<a name="line.10"></a>
+<span class="sourceLineNo">011</span>import org.cpsolver.ifs.heuristics.BacktrackNeighbourSelection;<a name="line.11"></a>
+<span class="sourceLineNo">012</span>import org.cpsolver.ifs.util.DataProperties;<a name="line.12"></a>
+<span class="sourceLineNo">013</span>import org.cpsolver.studentsct.StudentSectioningModel;<a name="line.13"></a>
+<span class="sourceLineNo">014</span>import org.cpsolver.studentsct.model.CourseRequest;<a name="line.14"></a>
+<span class="sourceLineNo">015</span>import org.cpsolver.studentsct.model.Enrollment;<a name="line.15"></a>
+<span class="sourceLineNo">016</span>import org.cpsolver.studentsct.model.Request;<a name="line.16"></a>
+<span class="sourceLineNo">017</span><a name="line.17"></a>
+<span class="sourceLineNo">018</span><a name="line.18"></a>
+<span class="sourceLineNo">019</span>/**<a name="line.19"></a>
+<span class="sourceLineNo">020</span> * Randomized backtracking-based neighbour selection. This class extends<a name="line.20"></a>
+<span class="sourceLineNo">021</span> * {@link RandomizedBacktrackNeighbourSelection}, however, only a randomly<a name="line.21"></a>
+<span class="sourceLineNo">022</span> * selected subset of enrollments of each request is considered (<a name="line.22"></a>
+<span class="sourceLineNo">023</span> * {@link CourseRequest#computeRandomEnrollments(Assignment, int)} with the given limit is<a name="line.23"></a>
+<span class="sourceLineNo">024</span> * used).<a name="line.24"></a>
+<span class="sourceLineNo">025</span> * <a name="line.25"></a>
+<span class="sourceLineNo">026</span> * &lt;br&gt;<a name="line.26"></a>
+<span class="sourceLineNo">027</span> * &lt;br&gt;<a name="line.27"></a>
+<span class="sourceLineNo">028</span> * Parameters: &lt;br&gt;<a name="line.28"></a>
+<span class="sourceLineNo">029</span> * &lt;table border='1'&gt;&lt;caption&gt;Related Solver Parameters&lt;/caption&gt;<a name="line.29"></a>
+<span class="sourceLineNo">030</span> * &lt;tr&gt;<a name="line.30"></a>
+<span class="sourceLineNo">031</span> * &lt;th&gt;Parameter&lt;/th&gt;<a name="line.31"></a>
+<span class="sourceLineNo">032</span> * &lt;th&gt;Type&lt;/th&gt;<a name="line.32"></a>
+<span class="sourceLineNo">033</span> * &lt;th&gt;Comment&lt;/th&gt;<a name="line.33"></a>
+<span class="sourceLineNo">034</span> * &lt;/tr&gt;<a name="line.34"></a>
+<span class="sourceLineNo">035</span> * &lt;tr&gt;<a name="line.35"></a>
+<span class="sourceLineNo">036</span> * &lt;td&gt;Neighbour.MaxValues&lt;/td&gt;<a name="line.36"></a>
+<span class="sourceLineNo">037</span> * &lt;td&gt;{@link Integer}&lt;/td&gt;<a name="line.37"></a>
+<span class="sourceLineNo">038</span> * &lt;td&gt;Limit on the number of enrollments to be visited of each<a name="line.38"></a>
+<span class="sourceLineNo">039</span> * {@link CourseRequest}.&lt;/td&gt;<a name="line.39"></a>
+<span class="sourceLineNo">040</span> * &lt;/tr&gt;<a name="line.40"></a>
+<span class="sourceLineNo">041</span> * &lt;/table&gt;<a name="line.41"></a>
+<span class="sourceLineNo">042</span> * &lt;br&gt;<a name="line.42"></a>
+<span class="sourceLineNo">043</span> * &lt;br&gt;<a name="line.43"></a>
+<span class="sourceLineNo">044</span> * <a name="line.44"></a>
+<span class="sourceLineNo">045</span> * @author  Tom&#225;&#353; M&#252;ller<a name="line.45"></a>
+<span class="sourceLineNo">046</span> * @version StudentSct 1.3 (Student Sectioning)&lt;br&gt;<a name="line.46"></a>
+<span class="sourceLineNo">047</span> *          Copyright (C) 2007 - 2014 Tom&#225;&#353; M&#252;ller&lt;br&gt;<a name="line.47"></a>
+<span class="sourceLineNo">048</span> *          &lt;a href="mailto:muller@unitime.org"&gt;muller@unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.48"></a>
+<span class="sourceLineNo">049</span> *          &lt;a href="http://muller.unitime.org"&gt;http://muller.unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.49"></a>
+<span class="sourceLineNo">050</span> * &lt;br&gt;<a name="line.50"></a>
+<span class="sourceLineNo">051</span> *          This library is free software; you can redistribute it and/or modify<a name="line.51"></a>
+<span class="sourceLineNo">052</span> *          it under the terms of the GNU Lesser General Public License as<a name="line.52"></a>
+<span class="sourceLineNo">053</span> *          published by the Free Software Foundation; either version 3 of the<a name="line.53"></a>
+<span class="sourceLineNo">054</span> *          License, or (at your option) any later version. &lt;br&gt;<a name="line.54"></a>
+<span class="sourceLineNo">055</span> * &lt;br&gt;<a name="line.55"></a>
+<span class="sourceLineNo">056</span> *          This library is distributed in the hope that it will be useful, but<a name="line.56"></a>
+<span class="sourceLineNo">057</span> *          WITHOUT ANY WARRANTY; without even the implied warranty of<a name="line.57"></a>
+<span class="sourceLineNo">058</span> *          MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU<a name="line.58"></a>
+<span class="sourceLineNo">059</span> *          Lesser General Public License for more details. &lt;br&gt;<a name="line.59"></a>
+<span class="sourceLineNo">060</span> * &lt;br&gt;<a name="line.60"></a>
+<span class="sourceLineNo">061</span> *          You should have received a copy of the GNU Lesser General Public<a name="line.61"></a>
+<span class="sourceLineNo">062</span> *          License along with this library; if not see<a name="line.62"></a>
+<span class="sourceLineNo">063</span> *          &lt;a href='http://www.gnu.org/licenses/'&gt;http://www.gnu.org/licenses/&lt;/a&gt;.<a name="line.63"></a>
+<span class="sourceLineNo">064</span> */<a name="line.64"></a>
+<span class="sourceLineNo">065</span>public class RandomizedBacktrackNeighbourSelection extends BacktrackNeighbourSelection&lt;Request, Enrollment&gt; {<a name="line.65"></a>
+<span class="sourceLineNo">066</span>    private int iMaxValues = 100;<a name="line.66"></a>
+<span class="sourceLineNo">067</span>    private boolean iPreferPriorityStudents = true;<a name="line.67"></a>
+<span class="sourceLineNo">068</span><a name="line.68"></a>
+<span class="sourceLineNo">069</span>    /**<a name="line.69"></a>
+<span class="sourceLineNo">070</span>     * Constructor<a name="line.70"></a>
+<span class="sourceLineNo">071</span>     * <a name="line.71"></a>
+<span class="sourceLineNo">072</span>     * @param properties<a name="line.72"></a>
+<span class="sourceLineNo">073</span>     *            configuration<a name="line.73"></a>
+<span class="sourceLineNo">074</span>     * @throws Exception thrown when the initialization fails<a name="line.74"></a>
+<span class="sourceLineNo">075</span>     */<a name="line.75"></a>
+<span class="sourceLineNo">076</span>    public RandomizedBacktrackNeighbourSelection(DataProperties properties) throws Exception {<a name="line.76"></a>
+<span class="sourceLineNo">077</span>        super(properties);<a name="line.77"></a>
+<span class="sourceLineNo">078</span>        iMaxValues = properties.getPropertyInt("Neighbour.MaxValues", iMaxValues);<a name="line.78"></a>
+<span class="sourceLineNo">079</span>        iPreferPriorityStudents = properties.getPropertyBoolean("Sectioning.PriorityStudentsFirstSelection.AllIn", true);<a name="line.79"></a>
+<span class="sourceLineNo">080</span>    }<a name="line.80"></a>
+<span class="sourceLineNo">081</span><a name="line.81"></a>
+<span class="sourceLineNo">082</span>    /**<a name="line.82"></a>
+<span class="sourceLineNo">083</span>     * List of values of a variable.<a name="line.83"></a>
+<span class="sourceLineNo">084</span>     * {@link CourseRequest#computeRandomEnrollments(Assignment, int)} with the provided<a name="line.84"></a>
+<span class="sourceLineNo">085</span>     * limit is used for a {@link CourseRequest}.<a name="line.85"></a>
+<span class="sourceLineNo">086</span>     */<a name="line.86"></a>
+<span class="sourceLineNo">087</span>    @Override<a name="line.87"></a>
+<span class="sourceLineNo">088</span>    protected Iterator&lt;Enrollment&gt; values(BacktrackNeighbourSelection&lt;Request, Enrollment&gt;.BacktrackNeighbourSelectionContext context, Request variable) {<a name="line.88"></a>
+<span class="sourceLineNo">089</span>        if (variable instanceof CourseRequest) {<a name="line.89"></a>
+<span class="sourceLineNo">090</span>            final CourseRequest request = (CourseRequest)variable;<a name="line.90"></a>
+<span class="sourceLineNo">091</span>            final StudentSectioningModel model = (StudentSectioningModel)context.getModel();<a name="line.91"></a>
+<span class="sourceLineNo">092</span>            final Assignment&lt;Request, Enrollment&gt; assignment = context.getAssignment();<a name="line.92"></a>
+<span class="sourceLineNo">093</span>            final Enrollment current = assignment.getValue(request);<a name="line.93"></a>
+<span class="sourceLineNo">094</span>            List&lt;Enrollment&gt; values = (iMaxValues &gt; 0 ? request.computeRandomEnrollments(assignment, iMaxValues) : request.computeEnrollments(assignment));<a name="line.94"></a>
+<span class="sourceLineNo">095</span>            Collections.sort(values, new Comparator&lt;Enrollment&gt;() {<a name="line.95"></a>
+<span class="sourceLineNo">096</span>                private HashMap&lt;Enrollment, Double&gt; iValues = new HashMap&lt;Enrollment, Double&gt;();<a name="line.96"></a>
+<span class="sourceLineNo">097</span>                private Double value(Enrollment e) {<a name="line.97"></a>
+<span class="sourceLineNo">098</span>                    Double value = iValues.get(e);<a name="line.98"></a>
+<span class="sourceLineNo">099</span>                    if (value == null) {<a name="line.99"></a>
+<span class="sourceLineNo">100</span>                        if (model.getStudentQuality() != null)<a name="line.100"></a>
+<span class="sourceLineNo">101</span>                            value = model.getStudentWeights().getWeight(assignment, e, model.getStudentQuality().conflicts(e));<a name="line.101"></a>
+<span class="sourceLineNo">102</span>                        else<a name="line.102"></a>
+<span class="sourceLineNo">103</span>                            value = model.getStudentWeights().getWeight(assignment, e,<a name="line.103"></a>
+<span class="sourceLineNo">104</span>                                    (model.getDistanceConflict() == null ? null : model.getDistanceConflict().conflicts(e)),<a name="line.104"></a>
+<span class="sourceLineNo">105</span>                                    (model.getTimeOverlaps() == null ? null : model.getTimeOverlaps().conflicts(e)));<a name="line.105"></a>
+<span class="sourceLineNo">106</span>                        iValues.put(e, value);<a name="line.106"></a>
+<span class="sourceLineNo">107</span>                    }<a name="line.107"></a>
+<span class="sourceLineNo">108</span>                    return value;<a name="line.108"></a>
+<span class="sourceLineNo">109</span>                }<a name="line.109"></a>
+<span class="sourceLineNo">110</span>                @Override<a name="line.110"></a>
+<span class="sourceLineNo">111</span>                public int compare(Enrollment e1, Enrollment e2) {<a name="line.111"></a>
+<span class="sourceLineNo">112</span>                    if (e1.equals(e2)) return 0;<a name="line.112"></a>
+<span class="sourceLineNo">113</span>                    if (e1.equals(current)) return -1;<a name="line.113"></a>
+<span class="sourceLineNo">114</span>                    if (e2.equals(current)) return 1;<a name="line.114"></a>
+<span class="sourceLineNo">115</span>                    Double v1 = value(e1), v2 = value(e2);<a name="line.115"></a>
+<span class="sourceLineNo">116</span>                    return v1.equals(v2) ? e1.compareTo(assignment, e2) : v2.compareTo(v1);<a name="line.116"></a>
+<span class="sourceLineNo">117</span>                }<a name="line.117"></a>
+<span class="sourceLineNo">118</span>            });<a name="line.118"></a>
+<span class="sourceLineNo">119</span>            return values.iterator();<a name="line.119"></a>
+<span class="sourceLineNo">120</span>        } else {<a name="line.120"></a>
+<span class="sourceLineNo">121</span>            return variable.computeEnrollments(context.getAssignment()).iterator();<a name="line.121"></a>
+<span class="sourceLineNo">122</span>        }<a name="line.122"></a>
+<span class="sourceLineNo">123</span>    }<a name="line.123"></a>
+<span class="sourceLineNo">124</span>    <a name="line.124"></a>
+<span class="sourceLineNo">125</span>    /**<a name="line.125"></a>
+<span class="sourceLineNo">126</span>     * Check if the given conflicting enrollment can be unassigned<a name="line.126"></a>
+<span class="sourceLineNo">127</span>     * @param conflict given enrollment<a name="line.127"></a>
+<span class="sourceLineNo">128</span>     * @return if running MPP, do not unassign initial enrollments<a name="line.128"></a>
+<span class="sourceLineNo">129</span>     */<a name="line.129"></a>
+<span class="sourceLineNo">130</span>    public boolean canUnassign(Enrollment enrollment, Enrollment conflict, Assignment&lt;Request, Enrollment&gt; assignment) {<a name="line.130"></a>
+<span class="sourceLineNo">131</span>        if (conflict.getRequest().isMPP() &amp;&amp; conflict.equals(conflict.getRequest().getInitialAssignment()) &amp;&amp; <a name="line.131"></a>
+<span class="sourceLineNo">132</span>                !enrollment.equals(enrollment.getRequest().getInitialAssignment())) return false;<a name="line.132"></a>
+<span class="sourceLineNo">133</span>        if (conflict.getRequest() instanceof CourseRequest &amp;&amp; ((CourseRequest)conflict.getRequest()).getFixedValue() != null) return false;<a name="line.133"></a>
+<span class="sourceLineNo">134</span>        if (conflict.getRequest().getStudent().hasMinCredit()) {<a name="line.134"></a>
+<span class="sourceLineNo">135</span>            float credit = conflict.getRequest().getStudent().getAssignedCredit(assignment) - conflict.getCredit();<a name="line.135"></a>
+<span class="sourceLineNo">136</span>            if (credit &lt; conflict.getRequest().getStudent().getMinCredit()) return false;<a name="line.136"></a>
+<span class="sourceLineNo">137</span>        }<a name="line.137"></a>
+<span class="sourceLineNo">138</span>        if (!conflict.getRequest().isAlternative() &amp;&amp; conflict.getRequest().getRequestPriority().isHigher(enrollment.getRequest())) return false;<a name="line.138"></a>
+<span class="sourceLineNo">139</span>        if (iPreferPriorityStudents || conflict.getRequest().getRequestPriority().isSame(enrollment.getRequest())) {<a name="line.139"></a>
+<span class="sourceLineNo">140</span>            if (conflict.getStudent().getPriority().isHigher(enrollment.getStudent())) return false;<a name="line.140"></a>
+<span class="sourceLineNo">141</span>        }<a name="line.141"></a>
+<span class="sourceLineNo">142</span>        return true;<a name="line.142"></a>
+<span class="sourceLineNo">143</span>    }<a name="line.143"></a>
+<span class="sourceLineNo">144</span>    <a name="line.144"></a>
+<span class="sourceLineNo">145</span>    @Override<a name="line.145"></a>
+<span class="sourceLineNo">146</span>    protected boolean checkBound(List&lt;Request&gt; variables2resolve, int idx, int depth, Enrollment value, Set&lt;Enrollment&gt; conflicts) {<a name="line.146"></a>
+<span class="sourceLineNo">147</span>        for (Enrollment conflict: conflicts)<a name="line.147"></a>
+<span class="sourceLineNo">148</span>            if (!canUnassign(value, conflict, getContext().getAssignment())) return false;<a name="line.148"></a>
+<span class="sourceLineNo">149</span>        return super.checkBound(variables2resolve, idx, depth, value, conflicts);<a name="line.149"></a>
+<span class="sourceLineNo">150</span>    }<a name="line.150"></a>
+<span class="sourceLineNo">151</span>}<a name="line.151"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

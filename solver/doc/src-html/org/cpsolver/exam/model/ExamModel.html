@@ -1,0 +1,1298 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.cpsolver.exam.model;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import java.util.ArrayList;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import java.util.Date;<a name="line.4"></a>
+<span class="sourceLineNo">005</span>import java.util.HashSet;<a name="line.5"></a>
+<span class="sourceLineNo">006</span>import java.util.HashMap;<a name="line.6"></a>
+<span class="sourceLineNo">007</span>import java.util.Iterator;<a name="line.7"></a>
+<span class="sourceLineNo">008</span>import java.util.List;<a name="line.8"></a>
+<span class="sourceLineNo">009</span>import java.util.Map;<a name="line.9"></a>
+<span class="sourceLineNo">010</span>import java.util.Set;<a name="line.10"></a>
+<span class="sourceLineNo">011</span>import java.util.StringTokenizer;<a name="line.11"></a>
+<span class="sourceLineNo">012</span>import java.util.TreeSet;<a name="line.12"></a>
+<span class="sourceLineNo">013</span><a name="line.13"></a>
+<span class="sourceLineNo">014</span><a name="line.14"></a>
+<span class="sourceLineNo">015</span>import org.apache.logging.log4j.Logger;<a name="line.15"></a>
+<span class="sourceLineNo">016</span>import org.cpsolver.coursett.IdConvertor;<a name="line.16"></a>
+<span class="sourceLineNo">017</span>import org.cpsolver.exam.criteria.DistributionPenalty;<a name="line.17"></a>
+<span class="sourceLineNo">018</span>import org.cpsolver.exam.criteria.ExamCriterion;<a name="line.18"></a>
+<span class="sourceLineNo">019</span>import org.cpsolver.exam.criteria.ExamRotationPenalty;<a name="line.19"></a>
+<span class="sourceLineNo">020</span>import org.cpsolver.exam.criteria.InstructorBackToBackConflicts;<a name="line.20"></a>
+<span class="sourceLineNo">021</span>import org.cpsolver.exam.criteria.InstructorDirectConflicts;<a name="line.21"></a>
+<span class="sourceLineNo">022</span>import org.cpsolver.exam.criteria.InstructorDistanceBackToBackConflicts;<a name="line.22"></a>
+<span class="sourceLineNo">023</span>import org.cpsolver.exam.criteria.InstructorMoreThan2ADayConflicts;<a name="line.23"></a>
+<span class="sourceLineNo">024</span>import org.cpsolver.exam.criteria.InstructorNotAvailableConflicts;<a name="line.24"></a>
+<span class="sourceLineNo">025</span>import org.cpsolver.exam.criteria.LargeExamsPenalty;<a name="line.25"></a>
+<span class="sourceLineNo">026</span>import org.cpsolver.exam.criteria.PeriodIndexPenalty;<a name="line.26"></a>
+<span class="sourceLineNo">027</span>import org.cpsolver.exam.criteria.PeriodPenalty;<a name="line.27"></a>
+<span class="sourceLineNo">028</span>import org.cpsolver.exam.criteria.PeriodSizePenalty;<a name="line.28"></a>
+<span class="sourceLineNo">029</span>import org.cpsolver.exam.criteria.PerturbationPenalty;<a name="line.29"></a>
+<span class="sourceLineNo">030</span>import org.cpsolver.exam.criteria.RoomPenalty;<a name="line.30"></a>
+<span class="sourceLineNo">031</span>import org.cpsolver.exam.criteria.RoomPerturbationPenalty;<a name="line.31"></a>
+<span class="sourceLineNo">032</span>import org.cpsolver.exam.criteria.RoomSizePenalty;<a name="line.32"></a>
+<span class="sourceLineNo">033</span>import org.cpsolver.exam.criteria.RoomSplitDistancePenalty;<a name="line.33"></a>
+<span class="sourceLineNo">034</span>import org.cpsolver.exam.criteria.RoomSplitPenalty;<a name="line.34"></a>
+<span class="sourceLineNo">035</span>import org.cpsolver.exam.criteria.StudentBackToBackConflicts;<a name="line.35"></a>
+<span class="sourceLineNo">036</span>import org.cpsolver.exam.criteria.StudentDirectConflicts;<a name="line.36"></a>
+<span class="sourceLineNo">037</span>import org.cpsolver.exam.criteria.StudentDistanceBackToBackConflicts;<a name="line.37"></a>
+<span class="sourceLineNo">038</span>import org.cpsolver.exam.criteria.StudentMoreThan2ADayConflicts;<a name="line.38"></a>
+<span class="sourceLineNo">039</span>import org.cpsolver.exam.criteria.StudentNotAvailableConflicts;<a name="line.39"></a>
+<span class="sourceLineNo">040</span>import org.cpsolver.ifs.assignment.Assignment;<a name="line.40"></a>
+<span class="sourceLineNo">041</span>import org.cpsolver.ifs.assignment.context.ModelWithContext;<a name="line.41"></a>
+<span class="sourceLineNo">042</span>import org.cpsolver.ifs.criteria.Criterion;<a name="line.42"></a>
+<span class="sourceLineNo">043</span>import org.cpsolver.ifs.model.Constraint;<a name="line.43"></a>
+<span class="sourceLineNo">044</span>import org.cpsolver.ifs.model.Model;<a name="line.44"></a>
+<span class="sourceLineNo">045</span>import org.cpsolver.ifs.util.Callback;<a name="line.45"></a>
+<span class="sourceLineNo">046</span>import org.cpsolver.ifs.util.DataProperties;<a name="line.46"></a>
+<span class="sourceLineNo">047</span>import org.cpsolver.ifs.util.DistanceMetric;<a name="line.47"></a>
+<span class="sourceLineNo">048</span>import org.cpsolver.ifs.util.ToolBox;<a name="line.48"></a>
+<span class="sourceLineNo">049</span>import org.dom4j.Document;<a name="line.49"></a>
+<span class="sourceLineNo">050</span>import org.dom4j.DocumentHelper;<a name="line.50"></a>
+<span class="sourceLineNo">051</span>import org.dom4j.Element;<a name="line.51"></a>
+<span class="sourceLineNo">052</span><a name="line.52"></a>
+<span class="sourceLineNo">053</span>/**<a name="line.53"></a>
+<span class="sourceLineNo">054</span> * Examination timetabling model. Exams {@link Exam} are modeled as variables,<a name="line.54"></a>
+<span class="sourceLineNo">055</span> * rooms {@link ExamRoom} and students {@link ExamStudent} as constraints.<a name="line.55"></a>
+<span class="sourceLineNo">056</span> * Assignment of an exam to time (modeled as non-overlapping periods<a name="line.56"></a>
+<span class="sourceLineNo">057</span> * {@link ExamPeriod}) and space (set of rooms) is modeled using values<a name="line.57"></a>
+<span class="sourceLineNo">058</span> * {@link ExamPlacement}. In order to be able to model individual period and<a name="line.58"></a>
+<span class="sourceLineNo">059</span> * room preferences, period and room assignments are wrapped with<a name="line.59"></a>
+<span class="sourceLineNo">060</span> * {@link ExamPeriodPlacement} and {@link ExamRoomPlacement} classes<a name="line.60"></a>
+<span class="sourceLineNo">061</span> * respectively. Moreover, additional distribution constraint<a name="line.61"></a>
+<span class="sourceLineNo">062</span> * {@link ExamDistributionConstraint} can be defined in the model. &lt;br&gt;<a name="line.62"></a>
+<span class="sourceLineNo">063</span> * &lt;br&gt;<a name="line.63"></a>
+<span class="sourceLineNo">064</span> * The objective function consists of the following criteria:<a name="line.64"></a>
+<span class="sourceLineNo">065</span> * &lt;ul&gt;<a name="line.65"></a>
+<span class="sourceLineNo">066</span> * &lt;li&gt;Direct student conflicts (a student is enrolled in two exams that are<a name="line.66"></a>
+<span class="sourceLineNo">067</span> * scheduled at the same period, weighted by Exams.DirectConflictWeight)<a name="line.67"></a>
+<span class="sourceLineNo">068</span> * &lt;li&gt;Back-to-Back student conflicts (a student is enrolled in two exams that<a name="line.68"></a>
+<span class="sourceLineNo">069</span> * are scheduled in consecutive periods, weighted by<a name="line.69"></a>
+<span class="sourceLineNo">070</span> * Exams.BackToBackConflictWeight). If Exams.IsDayBreakBackToBack is false,<a name="line.70"></a>
+<span class="sourceLineNo">071</span> * there is no conflict between the last period and the first period of<a name="line.71"></a>
+<span class="sourceLineNo">072</span> * consecutive days.<a name="line.72"></a>
+<span class="sourceLineNo">073</span> * &lt;li&gt;Distance Back-to-Back student conflicts (same as Back-to-Back student<a name="line.73"></a>
+<span class="sourceLineNo">074</span> * conflict, but the maximum distance between rooms in which both exam take<a name="line.74"></a>
+<span class="sourceLineNo">075</span> * place is greater than Exams.BackToBackDistance, weighted by<a name="line.75"></a>
+<span class="sourceLineNo">076</span> * Exams.DistanceBackToBackConflictWeight).<a name="line.76"></a>
+<span class="sourceLineNo">077</span> * &lt;li&gt;More than two exams a day (a student is enrolled in three exams that are<a name="line.77"></a>
+<span class="sourceLineNo">078</span> * scheduled at the same day, weighted by Exams.MoreThanTwoADayWeight).<a name="line.78"></a>
+<span class="sourceLineNo">079</span> * &lt;li&gt;Period penalty (total of period penalties<a name="line.79"></a>
+<span class="sourceLineNo">080</span> * {@link PeriodPenalty} of all assigned exams, weighted by<a name="line.80"></a>
+<span class="sourceLineNo">081</span> * Exams.PeriodWeight).<a name="line.81"></a>
+<span class="sourceLineNo">082</span> * &lt;li&gt;Room size penalty (total of room size penalties<a name="line.82"></a>
+<span class="sourceLineNo">083</span> * {@link RoomSizePenalty} of all assigned exams, weighted by<a name="line.83"></a>
+<span class="sourceLineNo">084</span> * Exams.RoomSizeWeight).<a name="line.84"></a>
+<span class="sourceLineNo">085</span> * &lt;li&gt;Room split penalty (total of room split penalties<a name="line.85"></a>
+<span class="sourceLineNo">086</span> * {@link RoomSplitPenalty} of all assigned exams, weighted<a name="line.86"></a>
+<span class="sourceLineNo">087</span> * by Exams.RoomSplitWeight).<a name="line.87"></a>
+<span class="sourceLineNo">088</span> * &lt;li&gt;Room penalty (total of room penalties<a name="line.88"></a>
+<span class="sourceLineNo">089</span> * {@link RoomPenalty} of all assigned exams, weighted by<a name="line.89"></a>
+<span class="sourceLineNo">090</span> * Exams.RoomWeight).<a name="line.90"></a>
+<span class="sourceLineNo">091</span> * &lt;li&gt;Distribution penalty (total of distribution constraint weights<a name="line.91"></a>
+<span class="sourceLineNo">092</span> * {@link ExamDistributionConstraint#getWeight()} of all soft distribution<a name="line.92"></a>
+<span class="sourceLineNo">093</span> * constraints that are not satisfied, i.e.,<a name="line.93"></a>
+<span class="sourceLineNo">094</span> * {@link ExamDistributionConstraint#isSatisfied(Assignment)} = false; weighted by<a name="line.94"></a>
+<span class="sourceLineNo">095</span> * Exams.DistributionWeight).<a name="line.95"></a>
+<span class="sourceLineNo">096</span> * &lt;li&gt;Direct instructor conflicts (an instructor is enrolled in two exams that<a name="line.96"></a>
+<span class="sourceLineNo">097</span> * are scheduled at the same period, weighted by<a name="line.97"></a>
+<span class="sourceLineNo">098</span> * Exams.InstructorDirectConflictWeight)<a name="line.98"></a>
+<span class="sourceLineNo">099</span> * &lt;li&gt;Back-to-Back instructor conflicts (an instructor is enrolled in two exams<a name="line.99"></a>
+<span class="sourceLineNo">100</span> * that are scheduled in consecutive periods, weighted by<a name="line.100"></a>
+<span class="sourceLineNo">101</span> * Exams.InstructorBackToBackConflictWeight). If Exams.IsDayBreakBackToBack is<a name="line.101"></a>
+<span class="sourceLineNo">102</span> * false, there is no conflict between the last period and the first period of<a name="line.102"></a>
+<span class="sourceLineNo">103</span> * consecutive days.<a name="line.103"></a>
+<span class="sourceLineNo">104</span> * &lt;li&gt;Distance Back-to-Back instructor conflicts (same as Back-to-Back<a name="line.104"></a>
+<span class="sourceLineNo">105</span> * instructor conflict, but the maximum distance between rooms in which both<a name="line.105"></a>
+<span class="sourceLineNo">106</span> * exam take place is greater than Exams.BackToBackDistance, weighted by<a name="line.106"></a>
+<span class="sourceLineNo">107</span> * Exams.InstructorDistanceBackToBackConflictWeight).<a name="line.107"></a>
+<span class="sourceLineNo">108</span> * &lt;li&gt;Room split distance penalty (if an examination is assigned between two or<a name="line.108"></a>
+<span class="sourceLineNo">109</span> * three rooms, distance between these rooms can be minimized using this<a name="line.109"></a>
+<span class="sourceLineNo">110</span> * criterion)<a name="line.110"></a>
+<span class="sourceLineNo">111</span> * &lt;li&gt;Front load penalty (large exams can be penalized if assigned on or after<a name="line.111"></a>
+<span class="sourceLineNo">112</span> * a certain period)<a name="line.112"></a>
+<span class="sourceLineNo">113</span> * &lt;/ul&gt;<a name="line.113"></a>
+<span class="sourceLineNo">114</span> * <a name="line.114"></a>
+<span class="sourceLineNo">115</span> * @author  Tom&#225;&#353; M&#252;ller<a name="line.115"></a>
+<span class="sourceLineNo">116</span> * @version ExamTT 1.3 (Examination Timetabling)&lt;br&gt;<a name="line.116"></a>
+<span class="sourceLineNo">117</span> *          Copyright (C) 2008 - 2014 Tom&#225;&#353; M&#252;ller&lt;br&gt;<a name="line.117"></a>
+<span class="sourceLineNo">118</span> *          &lt;a href="mailto:muller@unitime.org"&gt;muller@unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.118"></a>
+<span class="sourceLineNo">119</span> *          &lt;a href="http://muller.unitime.org"&gt;http://muller.unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.119"></a>
+<span class="sourceLineNo">120</span> * &lt;br&gt;<a name="line.120"></a>
+<span class="sourceLineNo">121</span> *          This library is free software; you can redistribute it and/or modify<a name="line.121"></a>
+<span class="sourceLineNo">122</span> *          it under the terms of the GNU Lesser General Public License as<a name="line.122"></a>
+<span class="sourceLineNo">123</span> *          published by the Free Software Foundation; either version 3 of the<a name="line.123"></a>
+<span class="sourceLineNo">124</span> *          License, or (at your option) any later version. &lt;br&gt;<a name="line.124"></a>
+<span class="sourceLineNo">125</span> * &lt;br&gt;<a name="line.125"></a>
+<span class="sourceLineNo">126</span> *          This library is distributed in the hope that it will be useful, but<a name="line.126"></a>
+<span class="sourceLineNo">127</span> *          WITHOUT ANY WARRANTY; without even the implied warranty of<a name="line.127"></a>
+<span class="sourceLineNo">128</span> *          MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU<a name="line.128"></a>
+<span class="sourceLineNo">129</span> *          Lesser General Public License for more details. &lt;br&gt;<a name="line.129"></a>
+<span class="sourceLineNo">130</span> * &lt;br&gt;<a name="line.130"></a>
+<span class="sourceLineNo">131</span> *          You should have received a copy of the GNU Lesser General Public<a name="line.131"></a>
+<span class="sourceLineNo">132</span> *          License along with this library; if not see<a name="line.132"></a>
+<span class="sourceLineNo">133</span> *          &lt;a href='http://www.gnu.org/licenses/'&gt;http://www.gnu.org/licenses/&lt;/a&gt;.<a name="line.133"></a>
+<span class="sourceLineNo">134</span> */<a name="line.134"></a>
+<span class="sourceLineNo">135</span>public class ExamModel extends ModelWithContext&lt;Exam, ExamPlacement, ExamContext&gt; {<a name="line.135"></a>
+<span class="sourceLineNo">136</span>    private static Logger sLog = org.apache.logging.log4j.LogManager.getLogger(ExamModel.class);<a name="line.136"></a>
+<span class="sourceLineNo">137</span>    private DataProperties iProperties = null;<a name="line.137"></a>
+<span class="sourceLineNo">138</span>    private int iMaxRooms = 4;<a name="line.138"></a>
+<span class="sourceLineNo">139</span>    private List&lt;ExamPeriod&gt; iPeriods = new ArrayList&lt;ExamPeriod&gt;();<a name="line.139"></a>
+<span class="sourceLineNo">140</span>    private List&lt;ExamRoom&gt; iRooms = new ArrayList&lt;ExamRoom&gt;();<a name="line.140"></a>
+<span class="sourceLineNo">141</span>    private List&lt;ExamStudent&gt; iStudents = new ArrayList&lt;ExamStudent&gt;();<a name="line.141"></a>
+<span class="sourceLineNo">142</span>    private List&lt;ExamDistributionConstraint&gt; iDistributionConstraints = new ArrayList&lt;ExamDistributionConstraint&gt;();<a name="line.142"></a>
+<span class="sourceLineNo">143</span>    private List&lt;ExamInstructor&gt; iInstructors = new ArrayList&lt;ExamInstructor&gt;();<a name="line.143"></a>
+<span class="sourceLineNo">144</span>    private ExamRoomSharing iRoomSharing = null;<a name="line.144"></a>
+<span class="sourceLineNo">145</span>    private boolean iCheckForPeriodOverlaps = false;<a name="line.145"></a>
+<span class="sourceLineNo">146</span><a name="line.146"></a>
+<span class="sourceLineNo">147</span>    private DistanceMetric iDistanceMetric = null;<a name="line.147"></a>
+<span class="sourceLineNo">148</span><a name="line.148"></a>
+<span class="sourceLineNo">149</span>    /**<a name="line.149"></a>
+<span class="sourceLineNo">150</span>     * Constructor<a name="line.150"></a>
+<span class="sourceLineNo">151</span>     * <a name="line.151"></a>
+<span class="sourceLineNo">152</span>     * @param properties<a name="line.152"></a>
+<span class="sourceLineNo">153</span>     *            problem properties<a name="line.153"></a>
+<span class="sourceLineNo">154</span>     */<a name="line.154"></a>
+<span class="sourceLineNo">155</span>    public ExamModel(DataProperties properties) {<a name="line.155"></a>
+<span class="sourceLineNo">156</span>        super();<a name="line.156"></a>
+<span class="sourceLineNo">157</span>        iProperties = properties;<a name="line.157"></a>
+<span class="sourceLineNo">158</span>        iMaxRooms = properties.getPropertyInt("Exams.MaxRooms", iMaxRooms);<a name="line.158"></a>
+<span class="sourceLineNo">159</span>        iCheckForPeriodOverlaps = properties.getPropertyBoolean("Exams.CheckForPeriodOverlaps", iCheckForPeriodOverlaps);<a name="line.159"></a>
+<span class="sourceLineNo">160</span>        iDistanceMetric = new DistanceMetric(properties);<a name="line.160"></a>
+<span class="sourceLineNo">161</span>        String roomSharingClass = properties.getProperty("Exams.RoomSharingClass");<a name="line.161"></a>
+<span class="sourceLineNo">162</span>        if (roomSharingClass != null) {<a name="line.162"></a>
+<span class="sourceLineNo">163</span>            try {<a name="line.163"></a>
+<span class="sourceLineNo">164</span>                iRoomSharing = (ExamRoomSharing)Class.forName(roomSharingClass).getConstructor(Model.class, DataProperties.class).newInstance(this, properties);<a name="line.164"></a>
+<span class="sourceLineNo">165</span>            } catch (Exception e) {<a name="line.165"></a>
+<span class="sourceLineNo">166</span>                sLog.error("Failed to instantiate room sharing class " + roomSharingClass + ", reason: " + e.getMessage());<a name="line.166"></a>
+<span class="sourceLineNo">167</span>            }<a name="line.167"></a>
+<span class="sourceLineNo">168</span>        }<a name="line.168"></a>
+<span class="sourceLineNo">169</span>        <a name="line.169"></a>
+<span class="sourceLineNo">170</span>        String criteria = properties.getProperty("Exams.Criteria",<a name="line.170"></a>
+<span class="sourceLineNo">171</span>                StudentDirectConflicts.class.getName() + ";" +<a name="line.171"></a>
+<span class="sourceLineNo">172</span>                StudentNotAvailableConflicts.class.getName() + ";" +<a name="line.172"></a>
+<span class="sourceLineNo">173</span>                StudentBackToBackConflicts.class.getName() + ";" +<a name="line.173"></a>
+<span class="sourceLineNo">174</span>                StudentDistanceBackToBackConflicts.class.getName() + ";" +<a name="line.174"></a>
+<span class="sourceLineNo">175</span>                StudentMoreThan2ADayConflicts.class.getName() + ";" +<a name="line.175"></a>
+<span class="sourceLineNo">176</span>                InstructorDirectConflicts.class.getName() + ";" +<a name="line.176"></a>
+<span class="sourceLineNo">177</span>                InstructorNotAvailableConflicts.class.getName() + ";" +<a name="line.177"></a>
+<span class="sourceLineNo">178</span>                InstructorBackToBackConflicts.class.getName() + ";" +<a name="line.178"></a>
+<span class="sourceLineNo">179</span>                InstructorDistanceBackToBackConflicts.class.getName() + ";" +<a name="line.179"></a>
+<span class="sourceLineNo">180</span>                InstructorMoreThan2ADayConflicts.class.getName() + ";" +<a name="line.180"></a>
+<span class="sourceLineNo">181</span>                PeriodPenalty.class.getName() + ";" +<a name="line.181"></a>
+<span class="sourceLineNo">182</span>                RoomPenalty.class.getName() + ";" +<a name="line.182"></a>
+<span class="sourceLineNo">183</span>                DistributionPenalty.class.getName() + ";" +<a name="line.183"></a>
+<span class="sourceLineNo">184</span>                RoomSplitPenalty.class.getName() + ";" +<a name="line.184"></a>
+<span class="sourceLineNo">185</span>                RoomSplitDistancePenalty.class.getName() + ";" +<a name="line.185"></a>
+<span class="sourceLineNo">186</span>                RoomSizePenalty.class.getName() + ";" +<a name="line.186"></a>
+<span class="sourceLineNo">187</span>                ExamRotationPenalty.class.getName() + ";" +<a name="line.187"></a>
+<span class="sourceLineNo">188</span>                LargeExamsPenalty.class.getName() + ";" +<a name="line.188"></a>
+<span class="sourceLineNo">189</span>                PeriodSizePenalty.class.getName() + ";" +<a name="line.189"></a>
+<span class="sourceLineNo">190</span>                PeriodIndexPenalty.class.getName() + ";" +<a name="line.190"></a>
+<span class="sourceLineNo">191</span>                PerturbationPenalty.class.getName() + ";" +<a name="line.191"></a>
+<span class="sourceLineNo">192</span>                RoomPerturbationPenalty.class.getName() + ";"<a name="line.192"></a>
+<span class="sourceLineNo">193</span>                );<a name="line.193"></a>
+<span class="sourceLineNo">194</span>        // Additional (custom) criteria<a name="line.194"></a>
+<span class="sourceLineNo">195</span>        criteria += ";" + properties.getProperty("Exams.AdditionalCriteria", "");<a name="line.195"></a>
+<span class="sourceLineNo">196</span>        for (String criterion: criteria.split("\\;")) {<a name="line.196"></a>
+<span class="sourceLineNo">197</span>            if (criterion == null || criterion.isEmpty()) continue;<a name="line.197"></a>
+<span class="sourceLineNo">198</span>            try {<a name="line.198"></a>
+<span class="sourceLineNo">199</span>                @SuppressWarnings("unchecked")<a name="line.199"></a>
+<span class="sourceLineNo">200</span>                Class&lt;Criterion&lt;Exam, ExamPlacement&gt;&gt; clazz = (Class&lt;Criterion&lt;Exam, ExamPlacement&gt;&gt;)Class.forName(criterion);<a name="line.200"></a>
+<span class="sourceLineNo">201</span>                addCriterion(clazz.newInstance());<a name="line.201"></a>
+<span class="sourceLineNo">202</span>            } catch (Exception e) {<a name="line.202"></a>
+<span class="sourceLineNo">203</span>                sLog.error("Unable to use " + criterion + ": " + e.getMessage());<a name="line.203"></a>
+<span class="sourceLineNo">204</span>            }<a name="line.204"></a>
+<span class="sourceLineNo">205</span>        }<a name="line.205"></a>
+<span class="sourceLineNo">206</span>    }<a name="line.206"></a>
+<span class="sourceLineNo">207</span>    <a name="line.207"></a>
+<span class="sourceLineNo">208</span>    public DistanceMetric getDistanceMetric() {<a name="line.208"></a>
+<span class="sourceLineNo">209</span>        return iDistanceMetric;<a name="line.209"></a>
+<span class="sourceLineNo">210</span>    }<a name="line.210"></a>
+<span class="sourceLineNo">211</span>    <a name="line.211"></a>
+<span class="sourceLineNo">212</span>    /**<a name="line.212"></a>
+<span class="sourceLineNo">213</span>     * True if there is an examination sharing model<a name="line.213"></a>
+<span class="sourceLineNo">214</span>     * @return true if there is an examination sharing model<a name="line.214"></a>
+<span class="sourceLineNo">215</span>     */<a name="line.215"></a>
+<span class="sourceLineNo">216</span>    public boolean hasRoomSharing() { return iRoomSharing != null; }<a name="line.216"></a>
+<span class="sourceLineNo">217</span>    <a name="line.217"></a>
+<span class="sourceLineNo">218</span>    /**<a name="line.218"></a>
+<span class="sourceLineNo">219</span>     * Return examination room sharing model<a name="line.219"></a>
+<span class="sourceLineNo">220</span>     * @return examination room sharing model, if set<a name="line.220"></a>
+<span class="sourceLineNo">221</span>     */<a name="line.221"></a>
+<span class="sourceLineNo">222</span>    public ExamRoomSharing getRoomSharing() { return iRoomSharing; }<a name="line.222"></a>
+<span class="sourceLineNo">223</span><a name="line.223"></a>
+<span class="sourceLineNo">224</span>    /**<a name="line.224"></a>
+<span class="sourceLineNo">225</span>     * Set examination sharing model<a name="line.225"></a>
+<span class="sourceLineNo">226</span>     * @param sharing examination sharing model<a name="line.226"></a>
+<span class="sourceLineNo">227</span>     */<a name="line.227"></a>
+<span class="sourceLineNo">228</span>    public void setRoomSharing(ExamRoomSharing sharing) {<a name="line.228"></a>
+<span class="sourceLineNo">229</span>        iRoomSharing = sharing;<a name="line.229"></a>
+<span class="sourceLineNo">230</span>    }<a name="line.230"></a>
+<span class="sourceLineNo">231</span><a name="line.231"></a>
+<span class="sourceLineNo">232</span>    /**<a name="line.232"></a>
+<span class="sourceLineNo">233</span>     * Initialization of the model<a name="line.233"></a>
+<span class="sourceLineNo">234</span>     */<a name="line.234"></a>
+<span class="sourceLineNo">235</span>    public void init() {<a name="line.235"></a>
+<span class="sourceLineNo">236</span>        for (Exam exam : variables()) {<a name="line.236"></a>
+<span class="sourceLineNo">237</span>            for (ExamRoomPlacement room : exam.getRoomPlacements()) {<a name="line.237"></a>
+<span class="sourceLineNo">238</span>                room.getRoom().addVariable(exam);<a name="line.238"></a>
+<span class="sourceLineNo">239</span>            }<a name="line.239"></a>
+<span class="sourceLineNo">240</span>        }<a name="line.240"></a>
+<span class="sourceLineNo">241</span>    }<a name="line.241"></a>
+<span class="sourceLineNo">242</span><a name="line.242"></a>
+<span class="sourceLineNo">243</span>    /**<a name="line.243"></a>
+<span class="sourceLineNo">244</span>     * Default maximum number of rooms (can be set by problem property<a name="line.244"></a>
+<span class="sourceLineNo">245</span>     * Exams.MaxRooms, or in the input xml file, property maxRooms)<a name="line.245"></a>
+<span class="sourceLineNo">246</span>     * @return default maximum number of rooms for an exam<a name="line.246"></a>
+<span class="sourceLineNo">247</span>     */<a name="line.247"></a>
+<span class="sourceLineNo">248</span>    public int getMaxRooms() {<a name="line.248"></a>
+<span class="sourceLineNo">249</span>        return iMaxRooms;<a name="line.249"></a>
+<span class="sourceLineNo">250</span>    }<a name="line.250"></a>
+<span class="sourceLineNo">251</span><a name="line.251"></a>
+<span class="sourceLineNo">252</span>    /**<a name="line.252"></a>
+<span class="sourceLineNo">253</span>     * Default maximum number of rooms (can be set by problem property<a name="line.253"></a>
+<span class="sourceLineNo">254</span>     * Exams.MaxRooms, or in the input xml file, property maxRooms)<a name="line.254"></a>
+<span class="sourceLineNo">255</span>     * @param maxRooms default maximum number of rooms for an exam<a name="line.255"></a>
+<span class="sourceLineNo">256</span>     */<a name="line.256"></a>
+<span class="sourceLineNo">257</span>    public void setMaxRooms(int maxRooms) {<a name="line.257"></a>
+<span class="sourceLineNo">258</span>        iMaxRooms = maxRooms;<a name="line.258"></a>
+<span class="sourceLineNo">259</span>    }<a name="line.259"></a>
+<span class="sourceLineNo">260</span>    <a name="line.260"></a>
+<span class="sourceLineNo">261</span>    /**<a name="line.261"></a>
+<span class="sourceLineNo">262</span>     * Check for examination periods that overlap with each other<a name="line.262"></a>
+<span class="sourceLineNo">263</span>     * @return true if examination periods can overlap with each other<a name="line.263"></a>
+<span class="sourceLineNo">264</span>     */<a name="line.264"></a>
+<span class="sourceLineNo">265</span>    public boolean isCheckForPeriodOverlaps() { return iCheckForPeriodOverlaps; }<a name="line.265"></a>
+<span class="sourceLineNo">266</span>    <a name="line.266"></a>
+<span class="sourceLineNo">267</span>    /**<a name="line.267"></a>
+<span class="sourceLineNo">268</span>     * Enable checking for period overlaps<a name="line.268"></a>
+<span class="sourceLineNo">269</span>     */<a name="line.269"></a>
+<span class="sourceLineNo">270</span>    public void setCheckForPeriodOverlaps(boolean check) {<a name="line.270"></a>
+<span class="sourceLineNo">271</span>        iCheckForPeriodOverlaps = check;<a name="line.271"></a>
+<span class="sourceLineNo">272</span>    }<a name="line.272"></a>
+<span class="sourceLineNo">273</span><a name="line.273"></a>
+<span class="sourceLineNo">274</span>    /**<a name="line.274"></a>
+<span class="sourceLineNo">275</span>     * Add a period<a name="line.275"></a>
+<span class="sourceLineNo">276</span>     * <a name="line.276"></a>
+<span class="sourceLineNo">277</span>     * @param id<a name="line.277"></a>
+<span class="sourceLineNo">278</span>     *            period unique identifier<a name="line.278"></a>
+<span class="sourceLineNo">279</span>     * @param day<a name="line.279"></a>
+<span class="sourceLineNo">280</span>     *            day (e.g., 07/12/10)<a name="line.280"></a>
+<span class="sourceLineNo">281</span>     * @param time<a name="line.281"></a>
+<span class="sourceLineNo">282</span>     *            (e.g., 8:00am-10:00am)<a name="line.282"></a>
+<span class="sourceLineNo">283</span>     * @param length<a name="line.283"></a>
+<span class="sourceLineNo">284</span>     *            length of period in minutes<a name="line.284"></a>
+<span class="sourceLineNo">285</span>     * @param penalty<a name="line.285"></a>
+<span class="sourceLineNo">286</span>     *            period penalty<a name="line.286"></a>
+<span class="sourceLineNo">287</span>     * @return added period<a name="line.287"></a>
+<span class="sourceLineNo">288</span>     */<a name="line.288"></a>
+<span class="sourceLineNo">289</span>    public ExamPeriod addPeriod(Long id, String day, String time, int length, int penalty) {<a name="line.289"></a>
+<span class="sourceLineNo">290</span>        ExamPeriod lastPeriod = (iPeriods.isEmpty() ? null : (ExamPeriod) iPeriods.get(iPeriods.size() - 1));<a name="line.290"></a>
+<span class="sourceLineNo">291</span>        ExamPeriod p = new ExamPeriod(id, day, time, length, penalty);<a name="line.291"></a>
+<span class="sourceLineNo">292</span>        if (lastPeriod == null)<a name="line.292"></a>
+<span class="sourceLineNo">293</span>            p.setIndex(iPeriods.size(), 0, 0);<a name="line.293"></a>
+<span class="sourceLineNo">294</span>        else if (lastPeriod.getDayStr().equals(day)) {<a name="line.294"></a>
+<span class="sourceLineNo">295</span>            p.setIndex(iPeriods.size(), lastPeriod.getDay(), lastPeriod.getTime() + 1);<a name="line.295"></a>
+<span class="sourceLineNo">296</span>        } else<a name="line.296"></a>
+<span class="sourceLineNo">297</span>            p.setIndex(iPeriods.size(), lastPeriod.getDay() + 1, 0);<a name="line.297"></a>
+<span class="sourceLineNo">298</span>        if (lastPeriod != null) {<a name="line.298"></a>
+<span class="sourceLineNo">299</span>            lastPeriod.setNext(p);<a name="line.299"></a>
+<span class="sourceLineNo">300</span>            p.setPrev(lastPeriod);<a name="line.300"></a>
+<span class="sourceLineNo">301</span>        }<a name="line.301"></a>
+<span class="sourceLineNo">302</span>        iPeriods.add(p);<a name="line.302"></a>
+<span class="sourceLineNo">303</span>        return p;<a name="line.303"></a>
+<span class="sourceLineNo">304</span>    }<a name="line.304"></a>
+<span class="sourceLineNo">305</span><a name="line.305"></a>
+<span class="sourceLineNo">306</span>    /**<a name="line.306"></a>
+<span class="sourceLineNo">307</span>     * Number of days<a name="line.307"></a>
+<span class="sourceLineNo">308</span>     * @return number of days<a name="line.308"></a>
+<span class="sourceLineNo">309</span>     */<a name="line.309"></a>
+<span class="sourceLineNo">310</span>    public int getNrDays() {<a name="line.310"></a>
+<span class="sourceLineNo">311</span>        return (iPeriods.get(iPeriods.size() - 1)).getDay() + 1;<a name="line.311"></a>
+<span class="sourceLineNo">312</span>    }<a name="line.312"></a>
+<span class="sourceLineNo">313</span><a name="line.313"></a>
+<span class="sourceLineNo">314</span>    /**<a name="line.314"></a>
+<span class="sourceLineNo">315</span>     * Number of periods<a name="line.315"></a>
+<span class="sourceLineNo">316</span>     * @return number of periods<a name="line.316"></a>
+<span class="sourceLineNo">317</span>     */<a name="line.317"></a>
+<span class="sourceLineNo">318</span>    public int getNrPeriods() {<a name="line.318"></a>
+<span class="sourceLineNo">319</span>        return iPeriods.size();<a name="line.319"></a>
+<span class="sourceLineNo">320</span>    }<a name="line.320"></a>
+<span class="sourceLineNo">321</span><a name="line.321"></a>
+<span class="sourceLineNo">322</span>    /**<a name="line.322"></a>
+<span class="sourceLineNo">323</span>     * List of periods, use<a name="line.323"></a>
+<span class="sourceLineNo">324</span>     * {@link ExamModel#addPeriod(Long, String, String, int, int)} to add a<a name="line.324"></a>
+<span class="sourceLineNo">325</span>     * period<a name="line.325"></a>
+<span class="sourceLineNo">326</span>     * <a name="line.326"></a>
+<span class="sourceLineNo">327</span>     * @return list of {@link ExamPeriod}<a name="line.327"></a>
+<span class="sourceLineNo">328</span>     */<a name="line.328"></a>
+<span class="sourceLineNo">329</span>    public List&lt;ExamPeriod&gt; getPeriods() {<a name="line.329"></a>
+<span class="sourceLineNo">330</span>        return iPeriods;<a name="line.330"></a>
+<span class="sourceLineNo">331</span>    }<a name="line.331"></a>
+<span class="sourceLineNo">332</span><a name="line.332"></a>
+<span class="sourceLineNo">333</span>    /** Period of given unique id <a name="line.333"></a>
+<span class="sourceLineNo">334</span>     * @param id period unique id<a name="line.334"></a>
+<span class="sourceLineNo">335</span>     * @return the appropriate period<a name="line.335"></a>
+<span class="sourceLineNo">336</span>     **/<a name="line.336"></a>
+<span class="sourceLineNo">337</span>    public ExamPeriod getPeriod(Long id) {<a name="line.337"></a>
+<span class="sourceLineNo">338</span>        for (ExamPeriod period : iPeriods) {<a name="line.338"></a>
+<span class="sourceLineNo">339</span>            if (period.getId().equals(id))<a name="line.339"></a>
+<span class="sourceLineNo">340</span>                return period;<a name="line.340"></a>
+<span class="sourceLineNo">341</span>        }<a name="line.341"></a>
+<span class="sourceLineNo">342</span>        return null;<a name="line.342"></a>
+<span class="sourceLineNo">343</span>    }<a name="line.343"></a>
+<span class="sourceLineNo">344</span>    <a name="line.344"></a>
+<span class="sourceLineNo">345</span>    /**<a name="line.345"></a>
+<span class="sourceLineNo">346</span>     * True when back-to-back student conflict is to be encountered when a<a name="line.346"></a>
+<span class="sourceLineNo">347</span>     * student is enrolled into an exam that is on the last period of one day<a name="line.347"></a>
+<span class="sourceLineNo">348</span>     * and another exam that is on the first period of the consecutive day. It<a name="line.348"></a>
+<span class="sourceLineNo">349</span>     * can be set by problem property Exams.IsDayBreakBackToBack, or in the<a name="line.349"></a>
+<span class="sourceLineNo">350</span>     * input xml file, property isDayBreakBackToBack)<a name="line.350"></a>
+<span class="sourceLineNo">351</span>     * @return true if last exam on one day is back-to-back to the first exam of the following day<a name="line.351"></a>
+<span class="sourceLineNo">352</span>     * <a name="line.352"></a>
+<span class="sourceLineNo">353</span>     */<a name="line.353"></a>
+<span class="sourceLineNo">354</span>    public boolean isDayBreakBackToBack() {<a name="line.354"></a>
+<span class="sourceLineNo">355</span>        return ((StudentBackToBackConflicts)getCriterion(StudentBackToBackConflicts.class)).isDayBreakBackToBack();<a name="line.355"></a>
+<span class="sourceLineNo">356</span>    }<a name="line.356"></a>
+<span class="sourceLineNo">357</span>    <a name="line.357"></a>
+<span class="sourceLineNo">358</span>    /**<a name="line.358"></a>
+<span class="sourceLineNo">359</span>     * Back-to-back distance, can be set by<a name="line.359"></a>
+<span class="sourceLineNo">360</span>     * problem property Exams.BackToBackDistance, or in the input xml file,<a name="line.360"></a>
+<span class="sourceLineNo">361</span>     * property backToBackDistance)<a name="line.361"></a>
+<span class="sourceLineNo">362</span>     * @return back-to-back distance in meters<a name="line.362"></a>
+<span class="sourceLineNo">363</span>     */<a name="line.363"></a>
+<span class="sourceLineNo">364</span>    public double getBackToBackDistance() {<a name="line.364"></a>
+<span class="sourceLineNo">365</span>        return ((StudentDistanceBackToBackConflicts)getCriterion(StudentDistanceBackToBackConflicts.class)).getBackToBackDistance();<a name="line.365"></a>
+<span class="sourceLineNo">366</span>    }<a name="line.366"></a>
+<span class="sourceLineNo">367</span><a name="line.367"></a>
+<span class="sourceLineNo">368</span>    /**<a name="line.368"></a>
+<span class="sourceLineNo">369</span>     * Objective function.<a name="line.369"></a>
+<span class="sourceLineNo">370</span>     * @return weighted sum of objective criteria<a name="line.370"></a>
+<span class="sourceLineNo">371</span>     */<a name="line.371"></a>
+<span class="sourceLineNo">372</span>    @Override<a name="line.372"></a>
+<span class="sourceLineNo">373</span>    public double getTotalValue(Assignment&lt;Exam, ExamPlacement&gt; assignment) {<a name="line.373"></a>
+<span class="sourceLineNo">374</span>        double total = 0;<a name="line.374"></a>
+<span class="sourceLineNo">375</span>        for (Criterion&lt;Exam, ExamPlacement&gt; criterion: getCriteria())<a name="line.375"></a>
+<span class="sourceLineNo">376</span>            total += criterion.getWeightedValue(assignment);<a name="line.376"></a>
+<span class="sourceLineNo">377</span>        return total;<a name="line.377"></a>
+<span class="sourceLineNo">378</span>    }<a name="line.378"></a>
+<span class="sourceLineNo">379</span><a name="line.379"></a>
+<span class="sourceLineNo">380</span>    /**<a name="line.380"></a>
+<span class="sourceLineNo">381</span>     * Return weighted individual objective criteria.<a name="line.381"></a>
+<span class="sourceLineNo">382</span>     * @param assignment current assignment<a name="line.382"></a>
+<span class="sourceLineNo">383</span>     * @return an array of weighted objective criteria<a name="line.383"></a>
+<span class="sourceLineNo">384</span>     */<a name="line.384"></a>
+<span class="sourceLineNo">385</span>    public double[] getTotalMultiValue(Assignment&lt;Exam, ExamPlacement&gt; assignment) {<a name="line.385"></a>
+<span class="sourceLineNo">386</span>        double[] total = new double[getCriteria().size()];<a name="line.386"></a>
+<span class="sourceLineNo">387</span>        int i = 0;<a name="line.387"></a>
+<span class="sourceLineNo">388</span>        for (Criterion&lt;Exam, ExamPlacement&gt; criterion: getCriteria())<a name="line.388"></a>
+<span class="sourceLineNo">389</span>            total[i++] = criterion.getWeightedValue(assignment);<a name="line.389"></a>
+<span class="sourceLineNo">390</span>        return total;<a name="line.390"></a>
+<span class="sourceLineNo">391</span>    }<a name="line.391"></a>
+<span class="sourceLineNo">392</span><a name="line.392"></a>
+<span class="sourceLineNo">393</span>    /**<a name="line.393"></a>
+<span class="sourceLineNo">394</span>     * String representation -- returns a list of values of objective criteria<a name="line.394"></a>
+<span class="sourceLineNo">395</span>     * @param assignment current assignment<a name="line.395"></a>
+<span class="sourceLineNo">396</span>     * @return comma separated list of {@link ExamCriterion#toString(Assignment)}<a name="line.396"></a>
+<span class="sourceLineNo">397</span>     */<a name="line.397"></a>
+<span class="sourceLineNo">398</span>    @Override<a name="line.398"></a>
+<span class="sourceLineNo">399</span>    public String toString(Assignment&lt;Exam, ExamPlacement&gt; assignment) {<a name="line.399"></a>
+<span class="sourceLineNo">400</span>        Set&lt;String&gt; props = new TreeSet&lt;String&gt;();<a name="line.400"></a>
+<span class="sourceLineNo">401</span>        for (Criterion&lt;Exam, ExamPlacement&gt; criterion: getCriteria()) {<a name="line.401"></a>
+<span class="sourceLineNo">402</span>            String val = ((ExamCriterion)criterion).toString(assignment);<a name="line.402"></a>
+<span class="sourceLineNo">403</span>            if (!val.isEmpty())<a name="line.403"></a>
+<span class="sourceLineNo">404</span>                props.add(val);<a name="line.404"></a>
+<span class="sourceLineNo">405</span>        }<a name="line.405"></a>
+<span class="sourceLineNo">406</span>        return props.toString();<a name="line.406"></a>
+<span class="sourceLineNo">407</span>    }<a name="line.407"></a>
+<span class="sourceLineNo">408</span><a name="line.408"></a>
+<span class="sourceLineNo">409</span>    /**<a name="line.409"></a>
+<span class="sourceLineNo">410</span>     * Extended info table<a name="line.410"></a>
+<span class="sourceLineNo">411</span>     */<a name="line.411"></a>
+<span class="sourceLineNo">412</span>    @Override<a name="line.412"></a>
+<span class="sourceLineNo">413</span>    public Map&lt;String, String&gt; getExtendedInfo(Assignment&lt;Exam, ExamPlacement&gt; assignment) {<a name="line.413"></a>
+<span class="sourceLineNo">414</span>        Map&lt;String, String&gt; info = super.getExtendedInfo(assignment);<a name="line.414"></a>
+<span class="sourceLineNo">415</span>        /*<a name="line.415"></a>
+<span class="sourceLineNo">416</span>        info.put("Direct Conflicts [p]", String.valueOf(getNrDirectConflicts(true)));<a name="line.416"></a>
+<span class="sourceLineNo">417</span>        info.put("More Than 2 A Day Conflicts [p]", String.valueOf(getNrMoreThanTwoADayConflicts(true)));<a name="line.417"></a>
+<span class="sourceLineNo">418</span>        info.put("Back-To-Back Conflicts [p]", String.valueOf(getNrBackToBackConflicts(true)));<a name="line.418"></a>
+<span class="sourceLineNo">419</span>        info.put("Distance Back-To-Back Conflicts [p]", String.valueOf(getNrDistanceBackToBackConflicts(true)));<a name="line.419"></a>
+<span class="sourceLineNo">420</span>        info.put("Instructor Direct Conflicts [p]", String.valueOf(getNrInstructorDirectConflicts(true)));<a name="line.420"></a>
+<span class="sourceLineNo">421</span>        info.put("Instructor More Than 2 A Day Conflicts [p]", String.valueOf(getNrInstructorMoreThanTwoADayConflicts(true)));<a name="line.421"></a>
+<span class="sourceLineNo">422</span>        info.put("Instructor Back-To-Back Conflicts [p]", String.valueOf(getNrInstructorBackToBackConflicts(true)));<a name="line.422"></a>
+<span class="sourceLineNo">423</span>        info.put("Instructor Distance Back-To-Back Conflicts [p]", String.valueOf(getNrInstructorDistanceBackToBackConflicts(true)));<a name="line.423"></a>
+<span class="sourceLineNo">424</span>        info.put("Room Size Penalty [p]", String.valueOf(getRoomSizePenalty(true)));<a name="line.424"></a>
+<span class="sourceLineNo">425</span>        info.put("Room Split Penalty [p]", String.valueOf(getRoomSplitPenalty(true)));<a name="line.425"></a>
+<span class="sourceLineNo">426</span>        info.put("Period Penalty [p]", String.valueOf(getPeriodPenalty(true)));<a name="line.426"></a>
+<span class="sourceLineNo">427</span>        info.put("Period Size Penalty [p]", String.valueOf(getPeriodSizePenalty(true)));<a name="line.427"></a>
+<span class="sourceLineNo">428</span>        info.put("Period Index Penalty [p]", String.valueOf(getPeriodIndexPenalty(true)));<a name="line.428"></a>
+<span class="sourceLineNo">429</span>        info.put("Room Penalty [p]", String.valueOf(getRoomPenalty(true)));<a name="line.429"></a>
+<span class="sourceLineNo">430</span>        info.put("Distribution Penalty [p]", String.valueOf(getDistributionPenalty(true)));<a name="line.430"></a>
+<span class="sourceLineNo">431</span>        info.put("Perturbation Penalty [p]", String.valueOf(getPerturbationPenalty(true)));<a name="line.431"></a>
+<span class="sourceLineNo">432</span>        info.put("Room Perturbation Penalty [p]", String.valueOf(getRoomPerturbationPenalty(true)));<a name="line.432"></a>
+<span class="sourceLineNo">433</span>        info.put("Room Split Distance Penalty [p]", sDoubleFormat.format(getRoomSplitDistancePenalty(true)) + " / " + getNrRoomSplits(true));<a name="line.433"></a>
+<span class="sourceLineNo">434</span>        */<a name="line.434"></a>
+<span class="sourceLineNo">435</span>        info.put("Number of Periods", String.valueOf(getPeriods().size()));<a name="line.435"></a>
+<span class="sourceLineNo">436</span>        info.put("Number of Exams", String.valueOf(variables().size()));<a name="line.436"></a>
+<span class="sourceLineNo">437</span>        info.put("Number of Rooms", String.valueOf(getRooms().size()));<a name="line.437"></a>
+<span class="sourceLineNo">438</span>        info.put("Number of Students", String.valueOf(getStudents().size()));<a name="line.438"></a>
+<span class="sourceLineNo">439</span>        int nrStudentExams = 0;<a name="line.439"></a>
+<span class="sourceLineNo">440</span>        for (ExamStudent student : getStudents()) {<a name="line.440"></a>
+<span class="sourceLineNo">441</span>            nrStudentExams += student.getOwners().size();<a name="line.441"></a>
+<span class="sourceLineNo">442</span>        }<a name="line.442"></a>
+<span class="sourceLineNo">443</span>        info.put("Number of Student Exams", String.valueOf(nrStudentExams));<a name="line.443"></a>
+<span class="sourceLineNo">444</span>        int nrAltExams = 0, nrSmallExams = 0;<a name="line.444"></a>
+<span class="sourceLineNo">445</span>        for (Exam exam : variables()) {<a name="line.445"></a>
+<span class="sourceLineNo">446</span>            if (exam.hasAltSeating())<a name="line.446"></a>
+<span class="sourceLineNo">447</span>                nrAltExams++;<a name="line.447"></a>
+<span class="sourceLineNo">448</span>            if (exam.getMaxRooms() == 0)<a name="line.448"></a>
+<span class="sourceLineNo">449</span>                nrSmallExams++;<a name="line.449"></a>
+<span class="sourceLineNo">450</span>        }<a name="line.450"></a>
+<span class="sourceLineNo">451</span>        info.put("Number of Exams Requiring Alt Seating", String.valueOf(nrAltExams));<a name="line.451"></a>
+<span class="sourceLineNo">452</span>        info.put("Number of Small Exams (Exams W/O Room)", String.valueOf(nrSmallExams));<a name="line.452"></a>
+<span class="sourceLineNo">453</span>        int[] nbrMtgs = new int[11];<a name="line.453"></a>
+<span class="sourceLineNo">454</span>        for (int i = 0; i &lt;= 10; i++)<a name="line.454"></a>
+<span class="sourceLineNo">455</span>            nbrMtgs[i] = 0;<a name="line.455"></a>
+<span class="sourceLineNo">456</span>        for (ExamStudent student : getStudents()) {<a name="line.456"></a>
+<span class="sourceLineNo">457</span>            nbrMtgs[Math.min(10, student.variables().size())]++;<a name="line.457"></a>
+<span class="sourceLineNo">458</span>        }<a name="line.458"></a>
+<span class="sourceLineNo">459</span>        for (int i = 0; i &lt;= 10; i++) {<a name="line.459"></a>
+<span class="sourceLineNo">460</span>            if (nbrMtgs[i] == 0)<a name="line.460"></a>
+<span class="sourceLineNo">461</span>                continue;<a name="line.461"></a>
+<span class="sourceLineNo">462</span>            info.put("Number of Students with " + (i == 0 ? "no" : String.valueOf(i)) + (i == 10 ? " or more" : "")<a name="line.462"></a>
+<span class="sourceLineNo">463</span>                    + " meeting" + (i != 1 ? "s" : ""), String.valueOf(nbrMtgs[i]));<a name="line.463"></a>
+<span class="sourceLineNo">464</span>        }<a name="line.464"></a>
+<span class="sourceLineNo">465</span>        Map&lt;Integer, Integer&gt; penalty2count = new HashMap&lt;Integer, Integer&gt;();<a name="line.465"></a>
+<span class="sourceLineNo">466</span>        for (Exam exam: variables()) {<a name="line.466"></a>
+<span class="sourceLineNo">467</span>                ExamPlacement placement = assignment.getValue(exam);<a name="line.467"></a>
+<span class="sourceLineNo">468</span>                if (placement == null) continue;<a name="line.468"></a>
+<span class="sourceLineNo">469</span>                Integer preference = placement.getPeriodPlacement().getExamPenalty();<a name="line.469"></a>
+<span class="sourceLineNo">470</span>                Integer count = penalty2count.get(preference);<a name="line.470"></a>
+<span class="sourceLineNo">471</span>                penalty2count.put(preference, 1 + (count == null ? 0 : count.intValue())); <a name="line.471"></a>
+<span class="sourceLineNo">472</span>        }<a name="line.472"></a>
+<span class="sourceLineNo">473</span>        if (!penalty2count.isEmpty()) {<a name="line.473"></a>
+<span class="sourceLineNo">474</span>            String value = null;<a name="line.474"></a>
+<span class="sourceLineNo">475</span>            for (Integer penalty: new TreeSet&lt;Integer&gt;(penalty2count.keySet())) {<a name="line.475"></a>
+<span class="sourceLineNo">476</span>                if (penalty == 0) continue;<a name="line.476"></a>
+<span class="sourceLineNo">477</span>                value = (value == null ? "" : value + ", ") + penalty2count.get(penalty) +  "&amp;times; " + penalty;<a name="line.477"></a>
+<span class="sourceLineNo">478</span>            }<a name="line.478"></a>
+<span class="sourceLineNo">479</span>            if (value != null)<a name="line.479"></a>
+<span class="sourceLineNo">480</span>                info.put("Period Preferences", value);<a name="line.480"></a>
+<span class="sourceLineNo">481</span>        }<a name="line.481"></a>
+<span class="sourceLineNo">482</span>        return info;<a name="line.482"></a>
+<span class="sourceLineNo">483</span>    }<a name="line.483"></a>
+<span class="sourceLineNo">484</span><a name="line.484"></a>
+<span class="sourceLineNo">485</span>    /**<a name="line.485"></a>
+<span class="sourceLineNo">486</span>     * Problem properties<a name="line.486"></a>
+<span class="sourceLineNo">487</span>     * @return solver configuration<a name="line.487"></a>
+<span class="sourceLineNo">488</span>     */<a name="line.488"></a>
+<span class="sourceLineNo">489</span>    public DataProperties getProperties() {<a name="line.489"></a>
+<span class="sourceLineNo">490</span>        return iProperties;<a name="line.490"></a>
+<span class="sourceLineNo">491</span>    }<a name="line.491"></a>
+<span class="sourceLineNo">492</span><a name="line.492"></a>
+<span class="sourceLineNo">493</span>    /**<a name="line.493"></a>
+<span class="sourceLineNo">494</span>     * Problem rooms<a name="line.494"></a>
+<span class="sourceLineNo">495</span>     * <a name="line.495"></a>
+<span class="sourceLineNo">496</span>     * @return list of {@link ExamRoom}<a name="line.496"></a>
+<span class="sourceLineNo">497</span>     */<a name="line.497"></a>
+<span class="sourceLineNo">498</span>    public List&lt;ExamRoom&gt; getRooms() {<a name="line.498"></a>
+<span class="sourceLineNo">499</span>        return iRooms;<a name="line.499"></a>
+<span class="sourceLineNo">500</span>    }<a name="line.500"></a>
+<span class="sourceLineNo">501</span><a name="line.501"></a>
+<span class="sourceLineNo">502</span>    /**<a name="line.502"></a>
+<span class="sourceLineNo">503</span>     * Problem students<a name="line.503"></a>
+<span class="sourceLineNo">504</span>     * <a name="line.504"></a>
+<span class="sourceLineNo">505</span>     * @return list of {@link ExamStudent}<a name="line.505"></a>
+<span class="sourceLineNo">506</span>     */<a name="line.506"></a>
+<span class="sourceLineNo">507</span>    public List&lt;ExamStudent&gt; getStudents() {<a name="line.507"></a>
+<span class="sourceLineNo">508</span>        return iStudents;<a name="line.508"></a>
+<span class="sourceLineNo">509</span>    }<a name="line.509"></a>
+<span class="sourceLineNo">510</span><a name="line.510"></a>
+<span class="sourceLineNo">511</span>    /**<a name="line.511"></a>
+<span class="sourceLineNo">512</span>     * Problem instructors<a name="line.512"></a>
+<span class="sourceLineNo">513</span>     * <a name="line.513"></a>
+<span class="sourceLineNo">514</span>     * @return list of {@link ExamInstructor}<a name="line.514"></a>
+<span class="sourceLineNo">515</span>     */<a name="line.515"></a>
+<span class="sourceLineNo">516</span>    public List&lt;ExamInstructor&gt; getInstructors() {<a name="line.516"></a>
+<span class="sourceLineNo">517</span>        return iInstructors;<a name="line.517"></a>
+<span class="sourceLineNo">518</span>    }<a name="line.518"></a>
+<span class="sourceLineNo">519</span><a name="line.519"></a>
+<span class="sourceLineNo">520</span>    /**<a name="line.520"></a>
+<span class="sourceLineNo">521</span>     * Distribution constraints<a name="line.521"></a>
+<span class="sourceLineNo">522</span>     * <a name="line.522"></a>
+<span class="sourceLineNo">523</span>     * @return list of {@link ExamDistributionConstraint}<a name="line.523"></a>
+<span class="sourceLineNo">524</span>     */<a name="line.524"></a>
+<span class="sourceLineNo">525</span>    public List&lt;ExamDistributionConstraint&gt; getDistributionConstraints() {<a name="line.525"></a>
+<span class="sourceLineNo">526</span>        return iDistributionConstraints;<a name="line.526"></a>
+<span class="sourceLineNo">527</span>    }<a name="line.527"></a>
+<span class="sourceLineNo">528</span><a name="line.528"></a>
+<span class="sourceLineNo">529</span>    private String getId(boolean anonymize, String type, String id) {<a name="line.529"></a>
+<span class="sourceLineNo">530</span>        return (anonymize ? IdConvertor.getInstance().convert(type, id) : id);<a name="line.530"></a>
+<span class="sourceLineNo">531</span>    }<a name="line.531"></a>
+<span class="sourceLineNo">532</span><a name="line.532"></a>
+<span class="sourceLineNo">533</span>    /**<a name="line.533"></a>
+<span class="sourceLineNo">534</span>     * Save model (including its solution) into XML.<a name="line.534"></a>
+<span class="sourceLineNo">535</span>     * @param assignment current assignment<a name="line.535"></a>
+<span class="sourceLineNo">536</span>     * @return created XML document<a name="line.536"></a>
+<span class="sourceLineNo">537</span>     */<a name="line.537"></a>
+<span class="sourceLineNo">538</span>    public Document save(Assignment&lt;Exam, ExamPlacement&gt; assignment) {<a name="line.538"></a>
+<span class="sourceLineNo">539</span>        boolean saveInitial = getProperties().getPropertyBoolean("Xml.SaveInitial", true);<a name="line.539"></a>
+<span class="sourceLineNo">540</span>        boolean saveBest = getProperties().getPropertyBoolean("Xml.SaveBest", true);<a name="line.540"></a>
+<span class="sourceLineNo">541</span>        boolean saveSolution = getProperties().getPropertyBoolean("Xml.SaveSolution", true);<a name="line.541"></a>
+<span class="sourceLineNo">542</span>        boolean saveConflictTable = getProperties().getPropertyBoolean("Xml.SaveConflictTable", false);<a name="line.542"></a>
+<span class="sourceLineNo">543</span>        boolean saveParams = getProperties().getPropertyBoolean("Xml.SaveParameters", true);<a name="line.543"></a>
+<span class="sourceLineNo">544</span>        boolean anonymize = getProperties().getPropertyBoolean("Xml.Anonymize", false);<a name="line.544"></a>
+<span class="sourceLineNo">545</span>        boolean idconv = getProperties().getPropertyBoolean("Xml.ConvertIds", anonymize);<a name="line.545"></a>
+<span class="sourceLineNo">546</span>        Document document = DocumentHelper.createDocument();<a name="line.546"></a>
+<span class="sourceLineNo">547</span>        document.addComment("Examination Timetable");<a name="line.547"></a>
+<span class="sourceLineNo">548</span>        if (assignment != null &amp;&amp; assignment.nrAssignedVariables() &gt; 0) {<a name="line.548"></a>
+<span class="sourceLineNo">549</span>            StringBuffer comments = new StringBuffer("Solution Info:\n");<a name="line.549"></a>
+<span class="sourceLineNo">550</span>            Map&lt;String, String&gt; solutionInfo = (getProperties().getPropertyBoolean("Xml.ExtendedInfo", false) ? getExtendedInfo(assignment) : getInfo(assignment));<a name="line.550"></a>
+<span class="sourceLineNo">551</span>            for (String key : new TreeSet&lt;String&gt;(solutionInfo.keySet())) {<a name="line.551"></a>
+<span class="sourceLineNo">552</span>                String value = solutionInfo.get(key);<a name="line.552"></a>
+<span class="sourceLineNo">553</span>                comments.append("    " + key + ": " + value + "\n");<a name="line.553"></a>
+<span class="sourceLineNo">554</span>            }<a name="line.554"></a>
+<span class="sourceLineNo">555</span>            document.addComment(comments.toString());<a name="line.555"></a>
+<span class="sourceLineNo">556</span>        }<a name="line.556"></a>
+<span class="sourceLineNo">557</span>        Element root = document.addElement("examtt");<a name="line.557"></a>
+<span class="sourceLineNo">558</span>        root.addAttribute("version", "1.0");<a name="line.558"></a>
+<span class="sourceLineNo">559</span>        root.addAttribute("campus", getProperties().getProperty("Data.Initiative"));<a name="line.559"></a>
+<span class="sourceLineNo">560</span>        root.addAttribute("term", getProperties().getProperty("Data.Term"));<a name="line.560"></a>
+<span class="sourceLineNo">561</span>        root.addAttribute("year", getProperties().getProperty("Data.Year"));<a name="line.561"></a>
+<span class="sourceLineNo">562</span>        root.addAttribute("created", String.valueOf(new Date()));<a name="line.562"></a>
+<span class="sourceLineNo">563</span>        if (saveParams) {<a name="line.563"></a>
+<span class="sourceLineNo">564</span>            Map&lt;String, String&gt; params = new HashMap&lt;String, String&gt;();<a name="line.564"></a>
+<span class="sourceLineNo">565</span>            for (Criterion&lt;Exam, ExamPlacement&gt; criterion: getCriteria()) {<a name="line.565"></a>
+<span class="sourceLineNo">566</span>                if (criterion instanceof ExamCriterion)<a name="line.566"></a>
+<span class="sourceLineNo">567</span>                    ((ExamCriterion)criterion).getXmlParameters(params);<a name="line.567"></a>
+<span class="sourceLineNo">568</span>            }<a name="line.568"></a>
+<span class="sourceLineNo">569</span>            params.put("maxRooms", String.valueOf(getMaxRooms()));<a name="line.569"></a>
+<span class="sourceLineNo">570</span>            params.put("checkForPeriodOverlaps", isCheckForPeriodOverlaps() ? "true" : "false");<a name="line.570"></a>
+<span class="sourceLineNo">571</span>            Element parameters = root.addElement("parameters");<a name="line.571"></a>
+<span class="sourceLineNo">572</span>            for (String key: new TreeSet&lt;String&gt;(params.keySet())) {<a name="line.572"></a>
+<span class="sourceLineNo">573</span>                parameters.addElement("property").addAttribute("name", key).addAttribute("value", params.get(key));<a name="line.573"></a>
+<span class="sourceLineNo">574</span>            }<a name="line.574"></a>
+<span class="sourceLineNo">575</span>        }<a name="line.575"></a>
+<span class="sourceLineNo">576</span>        Element periods = root.addElement("periods");<a name="line.576"></a>
+<span class="sourceLineNo">577</span>        for (ExamPeriod period : getPeriods()) {<a name="line.577"></a>
+<span class="sourceLineNo">578</span>            Element periodEl = periods.addElement("period").addAttribute("id", getId(idconv, "period", String.valueOf(period.getId())))<a name="line.578"></a>
+<span class="sourceLineNo">579</span>                    .addAttribute("length", String.valueOf(period.getLength())).addAttribute("day", period.getDayStr())<a name="line.579"></a>
+<span class="sourceLineNo">580</span>                    .addAttribute("time", period.getTimeStr()).addAttribute("penalty",<a name="line.580"></a>
+<span class="sourceLineNo">581</span>                            String.valueOf(period.getPenalty()));<a name="line.581"></a>
+<span class="sourceLineNo">582</span>            if (period.getStartTime() != null)<a name="line.582"></a>
+<span class="sourceLineNo">583</span>                periodEl.addAttribute("start", period.getStartTime().toString());<a name="line.583"></a>
+<span class="sourceLineNo">584</span>        }<a name="line.584"></a>
+<span class="sourceLineNo">585</span>        Element rooms = root.addElement("rooms");<a name="line.585"></a>
+<span class="sourceLineNo">586</span>        for (ExamRoom room : getRooms()) {<a name="line.586"></a>
+<span class="sourceLineNo">587</span>            Element r = rooms.addElement("room");<a name="line.587"></a>
+<span class="sourceLineNo">588</span>            r.addAttribute("id", getId(idconv, "room", String.valueOf(room.getId())));<a name="line.588"></a>
+<span class="sourceLineNo">589</span>            if (!anonymize &amp;&amp; room.hasName())<a name="line.589"></a>
+<span class="sourceLineNo">590</span>                r.addAttribute("name", room.getName());<a name="line.590"></a>
+<span class="sourceLineNo">591</span>            r.addAttribute("size", String.valueOf(room.getSize()));<a name="line.591"></a>
+<span class="sourceLineNo">592</span>            r.addAttribute("alt", String.valueOf(room.getAltSize()));<a name="line.592"></a>
+<span class="sourceLineNo">593</span>            if (!room.isHard())<a name="line.593"></a>
+<span class="sourceLineNo">594</span>                r.addAttribute("hard", "false");<a name="line.594"></a>
+<span class="sourceLineNo">595</span>            if (room.getCoordX() != null &amp;&amp; room.getCoordY() != null)<a name="line.595"></a>
+<span class="sourceLineNo">596</span>                r.addAttribute("coordinates", room.getCoordX() + "," + room.getCoordY());<a name="line.596"></a>
+<span class="sourceLineNo">597</span>            if (room.getParentRoom() != null)<a name="line.597"></a>
+<span class="sourceLineNo">598</span>                r.addAttribute("parentId", getId(idconv, "room", String.valueOf(room.getParentRoom().getId())));<a name="line.598"></a>
+<span class="sourceLineNo">599</span>            for (ExamPeriod period : getPeriods()) {<a name="line.599"></a>
+<span class="sourceLineNo">600</span>                if (!room.isAvailable(period))<a name="line.600"></a>
+<span class="sourceLineNo">601</span>                    r.addElement("period").addAttribute("id",<a name="line.601"></a>
+<span class="sourceLineNo">602</span>                            getId(idconv, "period", String.valueOf(period.getId()))).addAttribute("available",<a name="line.602"></a>
+<span class="sourceLineNo">603</span>                            "false");<a name="line.603"></a>
+<span class="sourceLineNo">604</span>                else if (room.getPenalty(period) != 0)<a name="line.604"></a>
+<span class="sourceLineNo">605</span>                    r.addElement("period").addAttribute("id",<a name="line.605"></a>
+<span class="sourceLineNo">606</span>                            getId(idconv, "period", String.valueOf(period.getId()))).addAttribute("penalty",<a name="line.606"></a>
+<span class="sourceLineNo">607</span>                            String.valueOf(room.getPenalty(period)));<a name="line.607"></a>
+<span class="sourceLineNo">608</span>            }<a name="line.608"></a>
+<span class="sourceLineNo">609</span>            Map&lt;Long, Integer&gt; travelTimes = getDistanceMetric().getTravelTimes().get(room.getId());<a name="line.609"></a>
+<span class="sourceLineNo">610</span>            if (travelTimes != null)<a name="line.610"></a>
+<span class="sourceLineNo">611</span>                for (Map.Entry&lt;Long, Integer&gt; time: travelTimes.entrySet())<a name="line.611"></a>
+<span class="sourceLineNo">612</span>                    r.addElement("travel-time").addAttribute("id", getId(idconv, "room", time.getKey().toString())).addAttribute("minutes", time.getValue().toString());<a name="line.612"></a>
+<span class="sourceLineNo">613</span>        }<a name="line.613"></a>
+<span class="sourceLineNo">614</span>        Element exams = root.addElement("exams");<a name="line.614"></a>
+<span class="sourceLineNo">615</span>        for (Exam exam : variables()) {<a name="line.615"></a>
+<span class="sourceLineNo">616</span>            Element ex = exams.addElement("exam");<a name="line.616"></a>
+<span class="sourceLineNo">617</span>            ex.addAttribute("id", getId(idconv, "exam", String.valueOf(exam.getId())));<a name="line.617"></a>
+<span class="sourceLineNo">618</span>            if (!anonymize &amp;&amp; exam.hasName())<a name="line.618"></a>
+<span class="sourceLineNo">619</span>                ex.addAttribute("name", exam.getName());<a name="line.619"></a>
+<span class="sourceLineNo">620</span>            ex.addAttribute("length", String.valueOf(exam.getLength()));<a name="line.620"></a>
+<span class="sourceLineNo">621</span>            if (exam.getSizeOverride() != null)<a name="line.621"></a>
+<span class="sourceLineNo">622</span>                ex.addAttribute("size", exam.getSizeOverride().toString());<a name="line.622"></a>
+<span class="sourceLineNo">623</span>            if (exam.getMinSize() != 0)<a name="line.623"></a>
+<span class="sourceLineNo">624</span>                ex.addAttribute("minSize", String.valueOf(exam.getMinSize()));<a name="line.624"></a>
+<span class="sourceLineNo">625</span>            ex.addAttribute("alt", (exam.hasAltSeating() ? "true" : "false"));<a name="line.625"></a>
+<span class="sourceLineNo">626</span>            if (exam.getMaxRooms() != getMaxRooms())<a name="line.626"></a>
+<span class="sourceLineNo">627</span>                ex.addAttribute("maxRooms", String.valueOf(exam.getMaxRooms()));<a name="line.627"></a>
+<span class="sourceLineNo">628</span>            if (exam.getPrintOffset() != null &amp;&amp; !anonymize)<a name="line.628"></a>
+<span class="sourceLineNo">629</span>                ex.addAttribute("printOffset", exam.getPrintOffset().toString());<a name="line.629"></a>
+<span class="sourceLineNo">630</span>            if (!anonymize)<a name="line.630"></a>
+<span class="sourceLineNo">631</span>                ex.addAttribute("enrl", String.valueOf(exam.getStudents().size()));<a name="line.631"></a>
+<span class="sourceLineNo">632</span>            if (!anonymize)<a name="line.632"></a>
+<span class="sourceLineNo">633</span>                for (ExamOwner owner : exam.getOwners()) {<a name="line.633"></a>
+<span class="sourceLineNo">634</span>                    Element o = ex.addElement("owner");<a name="line.634"></a>
+<span class="sourceLineNo">635</span>                    o.addAttribute("id", getId(idconv, "owner", String.valueOf(owner.getId())));<a name="line.635"></a>
+<span class="sourceLineNo">636</span>                    o.addAttribute("name", owner.getName());<a name="line.636"></a>
+<span class="sourceLineNo">637</span>                }<a name="line.637"></a>
+<span class="sourceLineNo">638</span>            for (ExamPeriodPlacement period : exam.getPeriodPlacements()) {<a name="line.638"></a>
+<span class="sourceLineNo">639</span>                Element pe = ex.addElement("period").addAttribute("id",<a name="line.639"></a>
+<span class="sourceLineNo">640</span>                        getId(idconv, "period", String.valueOf(period.getId())));<a name="line.640"></a>
+<span class="sourceLineNo">641</span>                int penalty = period.getExamPenalty();<a name="line.641"></a>
+<span class="sourceLineNo">642</span>                if (penalty != 0)<a name="line.642"></a>
+<span class="sourceLineNo">643</span>                    pe.addAttribute("penalty", String.valueOf(penalty));<a name="line.643"></a>
+<span class="sourceLineNo">644</span>            }<a name="line.644"></a>
+<span class="sourceLineNo">645</span>            for (ExamRoomPlacement room : exam.getRoomPlacements()) {<a name="line.645"></a>
+<span class="sourceLineNo">646</span>                Element re = ex.addElement("room").addAttribute("id",<a name="line.646"></a>
+<span class="sourceLineNo">647</span>                        getId(idconv, "room", String.valueOf(room.getId())));<a name="line.647"></a>
+<span class="sourceLineNo">648</span>                if (room.getPenalty() != 0)<a name="line.648"></a>
+<span class="sourceLineNo">649</span>                    re.addAttribute("penalty", String.valueOf(room.getPenalty()));<a name="line.649"></a>
+<span class="sourceLineNo">650</span>                if (room.getMaxPenalty() != 100)<a name="line.650"></a>
+<span class="sourceLineNo">651</span>                    re.addAttribute("maxPenalty", String.valueOf(room.getMaxPenalty()));<a name="line.651"></a>
+<span class="sourceLineNo">652</span>            }<a name="line.652"></a>
+<span class="sourceLineNo">653</span>            if (exam.hasAveragePeriod())<a name="line.653"></a>
+<span class="sourceLineNo">654</span>                ex.addAttribute("average", String.valueOf(exam.getAveragePeriod()));<a name="line.654"></a>
+<span class="sourceLineNo">655</span>            ExamPlacement p = (assignment == null ? null : assignment.getValue(exam));<a name="line.655"></a>
+<span class="sourceLineNo">656</span>            if (p != null &amp;&amp; saveSolution) {<a name="line.656"></a>
+<span class="sourceLineNo">657</span>                Element asg = ex.addElement("assignment");<a name="line.657"></a>
+<span class="sourceLineNo">658</span>                asg.addElement("period").addAttribute("id",<a name="line.658"></a>
+<span class="sourceLineNo">659</span>                        getId(idconv, "period", String.valueOf(p.getPeriod().getId())));<a name="line.659"></a>
+<span class="sourceLineNo">660</span>                for (ExamRoomPlacement r : p.getRoomPlacements()) {<a name="line.660"></a>
+<span class="sourceLineNo">661</span>                    asg.addElement("room").addAttribute("id", getId(idconv, "room", String.valueOf(r.getId())));<a name="line.661"></a>
+<span class="sourceLineNo">662</span>                }<a name="line.662"></a>
+<span class="sourceLineNo">663</span>            }<a name="line.663"></a>
+<span class="sourceLineNo">664</span>            p = exam.getInitialAssignment();<a name="line.664"></a>
+<span class="sourceLineNo">665</span>            if (p != null &amp;&amp; saveInitial) {<a name="line.665"></a>
+<span class="sourceLineNo">666</span>                Element ini = ex.addElement("initial");<a name="line.666"></a>
+<span class="sourceLineNo">667</span>                ini.addElement("period").addAttribute("id",<a name="line.667"></a>
+<span class="sourceLineNo">668</span>                        getId(idconv, "period", String.valueOf(p.getPeriod().getId())));<a name="line.668"></a>
+<span class="sourceLineNo">669</span>                for (ExamRoomPlacement r : p.getRoomPlacements()) {<a name="line.669"></a>
+<span class="sourceLineNo">670</span>                    ini.addElement("room").addAttribute("id", getId(idconv, "room", String.valueOf(r.getId())));<a name="line.670"></a>
+<span class="sourceLineNo">671</span>                }<a name="line.671"></a>
+<span class="sourceLineNo">672</span>            }<a name="line.672"></a>
+<span class="sourceLineNo">673</span>            p = exam.getBestAssignment();<a name="line.673"></a>
+<span class="sourceLineNo">674</span>            if (p != null &amp;&amp; saveBest) {<a name="line.674"></a>
+<span class="sourceLineNo">675</span>                Element ini = ex.addElement("best");<a name="line.675"></a>
+<span class="sourceLineNo">676</span>                ini.addElement("period").addAttribute("id",<a name="line.676"></a>
+<span class="sourceLineNo">677</span>                        getId(idconv, "period", String.valueOf(p.getPeriod().getId())));<a name="line.677"></a>
+<span class="sourceLineNo">678</span>                for (ExamRoomPlacement r : p.getRoomPlacements()) {<a name="line.678"></a>
+<span class="sourceLineNo">679</span>                    ini.addElement("room").addAttribute("id", getId(idconv, "room", String.valueOf(r.getId())));<a name="line.679"></a>
+<span class="sourceLineNo">680</span>                }<a name="line.680"></a>
+<span class="sourceLineNo">681</span>            }<a name="line.681"></a>
+<span class="sourceLineNo">682</span>            if (iRoomSharing != null)<a name="line.682"></a>
+<span class="sourceLineNo">683</span>                iRoomSharing.save(exam, ex, anonymize ? IdConvertor.getInstance() : null);<a name="line.683"></a>
+<span class="sourceLineNo">684</span>        }<a name="line.684"></a>
+<span class="sourceLineNo">685</span>        Element students = root.addElement("students");<a name="line.685"></a>
+<span class="sourceLineNo">686</span>        for (ExamStudent student : getStudents()) {<a name="line.686"></a>
+<span class="sourceLineNo">687</span>            Element s = students.addElement("student");<a name="line.687"></a>
+<span class="sourceLineNo">688</span>            s.addAttribute("id", getId(idconv, "student", String.valueOf(student.getId())));<a name="line.688"></a>
+<span class="sourceLineNo">689</span>            for (Exam ex : student.variables()) {<a name="line.689"></a>
+<span class="sourceLineNo">690</span>                Element x = s.addElement("exam").addAttribute("id",<a name="line.690"></a>
+<span class="sourceLineNo">691</span>                        getId(idconv, "exam", String.valueOf(ex.getId())));<a name="line.691"></a>
+<span class="sourceLineNo">692</span>                if (!anonymize)<a name="line.692"></a>
+<span class="sourceLineNo">693</span>                    for (ExamOwner owner : ex.getOwners(student)) {<a name="line.693"></a>
+<span class="sourceLineNo">694</span>                        x.addElement("owner").addAttribute("id",<a name="line.694"></a>
+<span class="sourceLineNo">695</span>                                getId(idconv, "owner", String.valueOf(owner.getId())));<a name="line.695"></a>
+<span class="sourceLineNo">696</span>                    }<a name="line.696"></a>
+<span class="sourceLineNo">697</span>            }<a name="line.697"></a>
+<span class="sourceLineNo">698</span>            for (ExamPeriod period : getPeriods()) {<a name="line.698"></a>
+<span class="sourceLineNo">699</span>                if (!student.isAvailable(period))<a name="line.699"></a>
+<span class="sourceLineNo">700</span>                    s.addElement("period").addAttribute("id",<a name="line.700"></a>
+<span class="sourceLineNo">701</span>                            getId(idconv, "period", String.valueOf(period.getId()))).addAttribute("available",<a name="line.701"></a>
+<span class="sourceLineNo">702</span>                            "false");<a name="line.702"></a>
+<span class="sourceLineNo">703</span>            }<a name="line.703"></a>
+<span class="sourceLineNo">704</span>        }<a name="line.704"></a>
+<span class="sourceLineNo">705</span>        Element instructors = root.addElement("instructors");<a name="line.705"></a>
+<span class="sourceLineNo">706</span>        for (ExamInstructor instructor : getInstructors()) {<a name="line.706"></a>
+<span class="sourceLineNo">707</span>            Element i = instructors.addElement("instructor");<a name="line.707"></a>
+<span class="sourceLineNo">708</span>            i.addAttribute("id", getId(idconv, "instructor", String.valueOf(instructor.getId())));<a name="line.708"></a>
+<span class="sourceLineNo">709</span>            if (!anonymize &amp;&amp; instructor.hasName())<a name="line.709"></a>
+<span class="sourceLineNo">710</span>                i.addAttribute("name", instructor.getName());<a name="line.710"></a>
+<span class="sourceLineNo">711</span>            for (Exam ex : instructor.variables()) {<a name="line.711"></a>
+<span class="sourceLineNo">712</span>                Element x = i.addElement("exam").addAttribute("id",<a name="line.712"></a>
+<span class="sourceLineNo">713</span>                        getId(idconv, "exam", String.valueOf(ex.getId())));<a name="line.713"></a>
+<span class="sourceLineNo">714</span>                if (!anonymize)<a name="line.714"></a>
+<span class="sourceLineNo">715</span>                    for (ExamOwner owner : ex.getOwners(instructor)) {<a name="line.715"></a>
+<span class="sourceLineNo">716</span>                        x.addElement("owner").addAttribute("id",<a name="line.716"></a>
+<span class="sourceLineNo">717</span>                                getId(idconv, "owner", String.valueOf(owner.getId())));<a name="line.717"></a>
+<span class="sourceLineNo">718</span>                    }<a name="line.718"></a>
+<span class="sourceLineNo">719</span>            }<a name="line.719"></a>
+<span class="sourceLineNo">720</span>            for (ExamPeriod period : getPeriods()) {<a name="line.720"></a>
+<span class="sourceLineNo">721</span>                if (!instructor.isAvailable(period))<a name="line.721"></a>
+<span class="sourceLineNo">722</span>                    i.addElement("period").addAttribute("id",<a name="line.722"></a>
+<span class="sourceLineNo">723</span>                            getId(idconv, "period", String.valueOf(period.getId()))).addAttribute("available",<a name="line.723"></a>
+<span class="sourceLineNo">724</span>                            "false");<a name="line.724"></a>
+<span class="sourceLineNo">725</span>            }<a name="line.725"></a>
+<span class="sourceLineNo">726</span>        }<a name="line.726"></a>
+<span class="sourceLineNo">727</span>        Element distConstraints = root.addElement("constraints");<a name="line.727"></a>
+<span class="sourceLineNo">728</span>        for (ExamDistributionConstraint distConstraint : getDistributionConstraints()) {<a name="line.728"></a>
+<span class="sourceLineNo">729</span>            Element dc = distConstraints.addElement(distConstraint.getTypeString());<a name="line.729"></a>
+<span class="sourceLineNo">730</span>            dc.addAttribute("id", getId(idconv, "constraint", String.valueOf(distConstraint.getId())));<a name="line.730"></a>
+<span class="sourceLineNo">731</span>            if (!distConstraint.isHard()) {<a name="line.731"></a>
+<span class="sourceLineNo">732</span>                dc.addAttribute("hard", "false");<a name="line.732"></a>
+<span class="sourceLineNo">733</span>                dc.addAttribute("weight", String.valueOf(distConstraint.getWeight()));<a name="line.733"></a>
+<span class="sourceLineNo">734</span>            }<a name="line.734"></a>
+<span class="sourceLineNo">735</span>            for (Exam exam : distConstraint.variables()) {<a name="line.735"></a>
+<span class="sourceLineNo">736</span>                dc.addElement("exam").addAttribute("id", getId(idconv, "exam", String.valueOf(exam.getId())));<a name="line.736"></a>
+<span class="sourceLineNo">737</span>            }<a name="line.737"></a>
+<span class="sourceLineNo">738</span>        }<a name="line.738"></a>
+<span class="sourceLineNo">739</span>        if (saveConflictTable &amp;&amp; assignment != null) {<a name="line.739"></a>
+<span class="sourceLineNo">740</span>            Element conflicts = root.addElement("conflicts");<a name="line.740"></a>
+<span class="sourceLineNo">741</span>            Map&lt;ExamStudent, Set&lt;Exam&gt;&gt; studentsOfPreviousPeriod = null;<a name="line.741"></a>
+<span class="sourceLineNo">742</span>            for (ExamPeriod period : getPeriods()) {<a name="line.742"></a>
+<span class="sourceLineNo">743</span>                Map&lt;ExamStudent, Set&lt;Exam&gt;&gt; studentsOfPeriod = getStudentsOfPeriod(assignment, period);<a name="line.743"></a>
+<span class="sourceLineNo">744</span>                for (Map.Entry&lt;ExamStudent, Set&lt;Exam&gt;&gt; entry : studentsOfPeriod.entrySet()) {<a name="line.744"></a>
+<span class="sourceLineNo">745</span>                    ExamStudent student = entry.getKey();<a name="line.745"></a>
+<span class="sourceLineNo">746</span>                    Set&lt;Exam&gt; examsOfStudent = entry.getValue();<a name="line.746"></a>
+<span class="sourceLineNo">747</span>                    if (examsOfStudent.size() &gt; 1) {<a name="line.747"></a>
+<span class="sourceLineNo">748</span>                        Element dir = conflicts.addElement("direct").addAttribute("student", getId(idconv, "student", String.valueOf(student.getId())));<a name="line.748"></a>
+<span class="sourceLineNo">749</span>                        for (Exam exam : examsOfStudent) {<a name="line.749"></a>
+<span class="sourceLineNo">750</span>                            dir.addElement("exam").addAttribute("id", getId(idconv, "exam", String.valueOf(exam.getId())));<a name="line.750"></a>
+<span class="sourceLineNo">751</span>                        }<a name="line.751"></a>
+<span class="sourceLineNo">752</span>                    }<a name="line.752"></a>
+<span class="sourceLineNo">753</span>                    if (examsOfStudent.size() &gt; 0 &amp;&amp; studentsOfPreviousPeriod != null &amp;&amp; (isDayBreakBackToBack() || period.prev().getDay() == period.getDay())) {<a name="line.753"></a>
+<span class="sourceLineNo">754</span>                        Set&lt;Exam&gt; previousExamsOfStudent = studentsOfPreviousPeriod.get(student);<a name="line.754"></a>
+<span class="sourceLineNo">755</span>                        if (previousExamsOfStudent != null) {<a name="line.755"></a>
+<span class="sourceLineNo">756</span>                            for (Exam ex1 : previousExamsOfStudent)<a name="line.756"></a>
+<span class="sourceLineNo">757</span>                                for (Exam ex2 : examsOfStudent) {<a name="line.757"></a>
+<span class="sourceLineNo">758</span>                                    Element btb = conflicts.addElement("back-to-back").addAttribute("student", getId(idconv, "student", String.valueOf(student.getId())));<a name="line.758"></a>
+<span class="sourceLineNo">759</span>                                    btb.addElement("exam").addAttribute("id", getId(idconv, "exam", String.valueOf(ex1.getId())));<a name="line.759"></a>
+<span class="sourceLineNo">760</span>                                    btb.addElement("exam").addAttribute("id", getId(idconv, "exam", String.valueOf(ex2.getId())));<a name="line.760"></a>
+<span class="sourceLineNo">761</span>                                    if (getBackToBackDistance() &gt;= 0 &amp;&amp; period.prev().getDay() == period.getDay()) {<a name="line.761"></a>
+<span class="sourceLineNo">762</span>                                        double dist = (assignment.getValue(ex1)).getDistanceInMeters(assignment.getValue(ex2));<a name="line.762"></a>
+<span class="sourceLineNo">763</span>                                        if (dist &gt; 0)<a name="line.763"></a>
+<span class="sourceLineNo">764</span>                                            btb.addAttribute("distance", String.valueOf(dist));<a name="line.764"></a>
+<span class="sourceLineNo">765</span>                                    }<a name="line.765"></a>
+<span class="sourceLineNo">766</span>                                }<a name="line.766"></a>
+<span class="sourceLineNo">767</span>                        }<a name="line.767"></a>
+<span class="sourceLineNo">768</span>                    }<a name="line.768"></a>
+<span class="sourceLineNo">769</span>                }<a name="line.769"></a>
+<span class="sourceLineNo">770</span>                if (period.next() == null || period.next().getDay() != period.getDay()) {<a name="line.770"></a>
+<span class="sourceLineNo">771</span>                    Map&lt;ExamStudent, Set&lt;Exam&gt;&gt; studentsOfDay = getStudentsOfDay(assignment, period);<a name="line.771"></a>
+<span class="sourceLineNo">772</span>                    for (Map.Entry&lt;ExamStudent, Set&lt;Exam&gt;&gt; entry : studentsOfDay.entrySet()) {<a name="line.772"></a>
+<span class="sourceLineNo">773</span>                        ExamStudent student = entry.getKey();<a name="line.773"></a>
+<span class="sourceLineNo">774</span>                        Set&lt;Exam&gt; examsOfStudent = entry.getValue();<a name="line.774"></a>
+<span class="sourceLineNo">775</span>                        if (examsOfStudent.size() &gt; 2) {<a name="line.775"></a>
+<span class="sourceLineNo">776</span>                            Element mt2 = conflicts.addElement("more-2-day").addAttribute("student", getId(idconv, "student", String.valueOf(student.getId())));<a name="line.776"></a>
+<span class="sourceLineNo">777</span>                            for (Exam exam : examsOfStudent) {<a name="line.777"></a>
+<span class="sourceLineNo">778</span>                                mt2.addElement("exam").addAttribute("id", getId(idconv, "exam", String.valueOf(exam.getId())));<a name="line.778"></a>
+<span class="sourceLineNo">779</span>                            }<a name="line.779"></a>
+<span class="sourceLineNo">780</span>                        }<a name="line.780"></a>
+<span class="sourceLineNo">781</span>                    }<a name="line.781"></a>
+<span class="sourceLineNo">782</span>                }<a name="line.782"></a>
+<span class="sourceLineNo">783</span>                studentsOfPreviousPeriod = studentsOfPeriod;<a name="line.783"></a>
+<span class="sourceLineNo">784</span>            }<a name="line.784"></a>
+<span class="sourceLineNo">785</span>            /*<a name="line.785"></a>
+<span class="sourceLineNo">786</span>            Element conflicts = root.addElement("conflicts");<a name="line.786"></a>
+<span class="sourceLineNo">787</span>            for (ExamStudent student : getStudents()) {<a name="line.787"></a>
+<span class="sourceLineNo">788</span>                for (ExamPeriod period : getPeriods()) {<a name="line.788"></a>
+<span class="sourceLineNo">789</span>                    int nrExams = student.getExams(assignment, period).size();<a name="line.789"></a>
+<span class="sourceLineNo">790</span>                    if (nrExams &gt; 1) {<a name="line.790"></a>
+<span class="sourceLineNo">791</span>                        Element dir = conflicts.addElement("direct").addAttribute("student", getId(idconv, "student", String.valueOf(student.getId())));<a name="line.791"></a>
+<span class="sourceLineNo">792</span>                        for (Exam exam : student.getExams(assignment, period)) {<a name="line.792"></a>
+<span class="sourceLineNo">793</span>                            dir.addElement("exam").addAttribute("id", getId(idconv, "exam", String.valueOf(exam.getId())));<a name="line.793"></a>
+<span class="sourceLineNo">794</span>                        }<a name="line.794"></a>
+<span class="sourceLineNo">795</span>                    }<a name="line.795"></a>
+<span class="sourceLineNo">796</span>                    if (nrExams &gt; 0) {<a name="line.796"></a>
+<span class="sourceLineNo">797</span>                        if (period.next() != null &amp;&amp; !student.getExams(assignment, period.next()).isEmpty()<a name="line.797"></a>
+<span class="sourceLineNo">798</span>                                &amp;&amp; (!isDayBreakBackToBack() || period.next().getDay() == period.getDay())) {<a name="line.798"></a>
+<span class="sourceLineNo">799</span>                            for (Exam ex1 : student.getExams(assignment, period)) {<a name="line.799"></a>
+<span class="sourceLineNo">800</span>                                for (Exam ex2 : student.getExams(assignment, period.next())) {<a name="line.800"></a>
+<span class="sourceLineNo">801</span>                                    Element btb = conflicts.addElement("back-to-back").addAttribute("student", getId(idconv, "student", String.valueOf(student.getId())));<a name="line.801"></a>
+<span class="sourceLineNo">802</span>                                    btb.addElement("exam").addAttribute("id", getId(idconv, "exam", String.valueOf(ex1.getId())));<a name="line.802"></a>
+<span class="sourceLineNo">803</span>                                    btb.addElement("exam").addAttribute("id", getId(idconv, "exam", String.valueOf(ex2.getId())));<a name="line.803"></a>
+<span class="sourceLineNo">804</span>                                    if (getBackToBackDistance() &gt;= 0) {<a name="line.804"></a>
+<span class="sourceLineNo">805</span>                                        double dist = (assignment.getValue(ex1)).getDistanceInMeters(assignment.getValue(ex2));<a name="line.805"></a>
+<span class="sourceLineNo">806</span>                                        if (dist &gt; 0)<a name="line.806"></a>
+<span class="sourceLineNo">807</span>                                            btb.addAttribute("distance", String.valueOf(dist));<a name="line.807"></a>
+<span class="sourceLineNo">808</span>                                    }<a name="line.808"></a>
+<span class="sourceLineNo">809</span>                                }<a name="line.809"></a>
+<span class="sourceLineNo">810</span>                            }<a name="line.810"></a>
+<span class="sourceLineNo">811</span>                        }<a name="line.811"></a>
+<span class="sourceLineNo">812</span>                    }<a name="line.812"></a>
+<span class="sourceLineNo">813</span>                    if (period.next() == null || period.next().getDay() != period.getDay()) {<a name="line.813"></a>
+<span class="sourceLineNo">814</span>                        int nrExamsADay = student.getExamsADay(assignment, period.getDay()).size();<a name="line.814"></a>
+<span class="sourceLineNo">815</span>                        if (nrExamsADay &gt; 2) {<a name="line.815"></a>
+<span class="sourceLineNo">816</span>                            Element mt2 = conflicts.addElement("more-2-day").addAttribute("student", getId(idconv, "student", String.valueOf(student.getId())));<a name="line.816"></a>
+<span class="sourceLineNo">817</span>                            for (Exam exam : student.getExamsADay(assignment, period.getDay())) {<a name="line.817"></a>
+<span class="sourceLineNo">818</span>                                mt2.addElement("exam").addAttribute("id", getId(idconv, "exam", String.valueOf(exam.getId())));<a name="line.818"></a>
+<span class="sourceLineNo">819</span>                            }<a name="line.819"></a>
+<span class="sourceLineNo">820</span>                        }<a name="line.820"></a>
+<span class="sourceLineNo">821</span>                    }<a name="line.821"></a>
+<span class="sourceLineNo">822</span>                }<a name="line.822"></a>
+<span class="sourceLineNo">823</span>            }<a name="line.823"></a>
+<span class="sourceLineNo">824</span>            */<a name="line.824"></a>
+<span class="sourceLineNo">825</span>        }<a name="line.825"></a>
+<span class="sourceLineNo">826</span>        return document;<a name="line.826"></a>
+<span class="sourceLineNo">827</span>    }<a name="line.827"></a>
+<span class="sourceLineNo">828</span><a name="line.828"></a>
+<span class="sourceLineNo">829</span>    /**<a name="line.829"></a>
+<span class="sourceLineNo">830</span>     * Load model (including its solution) from XML.<a name="line.830"></a>
+<span class="sourceLineNo">831</span>     * @param document XML document<a name="line.831"></a>
+<span class="sourceLineNo">832</span>     * @param assignment assignment to be loaded<a name="line.832"></a>
+<span class="sourceLineNo">833</span>     * @return true if successfully loaded<a name="line.833"></a>
+<span class="sourceLineNo">834</span>     */<a name="line.834"></a>
+<span class="sourceLineNo">835</span>    public boolean load(Document document, Assignment&lt;Exam, ExamPlacement&gt; assignment) {<a name="line.835"></a>
+<span class="sourceLineNo">836</span>        return load(document, assignment, null);<a name="line.836"></a>
+<span class="sourceLineNo">837</span>    }<a name="line.837"></a>
+<span class="sourceLineNo">838</span><a name="line.838"></a>
+<span class="sourceLineNo">839</span>    /**<a name="line.839"></a>
+<span class="sourceLineNo">840</span>     * Load model (including its solution) from XML.<a name="line.840"></a>
+<span class="sourceLineNo">841</span>     * @param document XML document<a name="line.841"></a>
+<span class="sourceLineNo">842</span>     * @param assignment assignment to be loaded<a name="line.842"></a>
+<span class="sourceLineNo">843</span>     * @param saveBest callback executed once the best assignment is loaded and assigned<a name="line.843"></a>
+<span class="sourceLineNo">844</span>     * @return true if successfully loaded<a name="line.844"></a>
+<span class="sourceLineNo">845</span>     */<a name="line.845"></a>
+<span class="sourceLineNo">846</span>    public boolean load(Document document, Assignment&lt;Exam, ExamPlacement&gt; assignment, Callback saveBest) {<a name="line.846"></a>
+<span class="sourceLineNo">847</span>        boolean loadInitial = getProperties().getPropertyBoolean("Xml.LoadInitial", true);<a name="line.847"></a>
+<span class="sourceLineNo">848</span>        boolean loadBest = getProperties().getPropertyBoolean("Xml.LoadBest", true);<a name="line.848"></a>
+<span class="sourceLineNo">849</span>        boolean loadSolution = getProperties().getPropertyBoolean("Xml.LoadSolution", true);<a name="line.849"></a>
+<span class="sourceLineNo">850</span>        boolean loadParams = getProperties().getPropertyBoolean("Xml.LoadParameters", false);<a name="line.850"></a>
+<span class="sourceLineNo">851</span>        Integer softPeriods = getProperties().getPropertyInteger("Exam.SoftPeriods", null);<a name="line.851"></a>
+<span class="sourceLineNo">852</span>        Integer softRooms = getProperties().getPropertyInteger("Exam.SoftRooms", null);<a name="line.852"></a>
+<span class="sourceLineNo">853</span>        Integer softDistributions = getProperties().getPropertyInteger("Exam.SoftDistributions", null);<a name="line.853"></a>
+<span class="sourceLineNo">854</span>        Element root = document.getRootElement();<a name="line.854"></a>
+<span class="sourceLineNo">855</span>        if (!"examtt".equals(root.getName()))<a name="line.855"></a>
+<span class="sourceLineNo">856</span>            return false;<a name="line.856"></a>
+<span class="sourceLineNo">857</span>        if (root.attribute("campus") != null)<a name="line.857"></a>
+<span class="sourceLineNo">858</span>            getProperties().setProperty("Data.Campus", root.attributeValue("campus"));<a name="line.858"></a>
+<span class="sourceLineNo">859</span>        else if (root.attribute("initiative") != null)<a name="line.859"></a>
+<span class="sourceLineNo">860</span>            getProperties().setProperty("Data.Initiative", root.attributeValue("initiative"));<a name="line.860"></a>
+<span class="sourceLineNo">861</span>        if (root.attribute("term") != null)<a name="line.861"></a>
+<span class="sourceLineNo">862</span>            getProperties().setProperty("Data.Term", root.attributeValue("term"));<a name="line.862"></a>
+<span class="sourceLineNo">863</span>        if (root.attribute("year") != null)<a name="line.863"></a>
+<span class="sourceLineNo">864</span>            getProperties().setProperty("Data.Year", root.attributeValue("year"));<a name="line.864"></a>
+<span class="sourceLineNo">865</span>        if (loadParams &amp;&amp; root.element("parameters") != null) {<a name="line.865"></a>
+<span class="sourceLineNo">866</span>            Map&lt;String,String&gt; params = new HashMap&lt;String, String&gt;();<a name="line.866"></a>
+<span class="sourceLineNo">867</span>            for (Iterator&lt;?&gt; i = root.element("parameters").elementIterator("property"); i.hasNext();) {<a name="line.867"></a>
+<span class="sourceLineNo">868</span>                Element e = (Element) i.next();<a name="line.868"></a>
+<span class="sourceLineNo">869</span>                params.put(e.attributeValue("name"), e.attributeValue("value"));<a name="line.869"></a>
+<span class="sourceLineNo">870</span>            }<a name="line.870"></a>
+<span class="sourceLineNo">871</span>            for (Criterion&lt;Exam, ExamPlacement&gt; criterion: getCriteria()) {<a name="line.871"></a>
+<span class="sourceLineNo">872</span>                if (criterion instanceof ExamCriterion)<a name="line.872"></a>
+<span class="sourceLineNo">873</span>                    ((ExamCriterion)criterion).setXmlParameters(params);<a name="line.873"></a>
+<span class="sourceLineNo">874</span>            }<a name="line.874"></a>
+<span class="sourceLineNo">875</span>            try {<a name="line.875"></a>
+<span class="sourceLineNo">876</span>                setMaxRooms(Integer.valueOf(params.get("maxRooms")));<a name="line.876"></a>
+<span class="sourceLineNo">877</span>            } catch (NumberFormatException e) {} catch (NullPointerException e) {}<a name="line.877"></a>
+<span class="sourceLineNo">878</span>            setCheckForPeriodOverlaps("true".equalsIgnoreCase(params.get("checkForPeriodOverlaps")));<a name="line.878"></a>
+<span class="sourceLineNo">879</span>        }<a name="line.879"></a>
+<span class="sourceLineNo">880</span>        for (Iterator&lt;?&gt; i = root.element("periods").elementIterator("period"); i.hasNext();) {<a name="line.880"></a>
+<span class="sourceLineNo">881</span>            Element e = (Element) i.next();<a name="line.881"></a>
+<span class="sourceLineNo">882</span>            ExamPeriod p = addPeriod(Long.valueOf(e.attributeValue("id")), e.attributeValue("day"), e.attributeValue("time"), Integer<a name="line.882"></a>
+<span class="sourceLineNo">883</span>                    .parseInt(e.attributeValue("length")), Integer.parseInt(e.attributeValue("penalty") == null ? e<a name="line.883"></a>
+<span class="sourceLineNo">884</span>                    .attributeValue("weight", "0") : e.attributeValue("penalty")));<a name="line.884"></a>
+<span class="sourceLineNo">885</span>            if (e.attributeValue("start") != null)<a name="line.885"></a>
+<span class="sourceLineNo">886</span>                p.setStartTime(Integer.valueOf(e.attributeValue("start")));<a name="line.886"></a>
+<span class="sourceLineNo">887</span>        }<a name="line.887"></a>
+<span class="sourceLineNo">888</span>        HashMap&lt;Long, ExamRoom&gt; rooms = new HashMap&lt;Long, ExamRoom&gt;();<a name="line.888"></a>
+<span class="sourceLineNo">889</span>        HashMap&lt;String, ArrayList&lt;ExamRoom&gt;&gt; roomGroups = new HashMap&lt;String, ArrayList&lt;ExamRoom&gt;&gt;();<a name="line.889"></a>
+<span class="sourceLineNo">890</span>        HashMap&lt;ExamRoom, Long&gt; roomPartitions = new HashMap&lt;ExamRoom, Long&gt;();<a name="line.890"></a>
+<span class="sourceLineNo">891</span>        for (Iterator&lt;?&gt; i = root.element("rooms").elementIterator("room"); i.hasNext();) {<a name="line.891"></a>
+<span class="sourceLineNo">892</span>            Element e = (Element) i.next();<a name="line.892"></a>
+<span class="sourceLineNo">893</span>            String coords = e.attributeValue("coordinates");<a name="line.893"></a>
+<span class="sourceLineNo">894</span>            ExamRoom room = new ExamRoom(this, Long.parseLong(e.attributeValue("id")), e.attributeValue("name"),<a name="line.894"></a>
+<span class="sourceLineNo">895</span>                    Integer.parseInt(e.attributeValue("size")), Integer.parseInt(e.attributeValue("alt")),<a name="line.895"></a>
+<span class="sourceLineNo">896</span>                    (coords == null ? null : Double.valueOf(coords.substring(0, coords.indexOf(',')))),<a name="line.896"></a>
+<span class="sourceLineNo">897</span>                    (coords == null ? null : Double.valueOf(coords.substring(coords.indexOf(',') + 1))));<a name="line.897"></a>
+<span class="sourceLineNo">898</span>            room.setHard("true".equalsIgnoreCase(e.attributeValue("hard", "true")));<a name="line.898"></a>
+<span class="sourceLineNo">899</span>            addConstraint(room);<a name="line.899"></a>
+<span class="sourceLineNo">900</span>            getRooms().add(room);<a name="line.900"></a>
+<span class="sourceLineNo">901</span>            rooms.put(Long.valueOf(room.getId()), room);<a name="line.901"></a>
+<span class="sourceLineNo">902</span>            for (Iterator&lt;?&gt; j = e.elementIterator("period"); j.hasNext();) {<a name="line.902"></a>
+<span class="sourceLineNo">903</span>                Element pe = (Element) j.next();<a name="line.903"></a>
+<span class="sourceLineNo">904</span>                ExamPeriod period = getPeriod(Long.valueOf(pe.attributeValue("id")));<a name="line.904"></a>
+<span class="sourceLineNo">905</span>                if (period == null) continue;<a name="line.905"></a>
+<span class="sourceLineNo">906</span>                if ("false".equals(pe.attributeValue("available"))) {<a name="line.906"></a>
+<span class="sourceLineNo">907</span>                    if (softRooms == null)<a name="line.907"></a>
+<span class="sourceLineNo">908</span>                        room.setAvailable(period, false);<a name="line.908"></a>
+<span class="sourceLineNo">909</span>                    else<a name="line.909"></a>
+<span class="sourceLineNo">910</span>                        room.setPenalty(period, softRooms);<a name="line.910"></a>
+<span class="sourceLineNo">911</span>                } else<a name="line.911"></a>
+<span class="sourceLineNo">912</span>                    room.setPenalty(period, Integer.parseInt(pe.attributeValue("penalty")));<a name="line.912"></a>
+<span class="sourceLineNo">913</span>            }<a name="line.913"></a>
+<span class="sourceLineNo">914</span>            String av = e.attributeValue("available");<a name="line.914"></a>
+<span class="sourceLineNo">915</span>            if (av != null) {<a name="line.915"></a>
+<span class="sourceLineNo">916</span>                for (int j = 0; j &lt; getPeriods().size(); j++)<a name="line.916"></a>
+<span class="sourceLineNo">917</span>                    if ('0' == av.charAt(j))<a name="line.917"></a>
+<span class="sourceLineNo">918</span>                        room.setAvailable(getPeriods().get(j), false);<a name="line.918"></a>
+<span class="sourceLineNo">919</span>            }<a name="line.919"></a>
+<span class="sourceLineNo">920</span>            String g = e.attributeValue("groups");<a name="line.920"></a>
+<span class="sourceLineNo">921</span>            if (g != null) {<a name="line.921"></a>
+<span class="sourceLineNo">922</span>                for (StringTokenizer s = new StringTokenizer(g, ","); s.hasMoreTokens();) {<a name="line.922"></a>
+<span class="sourceLineNo">923</span>                    String gr = s.nextToken();<a name="line.923"></a>
+<span class="sourceLineNo">924</span>                    ArrayList&lt;ExamRoom&gt; roomsThisGrop = roomGroups.get(gr);<a name="line.924"></a>
+<span class="sourceLineNo">925</span>                    if (roomsThisGrop == null) {<a name="line.925"></a>
+<span class="sourceLineNo">926</span>                        roomsThisGrop = new ArrayList&lt;ExamRoom&gt;();<a name="line.926"></a>
+<span class="sourceLineNo">927</span>                        roomGroups.put(gr, roomsThisGrop);<a name="line.927"></a>
+<span class="sourceLineNo">928</span>                    }<a name="line.928"></a>
+<span class="sourceLineNo">929</span>                    roomsThisGrop.add(room);<a name="line.929"></a>
+<span class="sourceLineNo">930</span>                }<a name="line.930"></a>
+<span class="sourceLineNo">931</span>            }<a name="line.931"></a>
+<span class="sourceLineNo">932</span>            if (e.attributeValue("parentId") != null)<a name="line.932"></a>
+<span class="sourceLineNo">933</span>                roomPartitions.put(room, Long.valueOf(e.attributeValue("parentId")));<a name="line.933"></a>
+<span class="sourceLineNo">934</span>            for (Iterator&lt;?&gt; j = e.elementIterator("travel-time"); j.hasNext();) {<a name="line.934"></a>
+<span class="sourceLineNo">935</span>                Element travelTimeEl = (Element)j.next();<a name="line.935"></a>
+<span class="sourceLineNo">936</span>                getDistanceMetric().addTravelTime(room.getId(),<a name="line.936"></a>
+<span class="sourceLineNo">937</span>                        Long.valueOf(travelTimeEl.attributeValue("id")),<a name="line.937"></a>
+<span class="sourceLineNo">938</span>                        Integer.valueOf(travelTimeEl.attributeValue("minutes")));<a name="line.938"></a>
+<span class="sourceLineNo">939</span>            }<a name="line.939"></a>
+<span class="sourceLineNo">940</span>        }<a name="line.940"></a>
+<span class="sourceLineNo">941</span>        for (Map.Entry&lt;ExamRoom, Long&gt; partition: roomPartitions.entrySet()) {<a name="line.941"></a>
+<span class="sourceLineNo">942</span>            ExamRoom parent = rooms.get(partition.getValue());<a name="line.942"></a>
+<span class="sourceLineNo">943</span>            if (parent != null)<a name="line.943"></a>
+<span class="sourceLineNo">944</span>                parent.addPartition(partition.getKey());<a name="line.944"></a>
+<span class="sourceLineNo">945</span>        }<a name="line.945"></a>
+<span class="sourceLineNo">946</span>        ArrayList&lt;ExamPlacement&gt; assignments = new ArrayList&lt;ExamPlacement&gt;();<a name="line.946"></a>
+<span class="sourceLineNo">947</span>        HashMap&lt;Long, Exam&gt; exams = new HashMap&lt;Long, Exam&gt;();<a name="line.947"></a>
+<span class="sourceLineNo">948</span>        HashMap&lt;Long, ExamOwner&gt; courseSections = new HashMap&lt;Long, ExamOwner&gt;();<a name="line.948"></a>
+<span class="sourceLineNo">949</span>        for (Iterator&lt;?&gt; i = root.element("exams").elementIterator("exam"); i.hasNext();) {<a name="line.949"></a>
+<span class="sourceLineNo">950</span>            Element e = (Element) i.next();<a name="line.950"></a>
+<span class="sourceLineNo">951</span>            ArrayList&lt;ExamPeriodPlacement&gt; periodPlacements = new ArrayList&lt;ExamPeriodPlacement&gt;();<a name="line.951"></a>
+<span class="sourceLineNo">952</span>            if (softPeriods != null) {<a name="line.952"></a>
+<span class="sourceLineNo">953</span>                for (ExamPeriod period: getPeriods()) {<a name="line.953"></a>
+<span class="sourceLineNo">954</span>                    int penalty = softPeriods;<a name="line.954"></a>
+<span class="sourceLineNo">955</span>                    for (Iterator&lt;?&gt; j = e.elementIterator("period"); j.hasNext();) {<a name="line.955"></a>
+<span class="sourceLineNo">956</span>                        Element pe = (Element) j.next();<a name="line.956"></a>
+<span class="sourceLineNo">957</span>                        if (period.getId().equals(Long.valueOf(pe.attributeValue("id")))) {<a name="line.957"></a>
+<span class="sourceLineNo">958</span>                            penalty = Integer.parseInt(pe.attributeValue("penalty", "0"));<a name="line.958"></a>
+<span class="sourceLineNo">959</span>                            break;<a name="line.959"></a>
+<span class="sourceLineNo">960</span>                        }<a name="line.960"></a>
+<span class="sourceLineNo">961</span>                    }<a name="line.961"></a>
+<span class="sourceLineNo">962</span>                    periodPlacements.add(new ExamPeriodPlacement(period, penalty));<a name="line.962"></a>
+<span class="sourceLineNo">963</span>                }<a name="line.963"></a>
+<span class="sourceLineNo">964</span>            } else {<a name="line.964"></a>
+<span class="sourceLineNo">965</span>                for (Iterator&lt;?&gt; j = e.elementIterator("period"); j.hasNext();) {<a name="line.965"></a>
+<span class="sourceLineNo">966</span>                    Element pe = (Element) j.next();<a name="line.966"></a>
+<span class="sourceLineNo">967</span>                    ExamPeriod p = getPeriod(Long.valueOf(pe.attributeValue("id")));<a name="line.967"></a>
+<span class="sourceLineNo">968</span>                    if (p != null)<a name="line.968"></a>
+<span class="sourceLineNo">969</span>                        periodPlacements.add(new ExamPeriodPlacement(p, Integer.parseInt(pe.attributeValue("penalty", "0"))));<a name="line.969"></a>
+<span class="sourceLineNo">970</span>                }<a name="line.970"></a>
+<span class="sourceLineNo">971</span>            }<a name="line.971"></a>
+<span class="sourceLineNo">972</span>            ArrayList&lt;ExamRoomPlacement&gt; roomPlacements = new ArrayList&lt;ExamRoomPlacement&gt;();<a name="line.972"></a>
+<span class="sourceLineNo">973</span>            if (softRooms != null) {<a name="line.973"></a>
+<span class="sourceLineNo">974</span>                for (ExamRoom room: getRooms()) {<a name="line.974"></a>
+<span class="sourceLineNo">975</span>                    boolean av = false;<a name="line.975"></a>
+<span class="sourceLineNo">976</span>                    for (ExamPeriodPlacement p: periodPlacements) {<a name="line.976"></a>
+<span class="sourceLineNo">977</span>                        if (room.isAvailable(p.getPeriod()) &amp;&amp; room.getPenalty(p.getPeriod()) != softRooms) { av = true; break; }<a name="line.977"></a>
+<span class="sourceLineNo">978</span>                    }<a name="line.978"></a>
+<span class="sourceLineNo">979</span>                    if (!av) continue;<a name="line.979"></a>
+<span class="sourceLineNo">980</span>                    int penalty = softRooms, maxPenalty = softRooms;<a name="line.980"></a>
+<span class="sourceLineNo">981</span>                    for (Iterator&lt;?&gt; j = e.elementIterator("room"); j.hasNext();) {<a name="line.981"></a>
+<span class="sourceLineNo">982</span>                        Element re = (Element) j.next();<a name="line.982"></a>
+<span class="sourceLineNo">983</span>                        if (room.getId() == Long.parseLong(re.attributeValue("id"))) {<a name="line.983"></a>
+<span class="sourceLineNo">984</span>                            penalty = Integer.parseInt(re.attributeValue("penalty", "0"));<a name="line.984"></a>
+<span class="sourceLineNo">985</span>                            maxPenalty = Integer.parseInt(re.attributeValue("maxPenalty", softRooms.toString()));<a name="line.985"></a>
+<span class="sourceLineNo">986</span>                        }<a name="line.986"></a>
+<span class="sourceLineNo">987</span>                    }<a name="line.987"></a>
+<span class="sourceLineNo">988</span>                    roomPlacements.add(new ExamRoomPlacement(room, penalty, maxPenalty));<a name="line.988"></a>
+<span class="sourceLineNo">989</span>                }                <a name="line.989"></a>
+<span class="sourceLineNo">990</span>            } else {<a name="line.990"></a>
+<span class="sourceLineNo">991</span>                for (Iterator&lt;?&gt; j = e.elementIterator("room"); j.hasNext();) {<a name="line.991"></a>
+<span class="sourceLineNo">992</span>                    Element re = (Element) j.next();<a name="line.992"></a>
+<span class="sourceLineNo">993</span>                    ExamRoomPlacement room = new ExamRoomPlacement(rooms.get(Long.valueOf(re.attributeValue("id"))),<a name="line.993"></a>
+<span class="sourceLineNo">994</span>                            Integer.parseInt(re.attributeValue("penalty", "0")),<a name="line.994"></a>
+<span class="sourceLineNo">995</span>                            Integer.parseInt(re.attributeValue("maxPenalty", "100")));<a name="line.995"></a>
+<span class="sourceLineNo">996</span>                    if (room.getRoom().isAvailable())<a name="line.996"></a>
+<span class="sourceLineNo">997</span>                        roomPlacements.add(room);<a name="line.997"></a>
+<span class="sourceLineNo">998</span>                }<a name="line.998"></a>
+<span class="sourceLineNo">999</span>            }<a name="line.999"></a>
+<span class="sourceLineNo">1000</span>            String g = e.attributeValue("groups");<a name="line.1000"></a>
+<span class="sourceLineNo">1001</span>            if (g != null) {<a name="line.1001"></a>
+<span class="sourceLineNo">1002</span>                HashMap&lt;ExamRoom, Integer&gt; allRooms = new HashMap&lt;ExamRoom, Integer&gt;();<a name="line.1002"></a>
+<span class="sourceLineNo">1003</span>                for (StringTokenizer s = new StringTokenizer(g, ","); s.hasMoreTokens();) {<a name="line.1003"></a>
+<span class="sourceLineNo">1004</span>                    String gr = s.nextToken();<a name="line.1004"></a>
+<span class="sourceLineNo">1005</span>                    ArrayList&lt;ExamRoom&gt; roomsThisGrop = roomGroups.get(gr);<a name="line.1005"></a>
+<span class="sourceLineNo">1006</span>                    if (roomsThisGrop != null)<a name="line.1006"></a>
+<span class="sourceLineNo">1007</span>                        for (ExamRoom r : roomsThisGrop)<a name="line.1007"></a>
+<span class="sourceLineNo">1008</span>                            allRooms.put(r, 0);<a name="line.1008"></a>
+<span class="sourceLineNo">1009</span>                }<a name="line.1009"></a>
+<span class="sourceLineNo">1010</span>                for (Iterator&lt;?&gt; j = e.elementIterator("original-room"); j.hasNext();) {<a name="line.1010"></a>
+<span class="sourceLineNo">1011</span>                    allRooms.put((rooms.get(Long.valueOf(((Element) j.next()).attributeValue("id")))), Integer.valueOf(-1));<a name="line.1011"></a>
+<span class="sourceLineNo">1012</span>                }<a name="line.1012"></a>
+<span class="sourceLineNo">1013</span>                for (Map.Entry&lt;ExamRoom, Integer&gt; entry : allRooms.entrySet()) {<a name="line.1013"></a>
+<span class="sourceLineNo">1014</span>                    ExamRoomPlacement room = new ExamRoomPlacement(entry.getKey(), entry.getValue(), 100);<a name="line.1014"></a>
+<span class="sourceLineNo">1015</span>                    roomPlacements.add(room);<a name="line.1015"></a>
+<span class="sourceLineNo">1016</span>                }<a name="line.1016"></a>
+<span class="sourceLineNo">1017</span>                if (periodPlacements.isEmpty()) {<a name="line.1017"></a>
+<span class="sourceLineNo">1018</span>                    for (ExamPeriod p : getPeriods()) {<a name="line.1018"></a>
+<span class="sourceLineNo">1019</span>                        periodPlacements.add(new ExamPeriodPlacement(p, 0));<a name="line.1019"></a>
+<span class="sourceLineNo">1020</span>                    }<a name="line.1020"></a>
+<span class="sourceLineNo">1021</span>                }<a name="line.1021"></a>
+<span class="sourceLineNo">1022</span>            }<a name="line.1022"></a>
+<span class="sourceLineNo">1023</span>            Exam exam = new Exam(Long.parseLong(e.attributeValue("id")), e.attributeValue("name"), Integer.parseInt(e<a name="line.1023"></a>
+<span class="sourceLineNo">1024</span>                    .attributeValue("length")), "true".equals(e.attributeValue("alt")),<a name="line.1024"></a>
+<span class="sourceLineNo">1025</span>                    (e.attribute("maxRooms") == null ? getMaxRooms() : Integer.parseInt(e.attributeValue("maxRooms"))),<a name="line.1025"></a>
+<span class="sourceLineNo">1026</span>                    Integer.parseInt(e.attributeValue("minSize", "0")), periodPlacements, roomPlacements);<a name="line.1026"></a>
+<span class="sourceLineNo">1027</span>            if (e.attributeValue("size") != null)<a name="line.1027"></a>
+<span class="sourceLineNo">1028</span>                exam.setSizeOverride(Integer.valueOf(e.attributeValue("size")));<a name="line.1028"></a>
+<span class="sourceLineNo">1029</span>            if (e.attributeValue("printOffset") != null)<a name="line.1029"></a>
+<span class="sourceLineNo">1030</span>                exam.setPrintOffset(Integer.valueOf(e.attributeValue("printOffset")));<a name="line.1030"></a>
+<span class="sourceLineNo">1031</span>            exams.put(Long.valueOf(exam.getId()), exam);<a name="line.1031"></a>
+<span class="sourceLineNo">1032</span>            addVariable(exam);<a name="line.1032"></a>
+<span class="sourceLineNo">1033</span>            if (e.attribute("average") != null)<a name="line.1033"></a>
+<span class="sourceLineNo">1034</span>                exam.setAveragePeriod(Integer.parseInt(e.attributeValue("average")));<a name="line.1034"></a>
+<span class="sourceLineNo">1035</span>            Element asg = e.element("assignment");<a name="line.1035"></a>
+<span class="sourceLineNo">1036</span>            if (asg != null &amp;&amp; loadSolution) {<a name="line.1036"></a>
+<span class="sourceLineNo">1037</span>                Element per = asg.element("period");<a name="line.1037"></a>
+<span class="sourceLineNo">1038</span>                if (per != null) {<a name="line.1038"></a>
+<span class="sourceLineNo">1039</span>                    HashSet&lt;ExamRoomPlacement&gt; rp = new HashSet&lt;ExamRoomPlacement&gt;();<a name="line.1039"></a>
+<span class="sourceLineNo">1040</span>                    for (Iterator&lt;?&gt; j = asg.elementIterator("room"); j.hasNext();)<a name="line.1040"></a>
+<span class="sourceLineNo">1041</span>                        rp.add(exam.getRoomPlacement(Long.parseLong(((Element) j.next()).attributeValue("id"))));<a name="line.1041"></a>
+<span class="sourceLineNo">1042</span>                    ExamPeriodPlacement pp = exam.getPeriodPlacement(Long.valueOf(per.attributeValue("id")));<a name="line.1042"></a>
+<span class="sourceLineNo">1043</span>                    if (pp != null)<a name="line.1043"></a>
+<span class="sourceLineNo">1044</span>                        assignments.add(new ExamPlacement(exam, pp, rp));<a name="line.1044"></a>
+<span class="sourceLineNo">1045</span>                }<a name="line.1045"></a>
+<span class="sourceLineNo">1046</span>            }<a name="line.1046"></a>
+<span class="sourceLineNo">1047</span>            Element ini = e.element("initial");<a name="line.1047"></a>
+<span class="sourceLineNo">1048</span>            if (ini != null &amp;&amp; loadInitial) {<a name="line.1048"></a>
+<span class="sourceLineNo">1049</span>                Element per = ini.element("period");<a name="line.1049"></a>
+<span class="sourceLineNo">1050</span>                if (per != null) {<a name="line.1050"></a>
+<span class="sourceLineNo">1051</span>                    HashSet&lt;ExamRoomPlacement&gt; rp = new HashSet&lt;ExamRoomPlacement&gt;();<a name="line.1051"></a>
+<span class="sourceLineNo">1052</span>                    for (Iterator&lt;?&gt; j = ini.elementIterator("room"); j.hasNext();)<a name="line.1052"></a>
+<span class="sourceLineNo">1053</span>                        rp.add(exam.getRoomPlacement(Long.parseLong(((Element) j.next()).attributeValue("id"))));<a name="line.1053"></a>
+<span class="sourceLineNo">1054</span>                    ExamPeriodPlacement pp = exam.getPeriodPlacement(Long.valueOf(per.attributeValue("id")));<a name="line.1054"></a>
+<span class="sourceLineNo">1055</span>                    if (pp != null)<a name="line.1055"></a>
+<span class="sourceLineNo">1056</span>                        exam.setInitialAssignment(new ExamPlacement(exam, pp, rp));<a name="line.1056"></a>
+<span class="sourceLineNo">1057</span>                }<a name="line.1057"></a>
+<span class="sourceLineNo">1058</span>            }<a name="line.1058"></a>
+<span class="sourceLineNo">1059</span>            Element best = e.element("best");<a name="line.1059"></a>
+<span class="sourceLineNo">1060</span>            if (best != null &amp;&amp; loadBest) {<a name="line.1060"></a>
+<span class="sourceLineNo">1061</span>                Element per = best.element("period");<a name="line.1061"></a>
+<span class="sourceLineNo">1062</span>                if (per != null) {<a name="line.1062"></a>
+<span class="sourceLineNo">1063</span>                    HashSet&lt;ExamRoomPlacement&gt; rp = new HashSet&lt;ExamRoomPlacement&gt;();<a name="line.1063"></a>
+<span class="sourceLineNo">1064</span>                    for (Iterator&lt;?&gt; j = best.elementIterator("room"); j.hasNext();)<a name="line.1064"></a>
+<span class="sourceLineNo">1065</span>                        rp.add(exam.getRoomPlacement(Long.parseLong(((Element) j.next()).attributeValue("id"))));<a name="line.1065"></a>
+<span class="sourceLineNo">1066</span>                    ExamPeriodPlacement pp = exam.getPeriodPlacement(Long.valueOf(per.attributeValue("id")));<a name="line.1066"></a>
+<span class="sourceLineNo">1067</span>                    if (pp != null)<a name="line.1067"></a>
+<span class="sourceLineNo">1068</span>                        exam.setBestAssignment(new ExamPlacement(exam, pp, rp), 0);<a name="line.1068"></a>
+<span class="sourceLineNo">1069</span>                }<a name="line.1069"></a>
+<span class="sourceLineNo">1070</span>            }<a name="line.1070"></a>
+<span class="sourceLineNo">1071</span>            for (Iterator&lt;?&gt; j = e.elementIterator("owner"); j.hasNext();) {<a name="line.1071"></a>
+<span class="sourceLineNo">1072</span>                Element f = (Element) j.next();<a name="line.1072"></a>
+<span class="sourceLineNo">1073</span>                ExamOwner owner = new ExamOwner(exam, Long.parseLong(f.attributeValue("id")), f.attributeValue("name"));<a name="line.1073"></a>
+<span class="sourceLineNo">1074</span>                exam.getOwners().add(owner);<a name="line.1074"></a>
+<span class="sourceLineNo">1075</span>                courseSections.put(Long.valueOf(owner.getId()), owner);<a name="line.1075"></a>
+<span class="sourceLineNo">1076</span>            }<a name="line.1076"></a>
+<span class="sourceLineNo">1077</span>            if (iRoomSharing != null)<a name="line.1077"></a>
+<span class="sourceLineNo">1078</span>                iRoomSharing.load(exam, e);<a name="line.1078"></a>
+<span class="sourceLineNo">1079</span>        }<a name="line.1079"></a>
+<span class="sourceLineNo">1080</span>        for (Iterator&lt;?&gt; i = root.element("students").elementIterator("student"); i.hasNext();) {<a name="line.1080"></a>
+<span class="sourceLineNo">1081</span>            Element e = (Element) i.next();<a name="line.1081"></a>
+<span class="sourceLineNo">1082</span>            ExamStudent student = new ExamStudent(this, Long.parseLong(e.attributeValue("id")));<a name="line.1082"></a>
+<span class="sourceLineNo">1083</span>            for (Iterator&lt;?&gt; j = e.elementIterator("exam"); j.hasNext();) {<a name="line.1083"></a>
+<span class="sourceLineNo">1084</span>                Element x = (Element) j.next();<a name="line.1084"></a>
+<span class="sourceLineNo">1085</span>                Exam ex = exams.get(Long.valueOf(x.attributeValue("id")));<a name="line.1085"></a>
+<span class="sourceLineNo">1086</span>                student.addVariable(ex);<a name="line.1086"></a>
+<span class="sourceLineNo">1087</span>                for (Iterator&lt;?&gt; k = x.elementIterator("owner"); k.hasNext();) {<a name="line.1087"></a>
+<span class="sourceLineNo">1088</span>                    Element f = (Element) k.next();<a name="line.1088"></a>
+<span class="sourceLineNo">1089</span>                    ExamOwner owner = courseSections.get(Long.valueOf(f.attributeValue("id")));<a name="line.1089"></a>
+<span class="sourceLineNo">1090</span>                    student.getOwners().add(owner);<a name="line.1090"></a>
+<span class="sourceLineNo">1091</span>                    owner.getStudents().add(student);<a name="line.1091"></a>
+<span class="sourceLineNo">1092</span>                }<a name="line.1092"></a>
+<span class="sourceLineNo">1093</span>            }<a name="line.1093"></a>
+<span class="sourceLineNo">1094</span>            String available = e.attributeValue("available");<a name="line.1094"></a>
+<span class="sourceLineNo">1095</span>            if (available != null)<a name="line.1095"></a>
+<span class="sourceLineNo">1096</span>                for (ExamPeriod period : getPeriods()) {<a name="line.1096"></a>
+<span class="sourceLineNo">1097</span>                    if (available.charAt(period.getIndex()) == '0')<a name="line.1097"></a>
+<span class="sourceLineNo">1098</span>                        student.setAvailable(period.getIndex(), false);<a name="line.1098"></a>
+<span class="sourceLineNo">1099</span>                }<a name="line.1099"></a>
+<span class="sourceLineNo">1100</span>            for (Iterator&lt;?&gt; j = e.elementIterator("period"); j.hasNext();) {<a name="line.1100"></a>
+<span class="sourceLineNo">1101</span>                Element pe = (Element) j.next();<a name="line.1101"></a>
+<span class="sourceLineNo">1102</span>                ExamPeriod period = getPeriod(Long.valueOf(pe.attributeValue("id")));<a name="line.1102"></a>
+<span class="sourceLineNo">1103</span>                if (period == null) continue;<a name="line.1103"></a>
+<span class="sourceLineNo">1104</span>                if ("false".equals(pe.attributeValue("available")))<a name="line.1104"></a>
+<span class="sourceLineNo">1105</span>                    student.setAvailable(period.getIndex(), false);<a name="line.1105"></a>
+<span class="sourceLineNo">1106</span>            }<a name="line.1106"></a>
+<span class="sourceLineNo">1107</span>            addConstraint(student);<a name="line.1107"></a>
+<span class="sourceLineNo">1108</span>            getStudents().add(student);<a name="line.1108"></a>
+<span class="sourceLineNo">1109</span>        }<a name="line.1109"></a>
+<span class="sourceLineNo">1110</span>        if (root.element("instructors") != null)<a name="line.1110"></a>
+<span class="sourceLineNo">1111</span>            for (Iterator&lt;?&gt; i = root.element("instructors").elementIterator("instructor"); i.hasNext();) {<a name="line.1111"></a>
+<span class="sourceLineNo">1112</span>                Element e = (Element) i.next();<a name="line.1112"></a>
+<span class="sourceLineNo">1113</span>                ExamInstructor instructor = new ExamInstructor(this, Long.parseLong(e.attributeValue("id")), e<a name="line.1113"></a>
+<span class="sourceLineNo">1114</span>                        .attributeValue("name"));<a name="line.1114"></a>
+<span class="sourceLineNo">1115</span>                for (Iterator&lt;?&gt; j = e.elementIterator("exam"); j.hasNext();) {<a name="line.1115"></a>
+<span class="sourceLineNo">1116</span>                    Element x = (Element) j.next();<a name="line.1116"></a>
+<span class="sourceLineNo">1117</span>                    Exam ex = exams.get(Long.valueOf(x.attributeValue("id")));<a name="line.1117"></a>
+<span class="sourceLineNo">1118</span>                    instructor.addVariable(ex);<a name="line.1118"></a>
+<span class="sourceLineNo">1119</span>                    for (Iterator&lt;?&gt; k = x.elementIterator("owner"); k.hasNext();) {<a name="line.1119"></a>
+<span class="sourceLineNo">1120</span>                        Element f = (Element) k.next();<a name="line.1120"></a>
+<span class="sourceLineNo">1121</span>                        ExamOwner owner = courseSections.get(Long.valueOf(f.attributeValue("id")));<a name="line.1121"></a>
+<span class="sourceLineNo">1122</span>                        instructor.getOwners().add(owner);<a name="line.1122"></a>
+<span class="sourceLineNo">1123</span>                        owner.getIntructors().add(instructor);<a name="line.1123"></a>
+<span class="sourceLineNo">1124</span>                    }<a name="line.1124"></a>
+<span class="sourceLineNo">1125</span>                }<a name="line.1125"></a>
+<span class="sourceLineNo">1126</span>                String available = e.attributeValue("available");<a name="line.1126"></a>
+<span class="sourceLineNo">1127</span>                if (available != null)<a name="line.1127"></a>
+<span class="sourceLineNo">1128</span>                    for (ExamPeriod period : getPeriods()) {<a name="line.1128"></a>
+<span class="sourceLineNo">1129</span>                        if (available.charAt(period.getIndex()) == '0')<a name="line.1129"></a>
+<span class="sourceLineNo">1130</span>                            instructor.setAvailable(period.getIndex(), false);<a name="line.1130"></a>
+<span class="sourceLineNo">1131</span>                    }<a name="line.1131"></a>
+<span class="sourceLineNo">1132</span>                for (Iterator&lt;?&gt; j = e.elementIterator("period"); j.hasNext();) {<a name="line.1132"></a>
+<span class="sourceLineNo">1133</span>                    Element pe = (Element) j.next();<a name="line.1133"></a>
+<span class="sourceLineNo">1134</span>                    ExamPeriod period = getPeriod(Long.valueOf(pe.attributeValue("id")));<a name="line.1134"></a>
+<span class="sourceLineNo">1135</span>                    if (period == null) continue;<a name="line.1135"></a>
+<span class="sourceLineNo">1136</span>                    if ("false".equals(pe.attributeValue("available")))<a name="line.1136"></a>
+<span class="sourceLineNo">1137</span>                        instructor.setAvailable(period.getIndex(), false);<a name="line.1137"></a>
+<span class="sourceLineNo">1138</span>                }<a name="line.1138"></a>
+<span class="sourceLineNo">1139</span>                addConstraint(instructor);<a name="line.1139"></a>
+<span class="sourceLineNo">1140</span>                getInstructors().add(instructor);<a name="line.1140"></a>
+<span class="sourceLineNo">1141</span>            }<a name="line.1141"></a>
+<span class="sourceLineNo">1142</span>        if (root.element("constraints") != null)<a name="line.1142"></a>
+<span class="sourceLineNo">1143</span>            for (Iterator&lt;?&gt; i = root.element("constraints").elementIterator(); i.hasNext();) {<a name="line.1143"></a>
+<span class="sourceLineNo">1144</span>                Element e = (Element) i.next();<a name="line.1144"></a>
+<span class="sourceLineNo">1145</span>                ExamDistributionConstraint dc = new ExamDistributionConstraint(Long.parseLong(e.attributeValue("id")),<a name="line.1145"></a>
+<span class="sourceLineNo">1146</span>                        e.getName(),<a name="line.1146"></a>
+<span class="sourceLineNo">1147</span>                        softDistributions != null ? false : "true".equals(e.attributeValue("hard", "true")),<a name="line.1147"></a>
+<span class="sourceLineNo">1148</span>                        (softDistributions != null &amp;&amp; "true".equals(e.attributeValue("hard", "true")) ? softDistributions : Integer.parseInt(e.attributeValue("weight", "0"))));<a name="line.1148"></a>
+<span class="sourceLineNo">1149</span>                for (Iterator&lt;?&gt; j = e.elementIterator("exam"); j.hasNext();) {<a name="line.1149"></a>
+<span class="sourceLineNo">1150</span>                    dc.addVariable(exams.get(Long.valueOf(((Element) j.next()).attributeValue("id"))));<a name="line.1150"></a>
+<span class="sourceLineNo">1151</span>                }<a name="line.1151"></a>
+<span class="sourceLineNo">1152</span>                addConstraint(dc);<a name="line.1152"></a>
+<span class="sourceLineNo">1153</span>                getDistributionConstraints().add(dc);<a name="line.1153"></a>
+<span class="sourceLineNo">1154</span>            }<a name="line.1154"></a>
+<span class="sourceLineNo">1155</span>        init();<a name="line.1155"></a>
+<span class="sourceLineNo">1156</span>        if (loadBest &amp;&amp; saveBest != null &amp;&amp; assignment != null) {<a name="line.1156"></a>
+<span class="sourceLineNo">1157</span>            for (Exam exam : variables()) {<a name="line.1157"></a>
+<span class="sourceLineNo">1158</span>                ExamPlacement placement = exam.getBestAssignment();<a name="line.1158"></a>
+<span class="sourceLineNo">1159</span>                if (placement == null)<a name="line.1159"></a>
+<span class="sourceLineNo">1160</span>                    continue;<a name="line.1160"></a>
+<span class="sourceLineNo">1161</span>                assignment.assign(0, placement);<a name="line.1161"></a>
+<span class="sourceLineNo">1162</span>            }<a name="line.1162"></a>
+<span class="sourceLineNo">1163</span>            saveBest.execute();<a name="line.1163"></a>
+<span class="sourceLineNo">1164</span>            for (Exam exam : variables()) {<a name="line.1164"></a>
+<span class="sourceLineNo">1165</span>                if (assignment.getValue(exam) != null)<a name="line.1165"></a>
+<span class="sourceLineNo">1166</span>                    assignment.unassign(0, exam);<a name="line.1166"></a>
+<span class="sourceLineNo">1167</span>            }<a name="line.1167"></a>
+<span class="sourceLineNo">1168</span>        }<a name="line.1168"></a>
+<span class="sourceLineNo">1169</span>        if (assignment != null) {<a name="line.1169"></a>
+<span class="sourceLineNo">1170</span>            for (ExamPlacement placement : assignments) {<a name="line.1170"></a>
+<span class="sourceLineNo">1171</span>                Exam exam = placement.variable();<a name="line.1171"></a>
+<span class="sourceLineNo">1172</span>                Set&lt;ExamPlacement&gt; conf = conflictValues(assignment, placement);<a name="line.1172"></a>
+<span class="sourceLineNo">1173</span>                if (!conf.isEmpty()) {<a name="line.1173"></a>
+<span class="sourceLineNo">1174</span>                    for (Map.Entry&lt;Constraint&lt;Exam, ExamPlacement&gt;, Set&lt;ExamPlacement&gt;&gt; entry : conflictConstraints(assignment, placement).entrySet()) {<a name="line.1174"></a>
+<span class="sourceLineNo">1175</span>                        Constraint&lt;Exam, ExamPlacement&gt; constraint = entry.getKey();<a name="line.1175"></a>
+<span class="sourceLineNo">1176</span>                        Set&lt;ExamPlacement&gt; values = entry.getValue();<a name="line.1176"></a>
+<span class="sourceLineNo">1177</span>                        if (constraint instanceof ExamStudent) {<a name="line.1177"></a>
+<span class="sourceLineNo">1178</span>                            ((ExamStudent) constraint).setAllowDirectConflicts(true);<a name="line.1178"></a>
+<span class="sourceLineNo">1179</span>                            exam.setAllowDirectConflicts(true);<a name="line.1179"></a>
+<span class="sourceLineNo">1180</span>                            for (ExamPlacement p : values)<a name="line.1180"></a>
+<span class="sourceLineNo">1181</span>                                p.variable().setAllowDirectConflicts(true);<a name="line.1181"></a>
+<span class="sourceLineNo">1182</span>                        }<a name="line.1182"></a>
+<span class="sourceLineNo">1183</span>                    }<a name="line.1183"></a>
+<span class="sourceLineNo">1184</span>                    conf = conflictValues(assignment, placement);<a name="line.1184"></a>
+<span class="sourceLineNo">1185</span>                }<a name="line.1185"></a>
+<span class="sourceLineNo">1186</span>                if (conf.isEmpty()) {<a name="line.1186"></a>
+<span class="sourceLineNo">1187</span>                    assignment.assign(0, placement);<a name="line.1187"></a>
+<span class="sourceLineNo">1188</span>                } else {<a name="line.1188"></a>
+<span class="sourceLineNo">1189</span>                    sLog.error("Unable to assign " + exam.getInitialAssignment().getName() + " to exam " + exam.getName());<a name="line.1189"></a>
+<span class="sourceLineNo">1190</span>                    sLog.error("Conflicts:" + ToolBox.dict2string(conflictConstraints(assignment, exam.getInitialAssignment()), 2));<a name="line.1190"></a>
+<span class="sourceLineNo">1191</span>                }<a name="line.1191"></a>
+<span class="sourceLineNo">1192</span>            }<a name="line.1192"></a>
+<span class="sourceLineNo">1193</span>        }<a name="line.1193"></a>
+<span class="sourceLineNo">1194</span>        return true;<a name="line.1194"></a>
+<span class="sourceLineNo">1195</span>    }<a name="line.1195"></a>
+<span class="sourceLineNo">1196</span><a name="line.1196"></a>
+<span class="sourceLineNo">1197</span>    @Override<a name="line.1197"></a>
+<span class="sourceLineNo">1198</span>    public ExamContext createAssignmentContext(Assignment&lt;Exam, ExamPlacement&gt; assignment) {<a name="line.1198"></a>
+<span class="sourceLineNo">1199</span>        return new ExamContext(this, assignment);<a name="line.1199"></a>
+<span class="sourceLineNo">1200</span>    }<a name="line.1200"></a>
+<span class="sourceLineNo">1201</span>    <a name="line.1201"></a>
+<span class="sourceLineNo">1202</span>    public Map&lt;ExamStudent, Set&lt;Exam&gt;&gt; getStudentsOfPeriod(Assignment&lt;Exam, ExamPlacement&gt; assignment, ExamPeriod period) {<a name="line.1202"></a>
+<span class="sourceLineNo">1203</span>        return getContext(assignment).getStudentsOfPeriod(period.getIndex());<a name="line.1203"></a>
+<span class="sourceLineNo">1204</span>    }<a name="line.1204"></a>
+<span class="sourceLineNo">1205</span>    <a name="line.1205"></a>
+<span class="sourceLineNo">1206</span>    public Map&lt;ExamStudent, Set&lt;Exam&gt;&gt; getStudentsOfDay(Assignment&lt;Exam, ExamPlacement&gt; assignment, ExamPeriod period) {<a name="line.1206"></a>
+<span class="sourceLineNo">1207</span>        return getContext(assignment).getStudentsOfDay(period.getDay());<a name="line.1207"></a>
+<span class="sourceLineNo">1208</span>    }<a name="line.1208"></a>
+<span class="sourceLineNo">1209</span>    <a name="line.1209"></a>
+<span class="sourceLineNo">1210</span>    public Map&lt;ExamStudent, Set&lt;Exam&gt;&gt; getStudentsOfDay(Assignment&lt;Exam, ExamPlacement&gt; assignment, int day) {<a name="line.1210"></a>
+<span class="sourceLineNo">1211</span>        return getContext(assignment).getStudentsOfDay(day);<a name="line.1211"></a>
+<span class="sourceLineNo">1212</span>    }<a name="line.1212"></a>
+<span class="sourceLineNo">1213</span>    <a name="line.1213"></a>
+<span class="sourceLineNo">1214</span>    public Map&lt;ExamInstructor, Set&lt;Exam&gt;&gt; getInstructorsOfPeriod(Assignment&lt;Exam, ExamPlacement&gt; assignment, ExamPeriod period) {<a name="line.1214"></a>
+<span class="sourceLineNo">1215</span>        return getContext(assignment).getInstructorsOfPeriod(period.getIndex());<a name="line.1215"></a>
+<span class="sourceLineNo">1216</span>    }<a name="line.1216"></a>
+<span class="sourceLineNo">1217</span>    <a name="line.1217"></a>
+<span class="sourceLineNo">1218</span>    public Map&lt;ExamInstructor, Set&lt;Exam&gt;&gt; getInstructorsOfDay(Assignment&lt;Exam, ExamPlacement&gt; assignment, ExamPeriod period) {<a name="line.1218"></a>
+<span class="sourceLineNo">1219</span>        return getContext(assignment).getInstructorsOfDay(period.getDay());<a name="line.1219"></a>
+<span class="sourceLineNo">1220</span>    }<a name="line.1220"></a>
+<span class="sourceLineNo">1221</span>    <a name="line.1221"></a>
+<span class="sourceLineNo">1222</span>    public Map&lt;ExamInstructor, Set&lt;Exam&gt;&gt; getInstructorsOfDay(Assignment&lt;Exam, ExamPlacement&gt; assignment, int day) {<a name="line.1222"></a>
+<span class="sourceLineNo">1223</span>        return getContext(assignment).getInstructorsOfDay(day);<a name="line.1223"></a>
+<span class="sourceLineNo">1224</span>    }<a name="line.1224"></a>
+<span class="sourceLineNo">1225</span><a name="line.1225"></a>
+<span class="sourceLineNo">1226</span>}<a name="line.1226"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.cpsolver.exam.neighbours;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import java.util.ArrayList;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import java.util.List;<a name="line.4"></a>
+<span class="sourceLineNo">005</span>import java.util.Set;<a name="line.5"></a>
+<span class="sourceLineNo">006</span><a name="line.6"></a>
+<span class="sourceLineNo">007</span>import org.cpsolver.exam.model.Exam;<a name="line.7"></a>
+<span class="sourceLineNo">008</span>import org.cpsolver.exam.model.ExamModel;<a name="line.8"></a>
+<span class="sourceLineNo">009</span>import org.cpsolver.exam.model.ExamPeriodPlacement;<a name="line.9"></a>
+<span class="sourceLineNo">010</span>import org.cpsolver.exam.model.ExamPlacement;<a name="line.10"></a>
+<span class="sourceLineNo">011</span>import org.cpsolver.exam.model.ExamRoomPlacement;<a name="line.11"></a>
+<span class="sourceLineNo">012</span>import org.cpsolver.ifs.assignment.Assignment;<a name="line.12"></a>
+<span class="sourceLineNo">013</span>import org.cpsolver.ifs.heuristics.NeighbourSelection;<a name="line.13"></a>
+<span class="sourceLineNo">014</span>import org.cpsolver.ifs.model.Neighbour;<a name="line.14"></a>
+<span class="sourceLineNo">015</span>import org.cpsolver.ifs.solution.Solution;<a name="line.15"></a>
+<span class="sourceLineNo">016</span>import org.cpsolver.ifs.solver.Solver;<a name="line.16"></a>
+<span class="sourceLineNo">017</span>import org.cpsolver.ifs.util.DataProperties;<a name="line.17"></a>
+<span class="sourceLineNo">018</span>import org.cpsolver.ifs.util.ToolBox;<a name="line.18"></a>
+<span class="sourceLineNo">019</span><a name="line.19"></a>
+<span class="sourceLineNo">020</span><a name="line.20"></a>
+<span class="sourceLineNo">021</span>/**<a name="line.21"></a>
+<span class="sourceLineNo">022</span> * Try to swap a room between two exams. An exam is selected randomly, a<a name="line.22"></a>
+<span class="sourceLineNo">023</span> * different (available) room is randomly selected for the exam -- the exam is<a name="line.23"></a>
+<span class="sourceLineNo">024</span> * assigned into the new room (if the room is used, it tries to swap the rooms<a name="line.24"></a>
+<span class="sourceLineNo">025</span> * between the selected exam and the one that is using it). If an exam is<a name="line.25"></a>
+<span class="sourceLineNo">026</span> * assigned into two or more rooms, only one room is swapped at a time. &lt;br&gt;<a name="line.26"></a>
+<span class="sourceLineNo">027</span> * &lt;br&gt;<a name="line.27"></a>
+<span class="sourceLineNo">028</span> * <a name="line.28"></a>
+<span class="sourceLineNo">029</span> * @author  Tom&#225;&#353; M&#252;ller<a name="line.29"></a>
+<span class="sourceLineNo">030</span> * @version ExamTT 1.3 (Examination Timetabling)&lt;br&gt;<a name="line.30"></a>
+<span class="sourceLineNo">031</span> *          Copyright (C) 2008 - 2014 Tom&#225;&#353; M&#252;ller&lt;br&gt;<a name="line.31"></a>
+<span class="sourceLineNo">032</span> *          &lt;a href="mailto:muller@unitime.org"&gt;muller@unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.32"></a>
+<span class="sourceLineNo">033</span> *          &lt;a href="http://muller.unitime.org"&gt;http://muller.unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.33"></a>
+<span class="sourceLineNo">034</span> * &lt;br&gt;<a name="line.34"></a>
+<span class="sourceLineNo">035</span> *          This library is free software; you can redistribute it and/or modify<a name="line.35"></a>
+<span class="sourceLineNo">036</span> *          it under the terms of the GNU Lesser General Public License as<a name="line.36"></a>
+<span class="sourceLineNo">037</span> *          published by the Free Software Foundation; either version 3 of the<a name="line.37"></a>
+<span class="sourceLineNo">038</span> *          License, or (at your option) any later version. &lt;br&gt;<a name="line.38"></a>
+<span class="sourceLineNo">039</span> * &lt;br&gt;<a name="line.39"></a>
+<span class="sourceLineNo">040</span> *          This library is distributed in the hope that it will be useful, but<a name="line.40"></a>
+<span class="sourceLineNo">041</span> *          WITHOUT ANY WARRANTY; without even the implied warranty of<a name="line.41"></a>
+<span class="sourceLineNo">042</span> *          MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU<a name="line.42"></a>
+<span class="sourceLineNo">043</span> *          Lesser General Public License for more details. &lt;br&gt;<a name="line.43"></a>
+<span class="sourceLineNo">044</span> * &lt;br&gt;<a name="line.44"></a>
+<span class="sourceLineNo">045</span> *          You should have received a copy of the GNU Lesser General Public<a name="line.45"></a>
+<span class="sourceLineNo">046</span> *          License along with this library; if not see<a name="line.46"></a>
+<span class="sourceLineNo">047</span> *          &lt;a href='http://www.gnu.org/licenses/'&gt;http://www.gnu.org/licenses/&lt;/a&gt;.<a name="line.47"></a>
+<span class="sourceLineNo">048</span> */<a name="line.48"></a>
+<span class="sourceLineNo">049</span>public class ExamRoomMove implements NeighbourSelection&lt;Exam, ExamPlacement&gt; {<a name="line.49"></a>
+<span class="sourceLineNo">050</span>    private boolean iCheckStudentConflicts = false;<a name="line.50"></a>
+<span class="sourceLineNo">051</span>    private boolean iCheckDistributionConstraints = true;<a name="line.51"></a>
+<span class="sourceLineNo">052</span><a name="line.52"></a>
+<span class="sourceLineNo">053</span>    /**<a name="line.53"></a>
+<span class="sourceLineNo">054</span>     * Constructor<a name="line.54"></a>
+<span class="sourceLineNo">055</span>     * <a name="line.55"></a>
+<span class="sourceLineNo">056</span>     * @param properties<a name="line.56"></a>
+<span class="sourceLineNo">057</span>     *            problem properties<a name="line.57"></a>
+<span class="sourceLineNo">058</span>     */<a name="line.58"></a>
+<span class="sourceLineNo">059</span>    public ExamRoomMove(DataProperties properties) {<a name="line.59"></a>
+<span class="sourceLineNo">060</span>        iCheckStudentConflicts = properties.getPropertyBoolean("ExamRoomMove.CheckStudentConflicts", iCheckStudentConflicts);<a name="line.60"></a>
+<span class="sourceLineNo">061</span>        iCheckDistributionConstraints = properties.getPropertyBoolean("ExamRoomMove.CheckDistributionConstraints", iCheckDistributionConstraints);<a name="line.61"></a>
+<span class="sourceLineNo">062</span>    }<a name="line.62"></a>
+<span class="sourceLineNo">063</span><a name="line.63"></a>
+<span class="sourceLineNo">064</span>    /**<a name="line.64"></a>
+<span class="sourceLineNo">065</span>     * Initialization<a name="line.65"></a>
+<span class="sourceLineNo">066</span>     */<a name="line.66"></a>
+<span class="sourceLineNo">067</span>    @Override<a name="line.67"></a>
+<span class="sourceLineNo">068</span>    public void init(Solver&lt;Exam, ExamPlacement&gt; solver) {<a name="line.68"></a>
+<span class="sourceLineNo">069</span>    }<a name="line.69"></a>
+<span class="sourceLineNo">070</span><a name="line.70"></a>
+<span class="sourceLineNo">071</span>    /**<a name="line.71"></a>
+<span class="sourceLineNo">072</span>     * Select an exam randomly, select an available period randomly (if it is<a name="line.72"></a>
+<span class="sourceLineNo">073</span>     * not assigned, from {@link Exam#getPeriodPlacements()}), select rooms<a name="line.73"></a>
+<span class="sourceLineNo">074</span>     * using {@link Exam#findRoomsRandom(Assignment, ExamPeriodPlacement)}<a name="line.74"></a>
+<span class="sourceLineNo">075</span>     */<a name="line.75"></a>
+<span class="sourceLineNo">076</span>    @Override<a name="line.76"></a>
+<span class="sourceLineNo">077</span>    public Neighbour&lt;Exam, ExamPlacement&gt; selectNeighbour(Solution&lt;Exam, ExamPlacement&gt; solution) {<a name="line.77"></a>
+<span class="sourceLineNo">078</span>        ExamModel model = (ExamModel) solution.getModel();<a name="line.78"></a>
+<span class="sourceLineNo">079</span>        Assignment&lt;Exam, ExamPlacement&gt; assignment = solution.getAssignment();<a name="line.79"></a>
+<span class="sourceLineNo">080</span>        Exam exam = ToolBox.random(model.variables());<a name="line.80"></a>
+<span class="sourceLineNo">081</span>        if (exam.getMaxRooms() &lt;= 0)<a name="line.81"></a>
+<span class="sourceLineNo">082</span>            return null;<a name="line.82"></a>
+<span class="sourceLineNo">083</span>        ExamPlacement placement = assignment.getValue(exam);<a name="line.83"></a>
+<span class="sourceLineNo">084</span>        ExamPeriodPlacement period = (placement != null ? placement.getPeriodPlacement()<a name="line.84"></a>
+<span class="sourceLineNo">085</span>                : (ExamPeriodPlacement) ToolBox.random(exam.getPeriodPlacements()));<a name="line.85"></a>
+<span class="sourceLineNo">086</span>        if (iCheckStudentConflicts &amp;&amp; placement == null &amp;&amp; exam.countStudentConflicts(assignment, period) &gt; 0)<a name="line.86"></a>
+<span class="sourceLineNo">087</span>            return null;<a name="line.87"></a>
+<span class="sourceLineNo">088</span>        if (iCheckDistributionConstraints &amp;&amp; placement == null &amp;&amp; !exam.checkDistributionConstraints(assignment, period))<a name="line.88"></a>
+<span class="sourceLineNo">089</span>            return null;<a name="line.89"></a>
+<span class="sourceLineNo">090</span>        Set&lt;ExamRoomPlacement&gt; rooms = (placement != null ? placement.getRoomPlacements() : exam.findBestAvailableRooms(assignment, period));<a name="line.90"></a>
+<span class="sourceLineNo">091</span>        if (rooms == null || rooms.isEmpty())<a name="line.91"></a>
+<span class="sourceLineNo">092</span>            return null;<a name="line.92"></a>
+<span class="sourceLineNo">093</span>        if (placement == null)<a name="line.93"></a>
+<span class="sourceLineNo">094</span>            placement = new ExamPlacement(exam, period, rooms);<a name="line.94"></a>
+<span class="sourceLineNo">095</span>        List&lt;ExamRoomPlacement&gt; roomVect = new ArrayList&lt;ExamRoomPlacement&gt;(rooms);<a name="line.95"></a>
+<span class="sourceLineNo">096</span>        int rx = ToolBox.random(roomVect.size());<a name="line.96"></a>
+<span class="sourceLineNo">097</span>        for (int r = 0; r &lt; roomVect.size(); r++) {<a name="line.97"></a>
+<span class="sourceLineNo">098</span>            ExamRoomPlacement current = roomVect.get((r + rx) % roomVect.size());<a name="line.98"></a>
+<span class="sourceLineNo">099</span>            int mx = ToolBox.random(exam.getRoomPlacements().size());<a name="line.99"></a>
+<span class="sourceLineNo">100</span>            for (int m = 0; m &lt; exam.getRoomPlacements().size(); m++) {<a name="line.100"></a>
+<span class="sourceLineNo">101</span>                ExamRoomPlacement swap = exam.getRoomPlacements().get((m + mx) % exam.getRoomPlacements().size());<a name="line.101"></a>
+<span class="sourceLineNo">102</span>                ExamRoomSwapNeighbour n = new ExamRoomSwapNeighbour(assignment, placement, current, swap);<a name="line.102"></a>
+<span class="sourceLineNo">103</span>                if (n.canDo())<a name="line.103"></a>
+<span class="sourceLineNo">104</span>                    return n;<a name="line.104"></a>
+<span class="sourceLineNo">105</span>            }<a name="line.105"></a>
+<span class="sourceLineNo">106</span>        }<a name="line.106"></a>
+<span class="sourceLineNo">107</span>        rooms = exam.findRoomsRandom(assignment, period);<a name="line.107"></a>
+<span class="sourceLineNo">108</span>        if (rooms == null)<a name="line.108"></a>
+<span class="sourceLineNo">109</span>            return null;<a name="line.109"></a>
+<span class="sourceLineNo">110</span>        return new ExamSimpleNeighbour(assignment, new ExamPlacement(exam, period, rooms));<a name="line.110"></a>
+<span class="sourceLineNo">111</span>    }<a name="line.111"></a>
+<span class="sourceLineNo">112</span>}<a name="line.112"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

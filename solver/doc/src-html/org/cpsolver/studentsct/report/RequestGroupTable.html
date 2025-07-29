@@ -1,0 +1,201 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.cpsolver.studentsct.report;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import java.text.DecimalFormat;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import java.util.Comparator;<a name="line.4"></a>
+<span class="sourceLineNo">005</span>import java.util.TreeSet;<a name="line.5"></a>
+<span class="sourceLineNo">006</span><a name="line.6"></a>
+<span class="sourceLineNo">007</span>import org.cpsolver.ifs.assignment.Assignment;<a name="line.7"></a>
+<span class="sourceLineNo">008</span>import org.cpsolver.ifs.util.CSVFile;<a name="line.8"></a>
+<span class="sourceLineNo">009</span>import org.cpsolver.ifs.util.DataProperties;<a name="line.9"></a>
+<span class="sourceLineNo">010</span>import org.cpsolver.studentsct.StudentSectioningModel;<a name="line.10"></a>
+<span class="sourceLineNo">011</span>import org.cpsolver.studentsct.model.Config;<a name="line.11"></a>
+<span class="sourceLineNo">012</span>import org.cpsolver.studentsct.model.Course;<a name="line.12"></a>
+<span class="sourceLineNo">013</span>import org.cpsolver.studentsct.model.CourseRequest;<a name="line.13"></a>
+<span class="sourceLineNo">014</span>import org.cpsolver.studentsct.model.Enrollment;<a name="line.14"></a>
+<span class="sourceLineNo">015</span>import org.cpsolver.studentsct.model.Offering;<a name="line.15"></a>
+<span class="sourceLineNo">016</span>import org.cpsolver.studentsct.model.Request;<a name="line.16"></a>
+<span class="sourceLineNo">017</span>import org.cpsolver.studentsct.model.RequestGroup;<a name="line.17"></a>
+<span class="sourceLineNo">018</span>import org.cpsolver.studentsct.model.Section;<a name="line.18"></a>
+<span class="sourceLineNo">019</span>import org.cpsolver.studentsct.model.Subpart;<a name="line.19"></a>
+<span class="sourceLineNo">020</span><a name="line.20"></a>
+<span class="sourceLineNo">021</span>/**<a name="line.21"></a>
+<span class="sourceLineNo">022</span> * This reports lists all request groups (including course name and group name) and the current spreads.<a name="line.22"></a>
+<span class="sourceLineNo">023</span> * For each group, the current average spread (see {@link RequestGroup#getAverageSpread(Assignment)})<a name="line.23"></a>
+<span class="sourceLineNo">024</span> * is listed together with all the classes that the students of the group are enrolled into and their<a name="line.24"></a>
+<span class="sourceLineNo">025</span> * spreads (see {@link RequestGroup#getSectionSpread(Assignment, Section)}).&lt;br&gt;<a name="line.25"></a>
+<span class="sourceLineNo">026</span> * &lt;br&gt;<a name="line.26"></a>
+<span class="sourceLineNo">027</span> * The average spread corresponds with the probability of two students of the group to attend the same section.<a name="line.27"></a>
+<span class="sourceLineNo">028</span> * The section spread is a break down of the average spread by each section.&lt;br&gt;<a name="line.28"></a>
+<span class="sourceLineNo">029</span> * &lt;br&gt;<a name="line.29"></a>
+<span class="sourceLineNo">030</span> * <a name="line.30"></a>
+<span class="sourceLineNo">031</span> * <a name="line.31"></a>
+<span class="sourceLineNo">032</span> * @author  Tom&#225;&#353; M&#252;ller<a name="line.32"></a>
+<span class="sourceLineNo">033</span> * @version StudentSct 1.3 (Student Sectioning)&lt;br&gt;<a name="line.33"></a>
+<span class="sourceLineNo">034</span> *          Copyright (C) 2015 Tom&#225;&#353; M&#252;ller&lt;br&gt;<a name="line.34"></a>
+<span class="sourceLineNo">035</span> *          &lt;a href="mailto:muller@unitime.org"&gt;muller@unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.35"></a>
+<span class="sourceLineNo">036</span> *          &lt;a href="http://muller.unitime.org"&gt;http://muller.unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.36"></a>
+<span class="sourceLineNo">037</span> * &lt;br&gt;<a name="line.37"></a>
+<span class="sourceLineNo">038</span> *          This library is free software; you can redistribute it and/or modify<a name="line.38"></a>
+<span class="sourceLineNo">039</span> *          it under the terms of the GNU Lesser General Public License as<a name="line.39"></a>
+<span class="sourceLineNo">040</span> *          published by the Free Software Foundation; either version 3 of the<a name="line.40"></a>
+<span class="sourceLineNo">041</span> *          License, or (at your option) any later version. &lt;br&gt;<a name="line.41"></a>
+<span class="sourceLineNo">042</span> * &lt;br&gt;<a name="line.42"></a>
+<span class="sourceLineNo">043</span> *          This library is distributed in the hope that it will be useful, but<a name="line.43"></a>
+<span class="sourceLineNo">044</span> *          WITHOUT ANY WARRANTY; without even the implied warranty of<a name="line.44"></a>
+<span class="sourceLineNo">045</span> *          MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU<a name="line.45"></a>
+<span class="sourceLineNo">046</span> *          Lesser General Public License for more details. &lt;br&gt;<a name="line.46"></a>
+<span class="sourceLineNo">047</span> * &lt;br&gt;<a name="line.47"></a>
+<span class="sourceLineNo">048</span> *          You should have received a copy of the GNU Lesser General Public<a name="line.48"></a>
+<span class="sourceLineNo">049</span> *          License along with this library; if not see<a name="line.49"></a>
+<span class="sourceLineNo">050</span> *          &lt;a href='http://www.gnu.org/licenses/'&gt;http://www.gnu.org/licenses/&lt;/a&gt;.<a name="line.50"></a>
+<span class="sourceLineNo">051</span> */<a name="line.51"></a>
+<span class="sourceLineNo">052</span>public class RequestGroupTable extends AbstractStudentSectioningReport {<a name="line.52"></a>
+<span class="sourceLineNo">053</span>    private static DecimalFormat sDF = new DecimalFormat("0.000");<a name="line.53"></a>
+<span class="sourceLineNo">054</span>    <a name="line.54"></a>
+<span class="sourceLineNo">055</span>    /**<a name="line.55"></a>
+<span class="sourceLineNo">056</span>     * Constructor<a name="line.56"></a>
+<span class="sourceLineNo">057</span>     * <a name="line.57"></a>
+<span class="sourceLineNo">058</span>     * @param model student sectioning model<a name="line.58"></a>
+<span class="sourceLineNo">059</span>     */<a name="line.59"></a>
+<span class="sourceLineNo">060</span>    public RequestGroupTable(StudentSectioningModel model) {<a name="line.60"></a>
+<span class="sourceLineNo">061</span>        super(model);<a name="line.61"></a>
+<span class="sourceLineNo">062</span>    }<a name="line.62"></a>
+<span class="sourceLineNo">063</span><a name="line.63"></a>
+<span class="sourceLineNo">064</span>    @Override<a name="line.64"></a>
+<span class="sourceLineNo">065</span>    public CSVFile createTable(Assignment&lt;Request, Enrollment&gt; assignment, DataProperties properties) {<a name="line.65"></a>
+<span class="sourceLineNo">066</span>        CSVFile csv = new CSVFile();<a name="line.66"></a>
+<span class="sourceLineNo">067</span>        csv.setHeader(new CSVFile.CSVField[] {<a name="line.67"></a>
+<span class="sourceLineNo">068</span>                new CSVFile.CSVField("Group"),<a name="line.68"></a>
+<span class="sourceLineNo">069</span>                new CSVFile.CSVField("Course"),<a name="line.69"></a>
+<span class="sourceLineNo">070</span>                new CSVFile.CSVField("Total\nSpread"),<a name="line.70"></a>
+<span class="sourceLineNo">071</span>                new CSVFile.CSVField("Group\nEnrollment"),<a name="line.71"></a>
+<span class="sourceLineNo">072</span>                new CSVFile.CSVField("Class"),<a name="line.72"></a>
+<span class="sourceLineNo">073</span>                new CSVFile.CSVField("Meeting Time"),<a name="line.73"></a>
+<span class="sourceLineNo">074</span>                new CSVFile.CSVField("Class\nSpread"),<a name="line.74"></a>
+<span class="sourceLineNo">075</span>                new CSVFile.CSVField("Class\nEnrollment"),<a name="line.75"></a>
+<span class="sourceLineNo">076</span>                new CSVFile.CSVField("Class\nLimit")<a name="line.76"></a>
+<span class="sourceLineNo">077</span>                });<a name="line.77"></a>
+<span class="sourceLineNo">078</span>        <a name="line.78"></a>
+<span class="sourceLineNo">079</span>        TreeSet&lt;RequestGroup&gt; groups = new TreeSet&lt;RequestGroup&gt;(new Comparator&lt;RequestGroup&gt;() {<a name="line.79"></a>
+<span class="sourceLineNo">080</span>            @Override<a name="line.80"></a>
+<span class="sourceLineNo">081</span>            public int compare(RequestGroup g1, RequestGroup g2) {<a name="line.81"></a>
+<span class="sourceLineNo">082</span>                int cmp = g1.getName().compareTo(g2.getName());<a name="line.82"></a>
+<span class="sourceLineNo">083</span>                if (cmp != 0) return cmp;<a name="line.83"></a>
+<span class="sourceLineNo">084</span>                cmp = g1.getCourse().getName().compareTo(g2.getCourse().getName());<a name="line.84"></a>
+<span class="sourceLineNo">085</span>                if (cmp != 0) return cmp;<a name="line.85"></a>
+<span class="sourceLineNo">086</span>                if (g1.getId() &lt; g2.getId()) return -1;<a name="line.86"></a>
+<span class="sourceLineNo">087</span>                if (g1.getId() &gt; g2.getId()) return 1;<a name="line.87"></a>
+<span class="sourceLineNo">088</span>                return (g1.getCourse().getId() &lt; g2.getCourse().getId() ? -1 : g1.getCourse().getId() &gt; g2.getCourse().getId() ? 1 : 0);<a name="line.88"></a>
+<span class="sourceLineNo">089</span>            }<a name="line.89"></a>
+<span class="sourceLineNo">090</span>        });<a name="line.90"></a>
+<span class="sourceLineNo">091</span>        <a name="line.91"></a>
+<span class="sourceLineNo">092</span>        for (Offering offering: getModel().getOfferings()) {<a name="line.92"></a>
+<span class="sourceLineNo">093</span>            if (offering.isDummy()) continue;<a name="line.93"></a>
+<span class="sourceLineNo">094</span>            for (Course course: offering.getCourses())<a name="line.94"></a>
+<span class="sourceLineNo">095</span>                groups.addAll(course.getRequestGroups());<a name="line.95"></a>
+<span class="sourceLineNo">096</span>        }<a name="line.96"></a>
+<span class="sourceLineNo">097</span>        <a name="line.97"></a>
+<span class="sourceLineNo">098</span>        for (RequestGroup group: groups) {<a name="line.98"></a>
+<span class="sourceLineNo">099</span>            int nbrMatches = 0;<a name="line.99"></a>
+<span class="sourceLineNo">100</span>            for (CourseRequest cr: group.getRequests()) {<a name="line.100"></a>
+<span class="sourceLineNo">101</span>                if (matches(cr)) nbrMatches ++;<a name="line.101"></a>
+<span class="sourceLineNo">102</span>            }<a name="line.102"></a>
+<span class="sourceLineNo">103</span>            if (nbrMatches == 0) continue;<a name="line.103"></a>
+<span class="sourceLineNo">104</span>            double groupEnrollment = group.getEnrollmentWeight(assignment, null);<a name="line.104"></a>
+<span class="sourceLineNo">105</span>            double groupSpread = group.getAverageSpread(assignment);<a name="line.105"></a>
+<span class="sourceLineNo">106</span>            for (Config config: group.getCourse().getOffering().getConfigs())<a name="line.106"></a>
+<span class="sourceLineNo">107</span>                for (Subpart subpart: config.getSubparts())<a name="line.107"></a>
+<span class="sourceLineNo">108</span>                    for (Section section: subpart.getSections()) {<a name="line.108"></a>
+<span class="sourceLineNo">109</span>                        double s = group.getSectionWeight(assignment, section, null);<a name="line.109"></a>
+<span class="sourceLineNo">110</span>                        if (s &gt; 0.00001) {<a name="line.110"></a>
+<span class="sourceLineNo">111</span>                            csv.addLine(new CSVFile.CSVField[] {<a name="line.111"></a>
+<span class="sourceLineNo">112</span>                                    new CSVFile.CSVField(group.getName()),<a name="line.112"></a>
+<span class="sourceLineNo">113</span>                                    new CSVFile.CSVField(group.getCourse().getName()),<a name="line.113"></a>
+<span class="sourceLineNo">114</span>                                    new CSVFile.CSVField(sDF.format(100.0 * groupSpread)),<a name="line.114"></a>
+<span class="sourceLineNo">115</span>                                    new CSVFile.CSVField(Math.round(groupEnrollment)),<a name="line.115"></a>
+<span class="sourceLineNo">116</span>                                    new CSVFile.CSVField(section.getSubpart().getName() + " " + section.getName(group.getCourse().getId())),<a name="line.116"></a>
+<span class="sourceLineNo">117</span>                                    new CSVFile.CSVField(section.getTime() == null ? "" : section.getTime().getDayHeader() + " " + section.getTime().getStartTimeHeader(isUseAmPm()) + " - " + section.getTime().getEndTimeHeader(isUseAmPm())),<a name="line.117"></a>
+<span class="sourceLineNo">118</span>                                    new CSVFile.CSVField(sDF.format(100.0 * group.getSectionSpread(assignment, section))),<a name="line.118"></a>
+<span class="sourceLineNo">119</span>                                    new CSVFile.CSVField(Math.round(group.getSectionWeight(assignment, section, null))),<a name="line.119"></a>
+<span class="sourceLineNo">120</span>                                    new CSVFile.CSVField(section.getLimit())<a name="line.120"></a>
+<span class="sourceLineNo">121</span>                            });<a name="line.121"></a>
+<span class="sourceLineNo">122</span>                        }<a name="line.122"></a>
+<span class="sourceLineNo">123</span>                    }<a name="line.123"></a>
+<span class="sourceLineNo">124</span>        }<a name="line.124"></a>
+<span class="sourceLineNo">125</span>        <a name="line.125"></a>
+<span class="sourceLineNo">126</span>        return csv;<a name="line.126"></a>
+<span class="sourceLineNo">127</span>    }<a name="line.127"></a>
+<span class="sourceLineNo">128</span><a name="line.128"></a>
+<span class="sourceLineNo">129</span>}<a name="line.129"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

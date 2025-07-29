@@ -1,0 +1,156 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.cpsolver.ifs.example.csp;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import org.cpsolver.ifs.solution.Solution;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import org.cpsolver.ifs.solver.Solver;<a name="line.4"></a>
+<span class="sourceLineNo">005</span>import org.cpsolver.ifs.util.ToolBox;<a name="line.5"></a>
+<span class="sourceLineNo">006</span><a name="line.6"></a>
+<span class="sourceLineNo">007</span>/**<a name="line.7"></a>
+<span class="sourceLineNo">008</span> * Simple test of IFS CBS algorithm on random binary CSP problem<a name="line.8"></a>
+<span class="sourceLineNo">009</span> * CSP(25,12,198/300,36/144).<a name="line.9"></a>
+<span class="sourceLineNo">010</span> * <a name="line.10"></a>
+<span class="sourceLineNo">011</span> * @author  Tom&#225;&#353; M&#252;ller<a name="line.11"></a>
+<span class="sourceLineNo">012</span> * @version IFS 1.3 (Iterative Forward Search)&lt;br&gt;<a name="line.12"></a>
+<span class="sourceLineNo">013</span> *          Copyright (C) 2006 - 2014 Tom&#225;&#353; M&#252;ller&lt;br&gt;<a name="line.13"></a>
+<span class="sourceLineNo">014</span> *          &lt;a href="mailto:muller@unitime.org"&gt;muller@unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.14"></a>
+<span class="sourceLineNo">015</span> *          &lt;a href="http://muller.unitime.org"&gt;http://muller.unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.15"></a>
+<span class="sourceLineNo">016</span> * &lt;br&gt;<a name="line.16"></a>
+<span class="sourceLineNo">017</span> *          This library is free software; you can redistribute it and/or modify<a name="line.17"></a>
+<span class="sourceLineNo">018</span> *          it under the terms of the GNU Lesser General Public License as<a name="line.18"></a>
+<span class="sourceLineNo">019</span> *          published by the Free Software Foundation; either version 3 of the<a name="line.19"></a>
+<span class="sourceLineNo">020</span> *          License, or (at your option) any later version. &lt;br&gt;<a name="line.20"></a>
+<span class="sourceLineNo">021</span> * &lt;br&gt;<a name="line.21"></a>
+<span class="sourceLineNo">022</span> *          This library is distributed in the hope that it will be useful, but<a name="line.22"></a>
+<span class="sourceLineNo">023</span> *          WITHOUT ANY WARRANTY; without even the implied warranty of<a name="line.23"></a>
+<span class="sourceLineNo">024</span> *          MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU<a name="line.24"></a>
+<span class="sourceLineNo">025</span> *          Lesser General Public License for more details. &lt;br&gt;<a name="line.25"></a>
+<span class="sourceLineNo">026</span> * &lt;br&gt;<a name="line.26"></a>
+<span class="sourceLineNo">027</span> *          You should have received a copy of the GNU Lesser General Public<a name="line.27"></a>
+<span class="sourceLineNo">028</span> *          License along with this library; if not see<a name="line.28"></a>
+<span class="sourceLineNo">029</span> *          &lt;a href='http://www.gnu.org/licenses/'&gt;http://www.gnu.org/licenses/&lt;/a&gt;.<a name="line.29"></a>
+<span class="sourceLineNo">030</span> */<a name="line.30"></a>
+<span class="sourceLineNo">031</span>public class SimpleTest {<a name="line.31"></a>
+<span class="sourceLineNo">032</span>    /**<a name="line.32"></a>
+<span class="sourceLineNo">033</span>     * run the test<a name="line.33"></a>
+<span class="sourceLineNo">034</span>     * @param args program arguments<a name="line.34"></a>
+<span class="sourceLineNo">035</span>     */<a name="line.35"></a>
+<span class="sourceLineNo">036</span>    public static void main(String[] args) {<a name="line.36"></a>
+<span class="sourceLineNo">037</span>        ToolBox.configureLogging();<a name="line.37"></a>
+<span class="sourceLineNo">038</span>        int nrVariables = 25;<a name="line.38"></a>
+<span class="sourceLineNo">039</span>        int nrValues = 12;<a name="line.39"></a>
+<span class="sourceLineNo">040</span>        int nrConstraints = 198;<a name="line.40"></a>
+<span class="sourceLineNo">041</span>        double tigtness = 0.25;<a name="line.41"></a>
+<span class="sourceLineNo">042</span>        int nrAllPairs = nrValues * nrValues;<a name="line.42"></a>
+<span class="sourceLineNo">043</span>        int nrCompatiblePairs = (int) ((1.0 - tigtness) * nrAllPairs);<a name="line.43"></a>
+<span class="sourceLineNo">044</span>        long seed = System.currentTimeMillis();<a name="line.44"></a>
+<span class="sourceLineNo">045</span>        System.out.println("CSP(" + nrVariables + "," + nrValues + "," + nrConstraints + "/"<a name="line.45"></a>
+<span class="sourceLineNo">046</span>                + ((nrVariables * (nrVariables - 1)) / 2) + "," + (nrAllPairs - nrCompatiblePairs) + "/" + nrAllPairs<a name="line.46"></a>
+<span class="sourceLineNo">047</span>                + ")");<a name="line.47"></a>
+<span class="sourceLineNo">048</span><a name="line.48"></a>
+<span class="sourceLineNo">049</span>        org.cpsolver.ifs.util.DataProperties cfg = new org.cpsolver.ifs.util.DataProperties();<a name="line.49"></a>
+<span class="sourceLineNo">050</span>        cfg.setProperty("Termination.Class", "org.cpsolver.ifs.termination.GeneralTerminationCondition");<a name="line.50"></a>
+<span class="sourceLineNo">051</span>        cfg.setProperty("Termination.StopWhenComplete", "false");<a name="line.51"></a>
+<span class="sourceLineNo">052</span>        cfg.setProperty("Termination.TimeOut", "60");<a name="line.52"></a>
+<span class="sourceLineNo">053</span>        cfg.setProperty("Comparator.Class", "org.cpsolver.ifs.solution.GeneralSolutionComparator");<a name="line.53"></a>
+<span class="sourceLineNo">054</span>        cfg.setProperty("Value.Class", "org.cpsolver.ifs.heuristics.GeneralValueSelection");<a name="line.54"></a>
+<span class="sourceLineNo">055</span>        cfg.setProperty("Value.WeightConflicts", "1");<a name="line.55"></a>
+<span class="sourceLineNo">056</span>        cfg.setProperty("Variable.Class", "org.cpsolver.ifs.heuristics.GeneralVariableSelection");<a name="line.56"></a>
+<span class="sourceLineNo">057</span>        cfg.setProperty("Extensions.Classes", "org.cpsolver.ifs.extension.ConflictStatistics");<a name="line.57"></a>
+<span class="sourceLineNo">058</span><a name="line.58"></a>
+<span class="sourceLineNo">059</span>        CSPModel model = new CSPModel(nrVariables, nrValues, nrConstraints, nrCompatiblePairs, seed);<a name="line.59"></a>
+<span class="sourceLineNo">060</span>        Solver&lt;CSPVariable, CSPValue&gt; solver = new Solver&lt;CSPVariable, CSPValue&gt;(cfg);<a name="line.60"></a>
+<span class="sourceLineNo">061</span>        solver.setInitalSolution(model);<a name="line.61"></a>
+<span class="sourceLineNo">062</span><a name="line.62"></a>
+<span class="sourceLineNo">063</span>        solver.start();<a name="line.63"></a>
+<span class="sourceLineNo">064</span>        try {<a name="line.64"></a>
+<span class="sourceLineNo">065</span>            solver.getSolverThread().join();<a name="line.65"></a>
+<span class="sourceLineNo">066</span>        } catch (InterruptedException e) {<a name="line.66"></a>
+<span class="sourceLineNo">067</span>        }<a name="line.67"></a>
+<span class="sourceLineNo">068</span><a name="line.68"></a>
+<span class="sourceLineNo">069</span>        Solution&lt;CSPVariable, CSPValue&gt; solution = solver.lastSolution();<a name="line.69"></a>
+<span class="sourceLineNo">070</span>        solution.restoreBest();<a name="line.70"></a>
+<span class="sourceLineNo">071</span><a name="line.71"></a>
+<span class="sourceLineNo">072</span>        System.out.println("Best solution found after " + solution.getBestTime() + " seconds ("<a name="line.72"></a>
+<span class="sourceLineNo">073</span>                + solution.getBestIteration() + " iterations).");<a name="line.73"></a>
+<span class="sourceLineNo">074</span>        System.out.println("Number of assigned variables is " + solution.getAssignment().nrAssignedVariables());<a name="line.74"></a>
+<span class="sourceLineNo">075</span>        System.out.println("Total value of the solution is " + solution.getModel().getTotalValue(solution.getAssignment()));<a name="line.75"></a>
+<span class="sourceLineNo">076</span><a name="line.76"></a>
+<span class="sourceLineNo">077</span>        int idx = 1;<a name="line.77"></a>
+<span class="sourceLineNo">078</span>        for (CSPVariable v : solution.getModel().variables()) {<a name="line.78"></a>
+<span class="sourceLineNo">079</span>            CSPValue a = solution.getAssignment().getValue(v);<a name="line.79"></a>
+<span class="sourceLineNo">080</span>            if (a != null)<a name="line.80"></a>
+<span class="sourceLineNo">081</span>                System.out.println("Var" + (idx++) + "=" + a.toDouble());<a name="line.81"></a>
+<span class="sourceLineNo">082</span>        }<a name="line.82"></a>
+<span class="sourceLineNo">083</span>    }<a name="line.83"></a>
+<span class="sourceLineNo">084</span>}<a name="line.84"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

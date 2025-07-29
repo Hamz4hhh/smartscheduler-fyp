@@ -1,0 +1,206 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.cpsolver.ifs.termination;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import org.cpsolver.ifs.model.Value;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import org.cpsolver.ifs.model.Variable;<a name="line.4"></a>
+<span class="sourceLineNo">005</span>import org.cpsolver.ifs.solution.Solution;<a name="line.5"></a>
+<span class="sourceLineNo">006</span>import org.cpsolver.ifs.util.DataProperties;<a name="line.6"></a>
+<span class="sourceLineNo">007</span><a name="line.7"></a>
+<span class="sourceLineNo">008</span>/**<a name="line.8"></a>
+<span class="sourceLineNo">009</span> * General implementation of termination condition for minimal perturbation<a name="line.9"></a>
+<span class="sourceLineNo">010</span> * problem. &lt;br&gt;<a name="line.10"></a>
+<span class="sourceLineNo">011</span> * &lt;br&gt;<a name="line.11"></a>
+<span class="sourceLineNo">012</span> * Solver stops when a timeout is reached (expressed either by the number of<a name="line.12"></a>
+<span class="sourceLineNo">013</span> * iterations or by a time) or when an acceptable complete (all variables are<a name="line.13"></a>
+<span class="sourceLineNo">014</span> * assigned) solution is found. The acceptance of a solution is expressed either<a name="line.14"></a>
+<span class="sourceLineNo">015</span> * by the minimal number of variables assigned to not-initial values or by the<a name="line.15"></a>
+<span class="sourceLineNo">016</span> * perturbations penalty. &lt;br&gt;<a name="line.16"></a>
+<span class="sourceLineNo">017</span> * &lt;br&gt;<a name="line.17"></a>
+<span class="sourceLineNo">018</span> * Parameters: &lt;br&gt;<a name="line.18"></a>
+<span class="sourceLineNo">019</span> * &lt;table border='1'&gt;&lt;caption&gt;Related Solver Parameters&lt;/caption&gt;<a name="line.19"></a>
+<span class="sourceLineNo">020</span> * &lt;tr&gt;<a name="line.20"></a>
+<span class="sourceLineNo">021</span> * &lt;th&gt;Parameter&lt;/th&gt;<a name="line.21"></a>
+<span class="sourceLineNo">022</span> * &lt;th&gt;Type&lt;/th&gt;<a name="line.22"></a>
+<span class="sourceLineNo">023</span> * &lt;th&gt;Comment&lt;/th&gt;<a name="line.23"></a>
+<span class="sourceLineNo">024</span> * &lt;/tr&gt;<a name="line.24"></a>
+<span class="sourceLineNo">025</span> * &lt;tr&gt;<a name="line.25"></a>
+<span class="sourceLineNo">026</span> * &lt;td&gt;Termination.StopWhenComplete&lt;/td&gt;<a name="line.26"></a>
+<span class="sourceLineNo">027</span> * &lt;td&gt;{@link Double}&lt;/td&gt;<a name="line.27"></a>
+<span class="sourceLineNo">028</span> * &lt;td&gt;if true, solver stops when a complete solution is found&lt;/td&gt;<a name="line.28"></a>
+<span class="sourceLineNo">029</span> * &lt;/tr&gt;<a name="line.29"></a>
+<span class="sourceLineNo">030</span> * &lt;tr&gt;<a name="line.30"></a>
+<span class="sourceLineNo">031</span> * &lt;td&gt;Termination.MaxIters&lt;/td&gt;<a name="line.31"></a>
+<span class="sourceLineNo">032</span> * &lt;td&gt;{@link Integer}&lt;/td&gt;<a name="line.32"></a>
+<span class="sourceLineNo">033</span> * &lt;td&gt;if zero or positive, solver stops when the given number of iteration is<a name="line.33"></a>
+<span class="sourceLineNo">034</span> * reached&lt;/td&gt;<a name="line.34"></a>
+<span class="sourceLineNo">035</span> * &lt;/tr&gt;<a name="line.35"></a>
+<span class="sourceLineNo">036</span> * &lt;tr&gt;<a name="line.36"></a>
+<span class="sourceLineNo">037</span> * &lt;td&gt;Termination.TimeOut&lt;/td&gt;<a name="line.37"></a>
+<span class="sourceLineNo">038</span> * &lt;td&gt;{@link Double}&lt;/td&gt;<a name="line.38"></a>
+<span class="sourceLineNo">039</span> * &lt;td&gt;if zero or positive, solver stops when the given timeout (given in<a name="line.39"></a>
+<span class="sourceLineNo">040</span> * seconds) is reached&lt;/td&gt;<a name="line.40"></a>
+<span class="sourceLineNo">041</span> * &lt;/tr&gt;<a name="line.41"></a>
+<span class="sourceLineNo">042</span> * &lt;tr&gt;<a name="line.42"></a>
+<span class="sourceLineNo">043</span> * &lt;td&gt;Termination.MinPerturbances&lt;/td&gt;<a name="line.43"></a>
+<span class="sourceLineNo">044</span> * &lt;td&gt;{@link Integer}&lt;/td&gt;<a name="line.44"></a>
+<span class="sourceLineNo">045</span> * &lt;td&gt;if zero or positive, solver stops when the solution is complete and the<a name="line.45"></a>
+<span class="sourceLineNo">046</span> * number of variables with non-initial values is below or equal to this limit&lt;/td&gt;<a name="line.46"></a>
+<span class="sourceLineNo">047</span> * &lt;/tr&gt;<a name="line.47"></a>
+<span class="sourceLineNo">048</span> * &lt;tr&gt;<a name="line.48"></a>
+<span class="sourceLineNo">049</span> * &lt;td&gt;Termination.MinPerturbationPenalty&lt;/td&gt;<a name="line.49"></a>
+<span class="sourceLineNo">050</span> * &lt;td&gt;{@link Double}&lt;/td&gt;<a name="line.50"></a>
+<span class="sourceLineNo">051</span> * &lt;td&gt;if zero or positive, solver stops when the solution is complete and when<a name="line.51"></a>
+<span class="sourceLineNo">052</span> * the perturbation penaly of the solution is below or equal to this limit&lt;/td&gt;<a name="line.52"></a>
+<span class="sourceLineNo">053</span> * &lt;/tr&gt;<a name="line.53"></a>
+<span class="sourceLineNo">054</span> * &lt;/table&gt;<a name="line.54"></a>
+<span class="sourceLineNo">055</span> * <a name="line.55"></a>
+<span class="sourceLineNo">056</span> * @see org.cpsolver.ifs.solver.Solver<a name="line.56"></a>
+<span class="sourceLineNo">057</span> * @see org.cpsolver.ifs.perturbations.PerturbationsCounter<a name="line.57"></a>
+<span class="sourceLineNo">058</span> * <a name="line.58"></a>
+<span class="sourceLineNo">059</span> * @author  Tom&#225;&#353; M&#252;ller<a name="line.59"></a>
+<span class="sourceLineNo">060</span> * @version IFS 1.3 (Iterative Forward Search)&lt;br&gt;<a name="line.60"></a>
+<span class="sourceLineNo">061</span> *          Copyright (C) 2006 - 2014 Tom&#225;&#353; M&#252;ller&lt;br&gt;<a name="line.61"></a>
+<span class="sourceLineNo">062</span> *          &lt;a href="mailto:muller@unitime.org"&gt;muller@unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.62"></a>
+<span class="sourceLineNo">063</span> *          &lt;a href="http://muller.unitime.org"&gt;http://muller.unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.63"></a>
+<span class="sourceLineNo">064</span> * &lt;br&gt;<a name="line.64"></a>
+<span class="sourceLineNo">065</span> *          This library is free software; you can redistribute it and/or modify<a name="line.65"></a>
+<span class="sourceLineNo">066</span> *          it under the terms of the GNU Lesser General Public License as<a name="line.66"></a>
+<span class="sourceLineNo">067</span> *          published by the Free Software Foundation; either version 3 of the<a name="line.67"></a>
+<span class="sourceLineNo">068</span> *          License, or (at your option) any later version. &lt;br&gt;<a name="line.68"></a>
+<span class="sourceLineNo">069</span> * &lt;br&gt;<a name="line.69"></a>
+<span class="sourceLineNo">070</span> *          This library is distributed in the hope that it will be useful, but<a name="line.70"></a>
+<span class="sourceLineNo">071</span> *          WITHOUT ANY WARRANTY; without even the implied warranty of<a name="line.71"></a>
+<span class="sourceLineNo">072</span> *          MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU<a name="line.72"></a>
+<span class="sourceLineNo">073</span> *          Lesser General Public License for more details. &lt;br&gt;<a name="line.73"></a>
+<span class="sourceLineNo">074</span> * &lt;br&gt;<a name="line.74"></a>
+<span class="sourceLineNo">075</span> *          You should have received a copy of the GNU Lesser General Public<a name="line.75"></a>
+<span class="sourceLineNo">076</span> *          License along with this library; if not see &lt;a href='http://www.gnu.org/licenses'&gt;http://www.gnu.org/licenses&lt;/a&gt;.<a name="line.76"></a>
+<span class="sourceLineNo">077</span> *<a name="line.77"></a>
+<span class="sourceLineNo">078</span> * @param &lt;V&gt; Variable<a name="line.78"></a>
+<span class="sourceLineNo">079</span> * @param &lt;T&gt; Value<a name="line.79"></a>
+<span class="sourceLineNo">080</span> **/<a name="line.80"></a>
+<span class="sourceLineNo">081</span>public class MPPTerminationCondition&lt;V extends Variable&lt;V, T&gt;, T extends Value&lt;V, T&gt;&gt; implements<a name="line.81"></a>
+<span class="sourceLineNo">082</span>        TerminationCondition&lt;V, T&gt; {<a name="line.82"></a>
+<span class="sourceLineNo">083</span>    protected static org.apache.logging.log4j.Logger sLogger = org.apache.logging.log4j.LogManager.getLogger(MPPTerminationCondition.class);<a name="line.83"></a>
+<span class="sourceLineNo">084</span>    private int iMinPerturbances;<a name="line.84"></a>
+<span class="sourceLineNo">085</span>    private int iMaxIter;<a name="line.85"></a>
+<span class="sourceLineNo">086</span>    private double iTimeOut;<a name="line.86"></a>
+<span class="sourceLineNo">087</span>    private double iMinPertPenalty;<a name="line.87"></a>
+<span class="sourceLineNo">088</span>    private boolean iStopWhenComplete;<a name="line.88"></a>
+<span class="sourceLineNo">089</span><a name="line.89"></a>
+<span class="sourceLineNo">090</span>    public MPPTerminationCondition(DataProperties properties) {<a name="line.90"></a>
+<span class="sourceLineNo">091</span>        iMaxIter = properties.getPropertyInt("Termination.MaxIters", -1);<a name="line.91"></a>
+<span class="sourceLineNo">092</span>        iTimeOut = properties.getPropertyDouble("Termination.TimeOut", -1.0);<a name="line.92"></a>
+<span class="sourceLineNo">093</span>        iMinPerturbances = properties.getPropertyInt("Termination.MinPerturbances", -1);<a name="line.93"></a>
+<span class="sourceLineNo">094</span>        iStopWhenComplete = properties.getPropertyBoolean("Termination.StopWhenComplete", false);<a name="line.94"></a>
+<span class="sourceLineNo">095</span>        iMinPertPenalty = properties.getPropertyDouble("Termination.MinPerturbationPenalty", -1.0);<a name="line.95"></a>
+<span class="sourceLineNo">096</span>    }<a name="line.96"></a>
+<span class="sourceLineNo">097</span><a name="line.97"></a>
+<span class="sourceLineNo">098</span>    public MPPTerminationCondition(int maxIter, double timeout, int minPerturbances) {<a name="line.98"></a>
+<span class="sourceLineNo">099</span>        iMaxIter = maxIter;<a name="line.99"></a>
+<span class="sourceLineNo">100</span>        iMinPerturbances = minPerturbances;<a name="line.100"></a>
+<span class="sourceLineNo">101</span>        iTimeOut = timeout;<a name="line.101"></a>
+<span class="sourceLineNo">102</span>    }<a name="line.102"></a>
+<span class="sourceLineNo">103</span><a name="line.103"></a>
+<span class="sourceLineNo">104</span>    @Override<a name="line.104"></a>
+<span class="sourceLineNo">105</span>    public boolean canContinue(Solution&lt;V, T&gt; currentSolution) {<a name="line.105"></a>
+<span class="sourceLineNo">106</span>        if (iMinPerturbances &gt;= 0 &amp;&amp; currentSolution.getAssignment().nrUnassignedVariables(currentSolution.getModel()) == 0<a name="line.106"></a>
+<span class="sourceLineNo">107</span>                &amp;&amp; currentSolution.getModel().perturbVariables(currentSolution.getAssignment()).size() &lt;= iMinPerturbances) {<a name="line.107"></a>
+<span class="sourceLineNo">108</span>            sLogger.info("A complete solution with allowed number of perturbances found.");<a name="line.108"></a>
+<span class="sourceLineNo">109</span>            return false;<a name="line.109"></a>
+<span class="sourceLineNo">110</span>        }<a name="line.110"></a>
+<span class="sourceLineNo">111</span>        if (iMinPertPenalty &gt;= 0.0<a name="line.111"></a>
+<span class="sourceLineNo">112</span>                &amp;&amp; currentSolution.getAssignment().nrUnassignedVariables(currentSolution.getModel()) == 0<a name="line.112"></a>
+<span class="sourceLineNo">113</span>                &amp;&amp; currentSolution.getPerturbationsCounter().getPerturbationPenalty(currentSolution.getAssignment(), currentSolution.getModel()) &lt;= iMinPertPenalty) {<a name="line.113"></a>
+<span class="sourceLineNo">114</span>            sLogger.info("A complete solution with allowed perturbation penalty found.");<a name="line.114"></a>
+<span class="sourceLineNo">115</span>            return false;<a name="line.115"></a>
+<span class="sourceLineNo">116</span>        }<a name="line.116"></a>
+<span class="sourceLineNo">117</span>        if (iMaxIter &gt;= 0 &amp;&amp; currentSolution.getIteration() &gt;= iMaxIter) {<a name="line.117"></a>
+<span class="sourceLineNo">118</span>            sLogger.info("Maximum number of iteration reached.");<a name="line.118"></a>
+<span class="sourceLineNo">119</span>            return false;<a name="line.119"></a>
+<span class="sourceLineNo">120</span>        }<a name="line.120"></a>
+<span class="sourceLineNo">121</span>        if (iTimeOut &gt;= 0 &amp;&amp; currentSolution.getTime() &gt; iTimeOut) {<a name="line.121"></a>
+<span class="sourceLineNo">122</span>            sLogger.info("Timeout reached.");<a name="line.122"></a>
+<span class="sourceLineNo">123</span>            return false;<a name="line.123"></a>
+<span class="sourceLineNo">124</span>        }<a name="line.124"></a>
+<span class="sourceLineNo">125</span>        if (iStopWhenComplete || (iMaxIter &lt; 0 &amp;&amp; iTimeOut &lt; 0)) {<a name="line.125"></a>
+<span class="sourceLineNo">126</span>            boolean ret = (currentSolution.getAssignment().nrUnassignedVariables(currentSolution.getModel()) != 0);<a name="line.126"></a>
+<span class="sourceLineNo">127</span>            if (!ret)<a name="line.127"></a>
+<span class="sourceLineNo">128</span>                sLogger.info("Complete solution found.");<a name="line.128"></a>
+<span class="sourceLineNo">129</span>            return ret;<a name="line.129"></a>
+<span class="sourceLineNo">130</span>        }<a name="line.130"></a>
+<span class="sourceLineNo">131</span>        return true;<a name="line.131"></a>
+<span class="sourceLineNo">132</span>    }<a name="line.132"></a>
+<span class="sourceLineNo">133</span><a name="line.133"></a>
+<span class="sourceLineNo">134</span>}<a name="line.134"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

@@ -1,0 +1,306 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.cpsolver.coursett.model;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import java.util.HashMap;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import java.util.Map;<a name="line.4"></a>
+<span class="sourceLineNo">005</span>import java.util.TreeSet;<a name="line.5"></a>
+<span class="sourceLineNo">006</span><a name="line.6"></a>
+<span class="sourceLineNo">007</span>import org.cpsolver.coursett.Constants;<a name="line.7"></a>
+<span class="sourceLineNo">008</span><a name="line.8"></a>
+<span class="sourceLineNo">009</span><a name="line.9"></a>
+<span class="sourceLineNo">010</span>/**<a name="line.10"></a>
+<span class="sourceLineNo">011</span> * Room availability model.<a name="line.11"></a>
+<span class="sourceLineNo">012</span> * <a name="line.12"></a>
+<span class="sourceLineNo">013</span> * @author  Tom&#225;&#353; M&#252;ller<a name="line.13"></a>
+<span class="sourceLineNo">014</span> * @version CourseTT 1.3 (University Course Timetabling)&lt;br&gt;<a name="line.14"></a>
+<span class="sourceLineNo">015</span> *          Copyright (C) 2006 - 2014 Tom&#225;&#353; M&#252;ller&lt;br&gt;<a name="line.15"></a>
+<span class="sourceLineNo">016</span> *          &lt;a href="mailto:muller@unitime.org"&gt;muller@unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.16"></a>
+<span class="sourceLineNo">017</span> *          &lt;a href="http://muller.unitime.org"&gt;http://muller.unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.17"></a>
+<span class="sourceLineNo">018</span> * &lt;br&gt;<a name="line.18"></a>
+<span class="sourceLineNo">019</span> *          This library is free software; you can redistribute it and/or modify<a name="line.19"></a>
+<span class="sourceLineNo">020</span> *          it under the terms of the GNU Lesser General Public License as<a name="line.20"></a>
+<span class="sourceLineNo">021</span> *          published by the Free Software Foundation; either version 3 of the<a name="line.21"></a>
+<span class="sourceLineNo">022</span> *          License, or (at your option) any later version. &lt;br&gt;<a name="line.22"></a>
+<span class="sourceLineNo">023</span> * &lt;br&gt;<a name="line.23"></a>
+<span class="sourceLineNo">024</span> *          This library is distributed in the hope that it will be useful, but<a name="line.24"></a>
+<span class="sourceLineNo">025</span> *          WITHOUT ANY WARRANTY; without even the implied warranty of<a name="line.25"></a>
+<span class="sourceLineNo">026</span> *          MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU<a name="line.26"></a>
+<span class="sourceLineNo">027</span> *          Lesser General Public License for more details. &lt;br&gt;<a name="line.27"></a>
+<span class="sourceLineNo">028</span> * &lt;br&gt;<a name="line.28"></a>
+<span class="sourceLineNo">029</span> *          You should have received a copy of the GNU Lesser General Public<a name="line.29"></a>
+<span class="sourceLineNo">030</span> *          License along with this library; if not see<a name="line.30"></a>
+<span class="sourceLineNo">031</span> *          &lt;a href='http://www.gnu.org/licenses/'&gt;http://www.gnu.org/licenses/&lt;/a&gt;.<a name="line.31"></a>
+<span class="sourceLineNo">032</span> */<a name="line.32"></a>
+<span class="sourceLineNo">033</span>public class RoomSharingModel {<a name="line.33"></a>
+<span class="sourceLineNo">034</span>        protected int iStep = 1;<a name="line.34"></a>
+<span class="sourceLineNo">035</span>    protected Long[][] iPreference = null;<a name="line.35"></a>
+<span class="sourceLineNo">036</span>    protected Long[] iDepartmentIds = null;<a name="line.36"></a>
+<span class="sourceLineNo">037</span>    protected HashMap&lt;Long, Integer&gt; iDepartmentIdx = null;<a name="line.37"></a>
+<span class="sourceLineNo">038</span><a name="line.38"></a>
+<span class="sourceLineNo">039</span>    public static Long sFreeForAllPref = Long.valueOf(-1);<a name="line.39"></a>
+<span class="sourceLineNo">040</span>    public static Long sNotAvailablePref = Long.valueOf(-2);<a name="line.40"></a>
+<span class="sourceLineNo">041</span>    public static char sFreeForAllPrefChar = '*';<a name="line.41"></a>
+<span class="sourceLineNo">042</span>    public static char sNotAvailablePrefChar = '#';<a name="line.42"></a>
+<span class="sourceLineNo">043</span><a name="line.43"></a>
+<span class="sourceLineNo">044</span>    public static Long sDefaultPref = sFreeForAllPref;<a name="line.44"></a>
+<span class="sourceLineNo">045</span>    public static char sDefaultPrefChar = sFreeForAllPrefChar;<a name="line.45"></a>
+<span class="sourceLineNo">046</span><a name="line.46"></a>
+<span class="sourceLineNo">047</span>    public char iFreeForAllPrefChar = sFreeForAllPrefChar;<a name="line.47"></a>
+<span class="sourceLineNo">048</span>    public char iNotAvailablePrefChar = sNotAvailablePrefChar;<a name="line.48"></a>
+<span class="sourceLineNo">049</span>    <a name="line.49"></a>
+<span class="sourceLineNo">050</span>    private Map&lt;Character, Long&gt; iPatternMapping = null;<a name="line.50"></a>
+<span class="sourceLineNo">051</span><a name="line.51"></a>
+<span class="sourceLineNo">052</span>    protected RoomSharingModel(int step) {<a name="line.52"></a>
+<span class="sourceLineNo">053</span>        iStep = step;<a name="line.53"></a>
+<span class="sourceLineNo">054</span>    }<a name="line.54"></a>
+<span class="sourceLineNo">055</span>    <a name="line.55"></a>
+<span class="sourceLineNo">056</span>    protected RoomSharingModel() {<a name="line.56"></a>
+<span class="sourceLineNo">057</span>        this(6);<a name="line.57"></a>
+<span class="sourceLineNo">058</span>    }<a name="line.58"></a>
+<span class="sourceLineNo">059</span>    <a name="line.59"></a>
+<span class="sourceLineNo">060</span>    public RoomSharingModel(int step, Map&lt;Character, Long&gt; managerIds, String pattern, Character freeForAllPrefChar, Character notAvailablePrefChar) {<a name="line.60"></a>
+<span class="sourceLineNo">061</span>        iStep = step;<a name="line.61"></a>
+<span class="sourceLineNo">062</span>        iPreference = new Long[getNrDays()][getNrTimes()];<a name="line.62"></a>
+<span class="sourceLineNo">063</span>        iDepartmentIds = new Long[managerIds == null ? 0 : managerIds.size()];<a name="line.63"></a>
+<span class="sourceLineNo">064</span>        iDepartmentIdx = new HashMap&lt;Long, Integer&gt;();<a name="line.64"></a>
+<span class="sourceLineNo">065</span>        if (managerIds != null) {<a name="line.65"></a>
+<span class="sourceLineNo">066</span>            iPatternMapping = new HashMap&lt;Character, Long&gt;(managerIds);<a name="line.66"></a>
+<span class="sourceLineNo">067</span>            int i = 0;<a name="line.67"></a>
+<span class="sourceLineNo">068</span>            for (Character ch: new TreeSet&lt;Character&gt;(managerIds.keySet())) {<a name="line.68"></a>
+<span class="sourceLineNo">069</span>                Long id = managerIds.get(ch);<a name="line.69"></a>
+<span class="sourceLineNo">070</span>                iDepartmentIds[i] = id;<a name="line.70"></a>
+<span class="sourceLineNo">071</span>                iDepartmentIdx.put(id, i);<a name="line.71"></a>
+<span class="sourceLineNo">072</span>                i++;<a name="line.72"></a>
+<span class="sourceLineNo">073</span>            }<a name="line.73"></a>
+<span class="sourceLineNo">074</span>        }<a name="line.74"></a>
+<span class="sourceLineNo">075</span>        if (freeForAllPrefChar != null)<a name="line.75"></a>
+<span class="sourceLineNo">076</span>            iFreeForAllPrefChar = freeForAllPrefChar;<a name="line.76"></a>
+<span class="sourceLineNo">077</span>        if (notAvailablePrefChar != null)<a name="line.77"></a>
+<span class="sourceLineNo">078</span>            iNotAvailablePrefChar = notAvailablePrefChar;<a name="line.78"></a>
+<span class="sourceLineNo">079</span><a name="line.79"></a>
+<span class="sourceLineNo">080</span>        setPreferences(pattern);<a name="line.80"></a>
+<span class="sourceLineNo">081</span>    }<a name="line.81"></a>
+<span class="sourceLineNo">082</span><a name="line.82"></a>
+<span class="sourceLineNo">083</span>    public RoomSharingModel(int step, Long[] managerIds, String pattern, Character freeForAllPrefChar, Character notAvailablePrefChar) {<a name="line.83"></a>
+<span class="sourceLineNo">084</span>        iStep = step;<a name="line.84"></a>
+<span class="sourceLineNo">085</span>        iPreference = new Long[getNrDays()][getNrTimes()];<a name="line.85"></a>
+<span class="sourceLineNo">086</span>        iDepartmentIds = new Long[managerIds.length];<a name="line.86"></a>
+<span class="sourceLineNo">087</span>        iDepartmentIdx = new HashMap&lt;Long, Integer&gt;();<a name="line.87"></a>
+<span class="sourceLineNo">088</span>        for (int i = 0; i &lt; managerIds.length; i++) {<a name="line.88"></a>
+<span class="sourceLineNo">089</span>            iDepartmentIds[i] = managerIds[i];<a name="line.89"></a>
+<span class="sourceLineNo">090</span>            iDepartmentIdx.put(managerIds[i], i);<a name="line.90"></a>
+<span class="sourceLineNo">091</span>        }<a name="line.91"></a>
+<span class="sourceLineNo">092</span>        if (freeForAllPrefChar != null)<a name="line.92"></a>
+<span class="sourceLineNo">093</span>            iFreeForAllPrefChar = freeForAllPrefChar;<a name="line.93"></a>
+<span class="sourceLineNo">094</span>        if (notAvailablePrefChar != null)<a name="line.94"></a>
+<span class="sourceLineNo">095</span>            iNotAvailablePrefChar = notAvailablePrefChar;<a name="line.95"></a>
+<span class="sourceLineNo">096</span><a name="line.96"></a>
+<span class="sourceLineNo">097</span>        setPreferences(pattern);<a name="line.97"></a>
+<span class="sourceLineNo">098</span>    }<a name="line.98"></a>
+<span class="sourceLineNo">099</span>    <a name="line.99"></a>
+<span class="sourceLineNo">100</span>    public char getFreeForAllPrefChar() { return iFreeForAllPrefChar; }<a name="line.100"></a>
+<span class="sourceLineNo">101</span>    public void setFreeForAllPrefChar(char c) { iFreeForAllPrefChar = c; }<a name="line.101"></a>
+<span class="sourceLineNo">102</span><a name="line.102"></a>
+<span class="sourceLineNo">103</span>    public char getNotAvailablePrefChar() { return iNotAvailablePrefChar; }<a name="line.103"></a>
+<span class="sourceLineNo">104</span>    public void setNotAvailablePrefChar(char c) { iNotAvailablePrefChar = c; }<a name="line.104"></a>
+<span class="sourceLineNo">105</span><a name="line.105"></a>
+<span class="sourceLineNo">106</span>    public boolean isFreeForAll(int day, int time) {<a name="line.106"></a>
+<span class="sourceLineNo">107</span>        return sFreeForAllPref.equals(iPreference[day][time]);<a name="line.107"></a>
+<span class="sourceLineNo">108</span>    }<a name="line.108"></a>
+<span class="sourceLineNo">109</span><a name="line.109"></a>
+<span class="sourceLineNo">110</span>    public boolean isFreeForAll(int slot) {<a name="line.110"></a>
+<span class="sourceLineNo">111</span>        int day = slot / Constants.SLOTS_PER_DAY;<a name="line.111"></a>
+<span class="sourceLineNo">112</span>        int time = (slot % Constants.SLOTS_PER_DAY) / getStep();<a name="line.112"></a>
+<span class="sourceLineNo">113</span>        return sFreeForAllPref.equals(iPreference[day][time]);<a name="line.113"></a>
+<span class="sourceLineNo">114</span>    }<a name="line.114"></a>
+<span class="sourceLineNo">115</span><a name="line.115"></a>
+<span class="sourceLineNo">116</span>    public boolean isNotAvailable(int day, int time) {<a name="line.116"></a>
+<span class="sourceLineNo">117</span>        return sNotAvailablePref.equals(iPreference[day][time]);<a name="line.117"></a>
+<span class="sourceLineNo">118</span>    }<a name="line.118"></a>
+<span class="sourceLineNo">119</span><a name="line.119"></a>
+<span class="sourceLineNo">120</span>    public boolean isNotAvailable(int slot) {<a name="line.120"></a>
+<span class="sourceLineNo">121</span>        int day = slot / Constants.SLOTS_PER_DAY;<a name="line.121"></a>
+<span class="sourceLineNo">122</span>        int time = (slot % Constants.SLOTS_PER_DAY) / getStep();<a name="line.122"></a>
+<span class="sourceLineNo">123</span>        return sNotAvailablePref.equals(iPreference[day][time]);<a name="line.123"></a>
+<span class="sourceLineNo">124</span>    }<a name="line.124"></a>
+<span class="sourceLineNo">125</span><a name="line.125"></a>
+<span class="sourceLineNo">126</span>    public boolean isAvailable(TimeLocation timeLocation, Long departmentId) {<a name="line.126"></a>
+<span class="sourceLineNo">127</span>        for (int d = 0; d &lt; Constants.NR_DAYS; d++) {<a name="line.127"></a>
+<span class="sourceLineNo">128</span>            if ((Constants.DAY_CODES[d] &amp; timeLocation.getDayCode()) == 0)<a name="line.128"></a>
+<span class="sourceLineNo">129</span>                continue;<a name="line.129"></a>
+<span class="sourceLineNo">130</span>            int startTime = timeLocation.getStartSlot() / getStep();<a name="line.130"></a>
+<span class="sourceLineNo">131</span>            int endTime = (timeLocation.getStartSlot() + timeLocation.getLength() - 1) / getStep();<a name="line.131"></a>
+<span class="sourceLineNo">132</span>            for (int t = startTime; t &lt;= endTime; t++) {<a name="line.132"></a>
+<span class="sourceLineNo">133</span>                Long pref = iPreference[d][t];<a name="line.133"></a>
+<span class="sourceLineNo">134</span>                if (pref.equals(sNotAvailablePref))<a name="line.134"></a>
+<span class="sourceLineNo">135</span>                    return false;<a name="line.135"></a>
+<span class="sourceLineNo">136</span>                if (pref.equals(sFreeForAllPref))<a name="line.136"></a>
+<span class="sourceLineNo">137</span>                    continue;<a name="line.137"></a>
+<span class="sourceLineNo">138</span>                if (departmentId != null &amp;&amp; !departmentId.equals(pref))<a name="line.138"></a>
+<span class="sourceLineNo">139</span>                    return false;<a name="line.139"></a>
+<span class="sourceLineNo">140</span>            }<a name="line.140"></a>
+<span class="sourceLineNo">141</span>        }<a name="line.141"></a>
+<span class="sourceLineNo">142</span>        return true;<a name="line.142"></a>
+<span class="sourceLineNo">143</span>    }<a name="line.143"></a>
+<span class="sourceLineNo">144</span><a name="line.144"></a>
+<span class="sourceLineNo">145</span>    public Long getDepartmentId(int day, int time) {<a name="line.145"></a>
+<span class="sourceLineNo">146</span>        Long pref = iPreference[day][time];<a name="line.146"></a>
+<span class="sourceLineNo">147</span>        if (pref.equals(sFreeForAllPref) || pref.equals(sNotAvailablePref))<a name="line.147"></a>
+<span class="sourceLineNo">148</span>            return null;<a name="line.148"></a>
+<span class="sourceLineNo">149</span>        return pref;<a name="line.149"></a>
+<span class="sourceLineNo">150</span>    }<a name="line.150"></a>
+<span class="sourceLineNo">151</span><a name="line.151"></a>
+<span class="sourceLineNo">152</span>    public Long getDepartmentId(int slot) {<a name="line.152"></a>
+<span class="sourceLineNo">153</span>        int day = slot / Constants.SLOTS_PER_DAY;<a name="line.153"></a>
+<span class="sourceLineNo">154</span>        int time = (slot % Constants.SLOTS_PER_DAY) / getStep();<a name="line.154"></a>
+<span class="sourceLineNo">155</span>        return getDepartmentId(day, time);<a name="line.155"></a>
+<span class="sourceLineNo">156</span>    }<a name="line.156"></a>
+<span class="sourceLineNo">157</span><a name="line.157"></a>
+<span class="sourceLineNo">158</span>    public Long[] getDepartmentIds() {<a name="line.158"></a>
+<span class="sourceLineNo">159</span>        return iDepartmentIds;<a name="line.159"></a>
+<span class="sourceLineNo">160</span>    }<a name="line.160"></a>
+<span class="sourceLineNo">161</span><a name="line.161"></a>
+<span class="sourceLineNo">162</span>    public int getNrDepartments() {<a name="line.162"></a>
+<span class="sourceLineNo">163</span>        return (iDepartmentIds == null ? 0 : iDepartmentIds.length);<a name="line.163"></a>
+<span class="sourceLineNo">164</span>    }<a name="line.164"></a>
+<span class="sourceLineNo">165</span><a name="line.165"></a>
+<span class="sourceLineNo">166</span>    public int getIndex(Long departmentId) {<a name="line.166"></a>
+<span class="sourceLineNo">167</span>        Integer idx = iDepartmentIdx.get(departmentId);<a name="line.167"></a>
+<span class="sourceLineNo">168</span>        if (idx == null)<a name="line.168"></a>
+<span class="sourceLineNo">169</span>            return -1;<a name="line.169"></a>
+<span class="sourceLineNo">170</span>        return idx.intValue();<a name="line.170"></a>
+<span class="sourceLineNo">171</span>    }<a name="line.171"></a>
+<span class="sourceLineNo">172</span>    <a name="line.172"></a>
+<span class="sourceLineNo">173</span>    public char getCharacter(Long departmentId) {<a name="line.173"></a>
+<span class="sourceLineNo">174</span>        if (iPatternMapping != null) {<a name="line.174"></a>
+<span class="sourceLineNo">175</span>            for (Map.Entry&lt;Character, Long&gt; e: iPatternMapping.entrySet()) {<a name="line.175"></a>
+<span class="sourceLineNo">176</span>                if (e.getValue().equals(departmentId)) return e.getKey();<a name="line.176"></a>
+<span class="sourceLineNo">177</span>            }<a name="line.177"></a>
+<span class="sourceLineNo">178</span>        }<a name="line.178"></a>
+<span class="sourceLineNo">179</span>        return (char) ('0' + getIndex(departmentId));<a name="line.179"></a>
+<span class="sourceLineNo">180</span>    }<a name="line.180"></a>
+<span class="sourceLineNo">181</span>    <a name="line.181"></a>
+<span class="sourceLineNo">182</span>    public Long getDepartmentId(char ch) {<a name="line.182"></a>
+<span class="sourceLineNo">183</span>        if (iPatternMapping != null)<a name="line.183"></a>
+<span class="sourceLineNo">184</span>            return iPatternMapping.get(ch);<a name="line.184"></a>
+<span class="sourceLineNo">185</span>        else<a name="line.185"></a>
+<span class="sourceLineNo">186</span>            return iDepartmentIds[(ch - '0')];<a name="line.186"></a>
+<span class="sourceLineNo">187</span>    }<a name="line.187"></a>
+<span class="sourceLineNo">188</span><a name="line.188"></a>
+<span class="sourceLineNo">189</span>    public String getPreferences() {<a name="line.189"></a>
+<span class="sourceLineNo">190</span>        StringBuffer sb = new StringBuffer();<a name="line.190"></a>
+<span class="sourceLineNo">191</span>        for (int d = 0; d &lt; getNrDays(); d++)<a name="line.191"></a>
+<span class="sourceLineNo">192</span>            for (int t = 0; t &lt; getNrTimes(); t++) {<a name="line.192"></a>
+<span class="sourceLineNo">193</span>                if (iPreference[d][t].equals(sFreeForAllPref))<a name="line.193"></a>
+<span class="sourceLineNo">194</span>                    sb.append(getFreeForAllPrefChar());<a name="line.194"></a>
+<span class="sourceLineNo">195</span>                else if (iPreference[d][t].equals(sNotAvailablePref))<a name="line.195"></a>
+<span class="sourceLineNo">196</span>                    sb.append(getNotAvailablePrefChar());<a name="line.196"></a>
+<span class="sourceLineNo">197</span>                else<a name="line.197"></a>
+<span class="sourceLineNo">198</span>                    sb.append(getCharacter(iPreference[d][t]));<a name="line.198"></a>
+<span class="sourceLineNo">199</span>            }<a name="line.199"></a>
+<span class="sourceLineNo">200</span>        return sb.toString();<a name="line.200"></a>
+<span class="sourceLineNo">201</span>    }<a name="line.201"></a>
+<span class="sourceLineNo">202</span><a name="line.202"></a>
+<span class="sourceLineNo">203</span>    public void setPreferences(String pattern) {<a name="line.203"></a>
+<span class="sourceLineNo">204</span>        try {<a name="line.204"></a>
+<span class="sourceLineNo">205</span>            int idx = 0;<a name="line.205"></a>
+<span class="sourceLineNo">206</span>            for (int d = 0; d &lt; getNrDays(); d++)<a name="line.206"></a>
+<span class="sourceLineNo">207</span>                for (int t = 0; t &lt; getNrTimes(); t++) {<a name="line.207"></a>
+<span class="sourceLineNo">208</span>                    char pref = (pattern != null &amp;&amp; idx &lt; pattern.length() ? pattern.charAt(idx) : getFreeForAllPrefChar());<a name="line.208"></a>
+<span class="sourceLineNo">209</span>                    idx++;<a name="line.209"></a>
+<span class="sourceLineNo">210</span>                    if (pref == getNotAvailablePrefChar()) {<a name="line.210"></a>
+<span class="sourceLineNo">211</span>                        iPreference[d][t] = sNotAvailablePref;<a name="line.211"></a>
+<span class="sourceLineNo">212</span>                    } else if (pref == getFreeForAllPrefChar()) {<a name="line.212"></a>
+<span class="sourceLineNo">213</span>                        iPreference[d][t] = sFreeForAllPref;<a name="line.213"></a>
+<span class="sourceLineNo">214</span>                    } else {<a name="line.214"></a>
+<span class="sourceLineNo">215</span>                        iPreference[d][t] = getDepartmentId(pref);<a name="line.215"></a>
+<span class="sourceLineNo">216</span>                    }<a name="line.216"></a>
+<span class="sourceLineNo">217</span>                }<a name="line.217"></a>
+<span class="sourceLineNo">218</span>        } catch (NullPointerException e) {<a name="line.218"></a>
+<span class="sourceLineNo">219</span>        } catch (IndexOutOfBoundsException e) {<a name="line.219"></a>
+<span class="sourceLineNo">220</span>        }<a name="line.220"></a>
+<span class="sourceLineNo">221</span>    }<a name="line.221"></a>
+<span class="sourceLineNo">222</span><a name="line.222"></a>
+<span class="sourceLineNo">223</span>    public int getNrDays() {<a name="line.223"></a>
+<span class="sourceLineNo">224</span>        return Constants.NR_DAYS;<a name="line.224"></a>
+<span class="sourceLineNo">225</span>    }<a name="line.225"></a>
+<span class="sourceLineNo">226</span><a name="line.226"></a>
+<span class="sourceLineNo">227</span>    public int getNrTimes() {<a name="line.227"></a>
+<span class="sourceLineNo">228</span>        return Constants.SLOTS_PER_DAY / getStep();<a name="line.228"></a>
+<span class="sourceLineNo">229</span>    }<a name="line.229"></a>
+<span class="sourceLineNo">230</span>    <a name="line.230"></a>
+<span class="sourceLineNo">231</span>    public int getStep() {<a name="line.231"></a>
+<span class="sourceLineNo">232</span>        return iStep;<a name="line.232"></a>
+<span class="sourceLineNo">233</span>    }<a name="line.233"></a>
+<span class="sourceLineNo">234</span>}<a name="line.234"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

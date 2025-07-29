@@ -1,0 +1,326 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.cpsolver.exam.reports;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import org.cpsolver.exam.criteria.StudentBackToBackConflicts;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import org.cpsolver.exam.criteria.StudentDistanceBackToBackConflicts;<a name="line.4"></a>
+<span class="sourceLineNo">005</span>import org.cpsolver.exam.model.Exam;<a name="line.5"></a>
+<span class="sourceLineNo">006</span>import org.cpsolver.exam.model.ExamModel;<a name="line.6"></a>
+<span class="sourceLineNo">007</span>import org.cpsolver.exam.model.ExamOwner;<a name="line.7"></a>
+<span class="sourceLineNo">008</span>import org.cpsolver.exam.model.ExamPeriod;<a name="line.8"></a>
+<span class="sourceLineNo">009</span>import org.cpsolver.exam.model.ExamPlacement;<a name="line.9"></a>
+<span class="sourceLineNo">010</span>import org.cpsolver.exam.model.ExamRoomPlacement;<a name="line.10"></a>
+<span class="sourceLineNo">011</span>import org.cpsolver.exam.model.ExamStudent;<a name="line.11"></a>
+<span class="sourceLineNo">012</span>import org.cpsolver.ifs.assignment.Assignment;<a name="line.12"></a>
+<span class="sourceLineNo">013</span>import org.cpsolver.ifs.util.CSVFile;<a name="line.13"></a>
+<span class="sourceLineNo">014</span>import org.cpsolver.ifs.util.CSVFile.CSVField;<a name="line.14"></a>
+<span class="sourceLineNo">015</span><a name="line.15"></a>
+<span class="sourceLineNo">016</span>/**<a name="line.16"></a>
+<span class="sourceLineNo">017</span> * Export student direct, back-to-back, and more than two exams a day conflicts<a name="line.17"></a>
+<span class="sourceLineNo">018</span> * into a CSV file. &lt;br&gt;<a name="line.18"></a>
+<span class="sourceLineNo">019</span> * &lt;br&gt;<a name="line.19"></a>
+<span class="sourceLineNo">020</span> * Usage:<a name="line.20"></a>
+<span class="sourceLineNo">021</span> * &lt;pre&gt;&lt;code&gt;<a name="line.21"></a>
+<span class="sourceLineNo">022</span> * &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;new ExamStudentConflicts(model).report().save(file);<a name="line.22"></a>
+<span class="sourceLineNo">023</span> * &lt;/code&gt;&lt;/pre&gt;<a name="line.23"></a>
+<span class="sourceLineNo">024</span> * &lt;br&gt;<a name="line.24"></a>
+<span class="sourceLineNo">025</span> * <a name="line.25"></a>
+<span class="sourceLineNo">026</span> * @author  Tom&#225;&#353; M&#252;ller<a name="line.26"></a>
+<span class="sourceLineNo">027</span> * @version ExamTT 1.3 (Examination Timetabling)&lt;br&gt;<a name="line.27"></a>
+<span class="sourceLineNo">028</span> *          Copyright (C) 2008 - 2014 Tom&#225;&#353; M&#252;ller&lt;br&gt;<a name="line.28"></a>
+<span class="sourceLineNo">029</span> *          &lt;a href="mailto:muller@unitime.org"&gt;muller@unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.29"></a>
+<span class="sourceLineNo">030</span> *          &lt;a href="http://muller.unitime.org"&gt;http://muller.unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.30"></a>
+<span class="sourceLineNo">031</span> * &lt;br&gt;<a name="line.31"></a>
+<span class="sourceLineNo">032</span> *          This library is free software; you can redistribute it and/or modify<a name="line.32"></a>
+<span class="sourceLineNo">033</span> *          it under the terms of the GNU Lesser General Public License as<a name="line.33"></a>
+<span class="sourceLineNo">034</span> *          published by the Free Software Foundation; either version 3 of the<a name="line.34"></a>
+<span class="sourceLineNo">035</span> *          License, or (at your option) any later version. &lt;br&gt;<a name="line.35"></a>
+<span class="sourceLineNo">036</span> * &lt;br&gt;<a name="line.36"></a>
+<span class="sourceLineNo">037</span> *          This library is distributed in the hope that it will be useful, but<a name="line.37"></a>
+<span class="sourceLineNo">038</span> *          WITHOUT ANY WARRANTY; without even the implied warranty of<a name="line.38"></a>
+<span class="sourceLineNo">039</span> *          MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU<a name="line.39"></a>
+<span class="sourceLineNo">040</span> *          Lesser General Public License for more details. &lt;br&gt;<a name="line.40"></a>
+<span class="sourceLineNo">041</span> * &lt;br&gt;<a name="line.41"></a>
+<span class="sourceLineNo">042</span> *          You should have received a copy of the GNU Lesser General Public<a name="line.42"></a>
+<span class="sourceLineNo">043</span> *          License along with this library; if not see<a name="line.43"></a>
+<span class="sourceLineNo">044</span> *          &lt;a href='http://www.gnu.org/licenses/'&gt;http://www.gnu.org/licenses/&lt;/a&gt;.<a name="line.44"></a>
+<span class="sourceLineNo">045</span> */<a name="line.45"></a>
+<span class="sourceLineNo">046</span>public class ExamStudentConflicts {<a name="line.46"></a>
+<span class="sourceLineNo">047</span>    private ExamModel iModel = null;<a name="line.47"></a>
+<span class="sourceLineNo">048</span><a name="line.48"></a>
+<span class="sourceLineNo">049</span>    /**<a name="line.49"></a>
+<span class="sourceLineNo">050</span>     * Constructor<a name="line.50"></a>
+<span class="sourceLineNo">051</span>     * <a name="line.51"></a>
+<span class="sourceLineNo">052</span>     * @param model<a name="line.52"></a>
+<span class="sourceLineNo">053</span>     *            examination timetabling model<a name="line.53"></a>
+<span class="sourceLineNo">054</span>     */<a name="line.54"></a>
+<span class="sourceLineNo">055</span>    public ExamStudentConflicts(ExamModel model) {<a name="line.55"></a>
+<span class="sourceLineNo">056</span>        iModel = model;<a name="line.56"></a>
+<span class="sourceLineNo">057</span>    }<a name="line.57"></a>
+<span class="sourceLineNo">058</span><a name="line.58"></a>
+<span class="sourceLineNo">059</span>    /**<a name="line.59"></a>
+<span class="sourceLineNo">060</span>     * generate report<a name="line.60"></a>
+<span class="sourceLineNo">061</span>     * @param assignment current assignment<a name="line.61"></a>
+<span class="sourceLineNo">062</span>     * @return resultant report<a name="line.62"></a>
+<span class="sourceLineNo">063</span>     */<a name="line.63"></a>
+<span class="sourceLineNo">064</span>    public CSVFile report(Assignment&lt;Exam, ExamPlacement&gt; assignment) {<a name="line.64"></a>
+<span class="sourceLineNo">065</span>        CSVFile csv = new CSVFile();<a name="line.65"></a>
+<span class="sourceLineNo">066</span>        csv.setHeader(new CSVField[] { new CSVField("Student"), new CSVField("Type"), new CSVField("Section/Course"),<a name="line.66"></a>
+<span class="sourceLineNo">067</span>                new CSVField("Period"), new CSVField("Day"), new CSVField("Time"), new CSVField("Room"),<a name="line.67"></a>
+<span class="sourceLineNo">068</span>                new CSVField("Distance") });<a name="line.68"></a>
+<span class="sourceLineNo">069</span>        boolean isDayBreakBackToBack = ((StudentBackToBackConflicts)iModel.getCriterion(StudentBackToBackConflicts.class)).isDayBreakBackToBack();<a name="line.69"></a>
+<span class="sourceLineNo">070</span>        double backToBackDistance = ((StudentDistanceBackToBackConflicts)iModel.getCriterion(StudentDistanceBackToBackConflicts.class)).getBackToBackDistance();<a name="line.70"></a>
+<span class="sourceLineNo">071</span>        for (ExamStudent student : iModel.getStudents()) {<a name="line.71"></a>
+<span class="sourceLineNo">072</span>            for (ExamPeriod period : iModel.getPeriods()) {<a name="line.72"></a>
+<span class="sourceLineNo">073</span>                int nrExams = student.getExams(assignment, period).size();<a name="line.73"></a>
+<span class="sourceLineNo">074</span>                if (nrExams &gt; 1) {<a name="line.74"></a>
+<span class="sourceLineNo">075</span>                    String sections = "";<a name="line.75"></a>
+<span class="sourceLineNo">076</span>                    String rooms = "";<a name="line.76"></a>
+<span class="sourceLineNo">077</span>                    String periods = String.valueOf(period.getIndex() + 1);<a name="line.77"></a>
+<span class="sourceLineNo">078</span>                    String periodDays = period.getDayStr();<a name="line.78"></a>
+<span class="sourceLineNo">079</span>                    String periodTimes = period.getTimeStr();<a name="line.79"></a>
+<span class="sourceLineNo">080</span>                    for (Exam exam : student.getExams(assignment, period)) {<a name="line.80"></a>
+<span class="sourceLineNo">081</span>                        ExamPlacement placement = assignment.getValue(exam);<a name="line.81"></a>
+<span class="sourceLineNo">082</span>                        String roomsThisExam = "";<a name="line.82"></a>
+<span class="sourceLineNo">083</span>                        for (ExamRoomPlacement room : placement.getRoomPlacements()) {<a name="line.83"></a>
+<span class="sourceLineNo">084</span>                            if (roomsThisExam.length() &gt; 0)<a name="line.84"></a>
+<span class="sourceLineNo">085</span>                                roomsThisExam += ", ";<a name="line.85"></a>
+<span class="sourceLineNo">086</span>                            roomsThisExam += room.getName();<a name="line.86"></a>
+<span class="sourceLineNo">087</span>                        }<a name="line.87"></a>
+<span class="sourceLineNo">088</span>                        boolean first = true;<a name="line.88"></a>
+<span class="sourceLineNo">089</span>                        for (ExamOwner cs : exam.getOwners(student)) {<a name="line.89"></a>
+<span class="sourceLineNo">090</span>                            if (sections.length() &gt; 0) {<a name="line.90"></a>
+<span class="sourceLineNo">091</span>                                sections += "\n";<a name="line.91"></a>
+<span class="sourceLineNo">092</span>                                rooms += "\n";<a name="line.92"></a>
+<span class="sourceLineNo">093</span>                                periods += "\n";<a name="line.93"></a>
+<span class="sourceLineNo">094</span>                                periodDays += "\n";<a name="line.94"></a>
+<span class="sourceLineNo">095</span>                                periodTimes += "\n";<a name="line.95"></a>
+<span class="sourceLineNo">096</span>                            }<a name="line.96"></a>
+<span class="sourceLineNo">097</span>                            sections += cs.getName();<a name="line.97"></a>
+<span class="sourceLineNo">098</span>                            if (first)<a name="line.98"></a>
+<span class="sourceLineNo">099</span>                                rooms += roomsThisExam;<a name="line.99"></a>
+<span class="sourceLineNo">100</span>                            first = false;<a name="line.100"></a>
+<span class="sourceLineNo">101</span>                        }<a name="line.101"></a>
+<span class="sourceLineNo">102</span>                        if (exam.getOwners(student).isEmpty()) {<a name="line.102"></a>
+<span class="sourceLineNo">103</span>                            sections += exam.getName();<a name="line.103"></a>
+<span class="sourceLineNo">104</span>                            rooms += roomsThisExam;<a name="line.104"></a>
+<span class="sourceLineNo">105</span>                        }<a name="line.105"></a>
+<span class="sourceLineNo">106</span>                    }<a name="line.106"></a>
+<span class="sourceLineNo">107</span>                    csv.addLine(new CSVField[] { new CSVField(student.getName()), new CSVField("direct"),<a name="line.107"></a>
+<span class="sourceLineNo">108</span>                            new CSVField(sections), new CSVField(periods), new CSVField(periodDays),<a name="line.108"></a>
+<span class="sourceLineNo">109</span>                            new CSVField(periodTimes), new CSVField(rooms) });<a name="line.109"></a>
+<span class="sourceLineNo">110</span>                }<a name="line.110"></a>
+<span class="sourceLineNo">111</span>                if (nrExams &gt; 0) {<a name="line.111"></a>
+<span class="sourceLineNo">112</span>                    if (period.next() != null &amp;&amp; !student.getExams(assignment, period.next()).isEmpty()<a name="line.112"></a>
+<span class="sourceLineNo">113</span>                            &amp;&amp; (!isDayBreakBackToBack || period.next().getDay() == period.getDay())) {<a name="line.113"></a>
+<span class="sourceLineNo">114</span>                        for (Exam ex1 : student.getExams(assignment, period)) {<a name="line.114"></a>
+<span class="sourceLineNo">115</span>                            for (Exam ex2 : student.getExams(assignment, period.next())) {<a name="line.115"></a>
+<span class="sourceLineNo">116</span>                                ExamPlacement placement = assignment.getValue(ex1);<a name="line.116"></a>
+<span class="sourceLineNo">117</span>                                String sections = "";<a name="line.117"></a>
+<span class="sourceLineNo">118</span>                                String rooms = "";<a name="line.118"></a>
+<span class="sourceLineNo">119</span>                                String roomsThisExam = "";<a name="line.119"></a>
+<span class="sourceLineNo">120</span>                                String periods = String.valueOf(period.getIndex() + 1);<a name="line.120"></a>
+<span class="sourceLineNo">121</span>                                String periodDays = period.getDayStr();<a name="line.121"></a>
+<span class="sourceLineNo">122</span>                                String periodTimes = period.getTimeStr();<a name="line.122"></a>
+<span class="sourceLineNo">123</span>                                for (ExamRoomPlacement room : placement.getRoomPlacements()) {<a name="line.123"></a>
+<span class="sourceLineNo">124</span>                                    if (roomsThisExam.length() &gt; 0)<a name="line.124"></a>
+<span class="sourceLineNo">125</span>                                        roomsThisExam += ", ";<a name="line.125"></a>
+<span class="sourceLineNo">126</span>                                    roomsThisExam += room.getName();<a name="line.126"></a>
+<span class="sourceLineNo">127</span>                                }<a name="line.127"></a>
+<span class="sourceLineNo">128</span>                                boolean first = true;<a name="line.128"></a>
+<span class="sourceLineNo">129</span>                                for (ExamOwner cs : ex1.getOwners(student)) {<a name="line.129"></a>
+<span class="sourceLineNo">130</span>                                    if (sections.length() &gt; 0) {<a name="line.130"></a>
+<span class="sourceLineNo">131</span>                                        sections += "\n";<a name="line.131"></a>
+<span class="sourceLineNo">132</span>                                        rooms += "\n";<a name="line.132"></a>
+<span class="sourceLineNo">133</span>                                        periods += "\n";<a name="line.133"></a>
+<span class="sourceLineNo">134</span>                                        periodDays += "\n";<a name="line.134"></a>
+<span class="sourceLineNo">135</span>                                        periodTimes += "\n";<a name="line.135"></a>
+<span class="sourceLineNo">136</span>                                    }<a name="line.136"></a>
+<span class="sourceLineNo">137</span>                                    sections += cs.getName();<a name="line.137"></a>
+<span class="sourceLineNo">138</span>                                    if (first)<a name="line.138"></a>
+<span class="sourceLineNo">139</span>                                        rooms += roomsThisExam;<a name="line.139"></a>
+<span class="sourceLineNo">140</span>                                    first = false;<a name="line.140"></a>
+<span class="sourceLineNo">141</span>                                }<a name="line.141"></a>
+<span class="sourceLineNo">142</span>                                if (ex1.getOwners(student).isEmpty()) {<a name="line.142"></a>
+<span class="sourceLineNo">143</span>                                    sections += ex1.getName();<a name="line.143"></a>
+<span class="sourceLineNo">144</span>                                    rooms += roomsThisExam;<a name="line.144"></a>
+<span class="sourceLineNo">145</span>                                }<a name="line.145"></a>
+<span class="sourceLineNo">146</span>                                placement = assignment.getValue(ex2);<a name="line.146"></a>
+<span class="sourceLineNo">147</span>                                roomsThisExam = "";<a name="line.147"></a>
+<span class="sourceLineNo">148</span>                                for (ExamRoomPlacement room : placement.getRoomPlacements()) {<a name="line.148"></a>
+<span class="sourceLineNo">149</span>                                    if (roomsThisExam.length() &gt; 0)<a name="line.149"></a>
+<span class="sourceLineNo">150</span>                                        roomsThisExam += ", ";<a name="line.150"></a>
+<span class="sourceLineNo">151</span>                                    roomsThisExam += room.getName();<a name="line.151"></a>
+<span class="sourceLineNo">152</span>                                }<a name="line.152"></a>
+<span class="sourceLineNo">153</span>                                first = true;<a name="line.153"></a>
+<span class="sourceLineNo">154</span>                                for (ExamOwner cs : ex2.getOwners(student)) {<a name="line.154"></a>
+<span class="sourceLineNo">155</span>                                    sections += "\n";<a name="line.155"></a>
+<span class="sourceLineNo">156</span>                                    rooms += "\n";<a name="line.156"></a>
+<span class="sourceLineNo">157</span>                                    periods += "\n";<a name="line.157"></a>
+<span class="sourceLineNo">158</span>                                    periodDays += "\n";<a name="line.158"></a>
+<span class="sourceLineNo">159</span>                                    periodTimes += "\n";<a name="line.159"></a>
+<span class="sourceLineNo">160</span>                                    sections += cs.getName();<a name="line.160"></a>
+<span class="sourceLineNo">161</span>                                    if (first) {<a name="line.161"></a>
+<span class="sourceLineNo">162</span>                                        rooms += roomsThisExam;<a name="line.162"></a>
+<span class="sourceLineNo">163</span>                                        periods += String.valueOf(period.next().getIndex() + 1);<a name="line.163"></a>
+<span class="sourceLineNo">164</span>                                        periodDays += period.next().getDayStr();<a name="line.164"></a>
+<span class="sourceLineNo">165</span>                                        periodTimes += period.next().getTimeStr();<a name="line.165"></a>
+<span class="sourceLineNo">166</span>                                    }<a name="line.166"></a>
+<span class="sourceLineNo">167</span>                                    first = false;<a name="line.167"></a>
+<span class="sourceLineNo">168</span>                                }<a name="line.168"></a>
+<span class="sourceLineNo">169</span>                                if (ex2.getOwners(student).isEmpty()) {<a name="line.169"></a>
+<span class="sourceLineNo">170</span>                                    sections += "\n";<a name="line.170"></a>
+<span class="sourceLineNo">171</span>                                    rooms += "\n";<a name="line.171"></a>
+<span class="sourceLineNo">172</span>                                    periods += "\n";<a name="line.172"></a>
+<span class="sourceLineNo">173</span>                                    periodDays += "\n";<a name="line.173"></a>
+<span class="sourceLineNo">174</span>                                    periodTimes += "\n";<a name="line.174"></a>
+<span class="sourceLineNo">175</span>                                    sections += ex2.getName();<a name="line.175"></a>
+<span class="sourceLineNo">176</span>                                    rooms += roomsThisExam;<a name="line.176"></a>
+<span class="sourceLineNo">177</span>                                    periods += String.valueOf(period.next().getIndex() + 1);<a name="line.177"></a>
+<span class="sourceLineNo">178</span>                                    periodDays += period.next().getDayStr();<a name="line.178"></a>
+<span class="sourceLineNo">179</span>                                    periodTimes += period.next().getTimeStr();<a name="line.179"></a>
+<span class="sourceLineNo">180</span>                                    rooms += roomsThisExam;<a name="line.180"></a>
+<span class="sourceLineNo">181</span>                                }<a name="line.181"></a>
+<span class="sourceLineNo">182</span>                                String distStr = "";<a name="line.182"></a>
+<span class="sourceLineNo">183</span>                                if (backToBackDistance &gt;= 0) {<a name="line.183"></a>
+<span class="sourceLineNo">184</span>                                    double dist = (assignment.getValue(ex1)).getDistanceInMeters(assignment.getValue(ex2));<a name="line.184"></a>
+<span class="sourceLineNo">185</span>                                    if (dist &gt; 0)<a name="line.185"></a>
+<span class="sourceLineNo">186</span>                                        distStr = String.valueOf(dist);<a name="line.186"></a>
+<span class="sourceLineNo">187</span>                                }<a name="line.187"></a>
+<span class="sourceLineNo">188</span>                                csv.addLine(new CSVField[] { new CSVField(student.getName()),<a name="line.188"></a>
+<span class="sourceLineNo">189</span>                                        new CSVField("back-to-back"), new CSVField(sections), new CSVField(periods),<a name="line.189"></a>
+<span class="sourceLineNo">190</span>                                        new CSVField(periodDays), new CSVField(periodTimes), new CSVField(rooms),<a name="line.190"></a>
+<span class="sourceLineNo">191</span>                                        new CSVField(distStr) });<a name="line.191"></a>
+<span class="sourceLineNo">192</span>                            }<a name="line.192"></a>
+<span class="sourceLineNo">193</span>                        }<a name="line.193"></a>
+<span class="sourceLineNo">194</span>                    }<a name="line.194"></a>
+<span class="sourceLineNo">195</span>                }<a name="line.195"></a>
+<span class="sourceLineNo">196</span>                if (period.next() == null || period.next().getDay() != period.getDay()) {<a name="line.196"></a>
+<span class="sourceLineNo">197</span>                    int nrExamsADay = student.getExamsADay(assignment, period.getDay()).size();<a name="line.197"></a>
+<span class="sourceLineNo">198</span>                    if (nrExamsADay &gt; 2) {<a name="line.198"></a>
+<span class="sourceLineNo">199</span>                        String sections = "";<a name="line.199"></a>
+<span class="sourceLineNo">200</span>                        String periods = "";<a name="line.200"></a>
+<span class="sourceLineNo">201</span>                        String periodDays = "";<a name="line.201"></a>
+<span class="sourceLineNo">202</span>                        String periodTimes = "";<a name="line.202"></a>
+<span class="sourceLineNo">203</span>                        String rooms = "";<a name="line.203"></a>
+<span class="sourceLineNo">204</span>                        for (Exam exam : student.getExamsADay(assignment, period.getDay())) {<a name="line.204"></a>
+<span class="sourceLineNo">205</span>                            ExamPlacement placement = assignment.getValue(exam);<a name="line.205"></a>
+<span class="sourceLineNo">206</span>                            String roomsThisExam = "";<a name="line.206"></a>
+<span class="sourceLineNo">207</span>                            for (ExamRoomPlacement room : placement.getRoomPlacements()) {<a name="line.207"></a>
+<span class="sourceLineNo">208</span>                                if (roomsThisExam.length() &gt; 0)<a name="line.208"></a>
+<span class="sourceLineNo">209</span>                                    roomsThisExam += ", ";<a name="line.209"></a>
+<span class="sourceLineNo">210</span>                                roomsThisExam += room.getName();<a name="line.210"></a>
+<span class="sourceLineNo">211</span>                            }<a name="line.211"></a>
+<span class="sourceLineNo">212</span>                            boolean first = true;<a name="line.212"></a>
+<span class="sourceLineNo">213</span>                            for (ExamOwner cs : exam.getOwners(student)) {<a name="line.213"></a>
+<span class="sourceLineNo">214</span>                                if (sections.length() &gt; 0) {<a name="line.214"></a>
+<span class="sourceLineNo">215</span>                                    sections += "\n";<a name="line.215"></a>
+<span class="sourceLineNo">216</span>                                    rooms += "\n";<a name="line.216"></a>
+<span class="sourceLineNo">217</span>                                    periods += "\n";<a name="line.217"></a>
+<span class="sourceLineNo">218</span>                                    periodDays += "\n";<a name="line.218"></a>
+<span class="sourceLineNo">219</span>                                    periodTimes += "\n";<a name="line.219"></a>
+<span class="sourceLineNo">220</span>                                }<a name="line.220"></a>
+<span class="sourceLineNo">221</span>                                sections += cs.getName();<a name="line.221"></a>
+<span class="sourceLineNo">222</span>                                if (first) {<a name="line.222"></a>
+<span class="sourceLineNo">223</span>                                    periods += (placement.getPeriod().getIndex() + 1);<a name="line.223"></a>
+<span class="sourceLineNo">224</span>                                    periodDays += placement.getPeriod().getDayStr();<a name="line.224"></a>
+<span class="sourceLineNo">225</span>                                    periodTimes += placement.getPeriod().getTimeStr();<a name="line.225"></a>
+<span class="sourceLineNo">226</span>                                    rooms += roomsThisExam;<a name="line.226"></a>
+<span class="sourceLineNo">227</span>                                }<a name="line.227"></a>
+<span class="sourceLineNo">228</span>                                first = false;<a name="line.228"></a>
+<span class="sourceLineNo">229</span>                            }<a name="line.229"></a>
+<span class="sourceLineNo">230</span>                            if (exam.getOwners(student).isEmpty()) {<a name="line.230"></a>
+<span class="sourceLineNo">231</span>                                if (sections.length() &gt; 0) {<a name="line.231"></a>
+<span class="sourceLineNo">232</span>                                    sections += "\n";<a name="line.232"></a>
+<span class="sourceLineNo">233</span>                                    rooms += "\n";<a name="line.233"></a>
+<span class="sourceLineNo">234</span>                                    periods += "\n";<a name="line.234"></a>
+<span class="sourceLineNo">235</span>                                    periodDays += "\n";<a name="line.235"></a>
+<span class="sourceLineNo">236</span>                                    periodTimes += "\n";<a name="line.236"></a>
+<span class="sourceLineNo">237</span>                                }<a name="line.237"></a>
+<span class="sourceLineNo">238</span>                                sections += exam.getName();<a name="line.238"></a>
+<span class="sourceLineNo">239</span>                                periods += (placement.getPeriod().getIndex() + 1);<a name="line.239"></a>
+<span class="sourceLineNo">240</span>                                periodDays += placement.getPeriod().getDayStr();<a name="line.240"></a>
+<span class="sourceLineNo">241</span>                                periodTimes += placement.getPeriod().getTimeStr();<a name="line.241"></a>
+<span class="sourceLineNo">242</span>                                rooms += roomsThisExam;<a name="line.242"></a>
+<span class="sourceLineNo">243</span>                            }<a name="line.243"></a>
+<span class="sourceLineNo">244</span>                        }<a name="line.244"></a>
+<span class="sourceLineNo">245</span>                        csv.addLine(new CSVField[] { new CSVField(student.getName()), new CSVField("more-2-day"),<a name="line.245"></a>
+<span class="sourceLineNo">246</span>                                new CSVField(sections), new CSVField(periods), new CSVField(periodDays),<a name="line.246"></a>
+<span class="sourceLineNo">247</span>                                new CSVField(periodTimes), new CSVField(rooms) });<a name="line.247"></a>
+<span class="sourceLineNo">248</span>                    }<a name="line.248"></a>
+<span class="sourceLineNo">249</span>                }<a name="line.249"></a>
+<span class="sourceLineNo">250</span>            }<a name="line.250"></a>
+<span class="sourceLineNo">251</span>        }<a name="line.251"></a>
+<span class="sourceLineNo">252</span>        return csv;<a name="line.252"></a>
+<span class="sourceLineNo">253</span>    }<a name="line.253"></a>
+<span class="sourceLineNo">254</span>}<a name="line.254"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

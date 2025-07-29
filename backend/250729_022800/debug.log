@@ -1,0 +1,11 @@
+29-Jul-25 02:28:00.849 [main] INFO  util.Progress> [Restoring from backup ...]
+29-Jul-25 02:28:00.853 [main] ERROR coursett.Test> Test failed.
+java.lang.NumberFormatException: For input string: "Main"
+	at java.lang.NumberFormatException.forInputString(NumberFormatException.java:67) ~[?:?]
+	at java.lang.Long.parseLong(Long.java:709) ~[?:?]
+	at java.lang.Long.valueOf(Long.java:1157) ~[?:?]
+	at org.cpsolver.coursett.TimetableXMLLoader.doLoad(TimetableXMLLoader.java:305) ~[cpsolver-all-1.4.jar:?]
+	at org.cpsolver.coursett.TimetableXMLLoader.load(TimetableXMLLoader.java:169) ~[cpsolver-all-1.4.jar:?]
+	at org.cpsolver.coursett.TimetableXMLLoader.load(TimetableXMLLoader.java:148) ~[cpsolver-all-1.4.jar:?]
+	at org.cpsolver.coursett.Test.<init>(Test.java:203) [cpsolver-all-1.4.jar:?]
+	at org.cpsolver.coursett.Test.main(Test.java:264) [cpsolver-all-1.4.jar:?]

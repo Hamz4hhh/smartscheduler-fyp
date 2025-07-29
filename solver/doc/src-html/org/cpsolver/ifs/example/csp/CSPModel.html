@@ -1,0 +1,185 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.cpsolver.ifs.example.csp;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import java.util.Iterator;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import java.util.Random;<a name="line.4"></a>
+<span class="sourceLineNo">005</span><a name="line.5"></a>
+<span class="sourceLineNo">006</span>import org.cpsolver.ifs.model.Constraint;<a name="line.6"></a>
+<span class="sourceLineNo">007</span>import org.cpsolver.ifs.model.Model;<a name="line.7"></a>
+<span class="sourceLineNo">008</span><a name="line.8"></a>
+<span class="sourceLineNo">009</span><a name="line.9"></a>
+<span class="sourceLineNo">010</span>/**<a name="line.10"></a>
+<span class="sourceLineNo">011</span> * Random Binary CSP with uniform distribution. &lt;br&gt;<a name="line.11"></a>
+<span class="sourceLineNo">012</span> * &lt;br&gt;<a name="line.12"></a>
+<span class="sourceLineNo">013</span> * A random CSP is defined by a four-tuple (n, d, p1, p2), where n denotes the<a name="line.13"></a>
+<span class="sourceLineNo">014</span> * number of variables and d denotes the domain size of each variable, p1 and p2<a name="line.14"></a>
+<span class="sourceLineNo">015</span> * are two probabilities. They are used to generate randomly the binary<a name="line.15"></a>
+<span class="sourceLineNo">016</span> * constraints among the variables. p1 represents the probability that a<a name="line.16"></a>
+<span class="sourceLineNo">017</span> * constraint exists between two different variables and p2 represents the<a name="line.17"></a>
+<span class="sourceLineNo">018</span> * probability that a pair of values in the domains of two variables connected<a name="line.18"></a>
+<span class="sourceLineNo">019</span> * by a constraint are incompatible. &lt;br&gt;<a name="line.19"></a>
+<span class="sourceLineNo">020</span> * &lt;br&gt;<a name="line.20"></a>
+<span class="sourceLineNo">021</span> * We use a so called model B of Random CSP (n, d, n1, n2) where n1 =<a name="line.21"></a>
+<span class="sourceLineNo">022</span> * p1*n*(n-1)/2 pairs of variables are randomly and uniformly selected and<a name="line.22"></a>
+<span class="sourceLineNo">023</span> * binary constraints are posted between them. For each constraint, n2 = p1*d^2<a name="line.23"></a>
+<span class="sourceLineNo">024</span> * randomly and uniformly selected pairs of values are picked as incompatible.<a name="line.24"></a>
+<span class="sourceLineNo">025</span> * <a name="line.25"></a>
+<span class="sourceLineNo">026</span> * @author  Tom&#225;&#353; M&#252;ller<a name="line.26"></a>
+<span class="sourceLineNo">027</span> * @version IFS 1.3 (Iterative Forward Search)&lt;br&gt;<a name="line.27"></a>
+<span class="sourceLineNo">028</span> *          Copyright (C) 2006 - 2014 Tom&#225;&#353; M&#252;ller&lt;br&gt;<a name="line.28"></a>
+<span class="sourceLineNo">029</span> *          &lt;a href="mailto:muller@unitime.org"&gt;muller@unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.29"></a>
+<span class="sourceLineNo">030</span> *          &lt;a href="http://muller.unitime.org"&gt;http://muller.unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.30"></a>
+<span class="sourceLineNo">031</span> * &lt;br&gt;<a name="line.31"></a>
+<span class="sourceLineNo">032</span> *          This library is free software; you can redistribute it and/or modify<a name="line.32"></a>
+<span class="sourceLineNo">033</span> *          it under the terms of the GNU Lesser General Public License as<a name="line.33"></a>
+<span class="sourceLineNo">034</span> *          published by the Free Software Foundation; either version 3 of the<a name="line.34"></a>
+<span class="sourceLineNo">035</span> *          License, or (at your option) any later version. &lt;br&gt;<a name="line.35"></a>
+<span class="sourceLineNo">036</span> * &lt;br&gt;<a name="line.36"></a>
+<span class="sourceLineNo">037</span> *          This library is distributed in the hope that it will be useful, but<a name="line.37"></a>
+<span class="sourceLineNo">038</span> *          WITHOUT ANY WARRANTY; without even the implied warranty of<a name="line.38"></a>
+<span class="sourceLineNo">039</span> *          MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU<a name="line.39"></a>
+<span class="sourceLineNo">040</span> *          Lesser General Public License for more details. &lt;br&gt;<a name="line.40"></a>
+<span class="sourceLineNo">041</span> * &lt;br&gt;<a name="line.41"></a>
+<span class="sourceLineNo">042</span> *          You should have received a copy of the GNU Lesser General Public<a name="line.42"></a>
+<span class="sourceLineNo">043</span> *          License along with this library; if not see<a name="line.43"></a>
+<span class="sourceLineNo">044</span> *          &lt;a href='http://www.gnu.org/licenses/'&gt;http://www.gnu.org/licenses/&lt;/a&gt;.<a name="line.44"></a>
+<span class="sourceLineNo">045</span> */<a name="line.45"></a>
+<span class="sourceLineNo">046</span>public class CSPModel extends Model&lt;CSPVariable, CSPValue&gt; {<a name="line.46"></a>
+<span class="sourceLineNo">047</span><a name="line.47"></a>
+<span class="sourceLineNo">048</span>    /**<a name="line.48"></a>
+<span class="sourceLineNo">049</span>     * Constructor<a name="line.49"></a>
+<span class="sourceLineNo">050</span>     * <a name="line.50"></a>
+<span class="sourceLineNo">051</span>     * @param nrVariables<a name="line.51"></a>
+<span class="sourceLineNo">052</span>     *            number of variables in the problem<a name="line.52"></a>
+<span class="sourceLineNo">053</span>     * @param nrValues<a name="line.53"></a>
+<span class="sourceLineNo">054</span>     *            number of values of each variable<a name="line.54"></a>
+<span class="sourceLineNo">055</span>     * @param nrConstraints<a name="line.55"></a>
+<span class="sourceLineNo">056</span>     *            number of constraints in the problem<a name="line.56"></a>
+<span class="sourceLineNo">057</span>     * @param nrCompatiblePairs<a name="line.57"></a>
+<span class="sourceLineNo">058</span>     *            number of compatible pairs of values for every constraint<a name="line.58"></a>
+<span class="sourceLineNo">059</span>     * @param seed<a name="line.59"></a>
+<span class="sourceLineNo">060</span>     *            seed for random number generator (use<a name="line.60"></a>
+<span class="sourceLineNo">061</span>     *            {@link System#currentTimeMillis} if not bother)<a name="line.61"></a>
+<span class="sourceLineNo">062</span>     */<a name="line.62"></a>
+<span class="sourceLineNo">063</span>    public CSPModel(int nrVariables, int nrValues, int nrConstraints, int nrCompatiblePairs, long seed) {<a name="line.63"></a>
+<span class="sourceLineNo">064</span>        generate(nrVariables, nrValues, nrConstraints, nrCompatiblePairs, seed);<a name="line.64"></a>
+<span class="sourceLineNo">065</span>    }<a name="line.65"></a>
+<span class="sourceLineNo">066</span><a name="line.66"></a>
+<span class="sourceLineNo">067</span>    public CSPModel() {<a name="line.67"></a>
+<span class="sourceLineNo">068</span>    }<a name="line.68"></a>
+<span class="sourceLineNo">069</span><a name="line.69"></a>
+<span class="sourceLineNo">070</span>    private void swap(CSPVariable[][] allPairs, int first, int second) {<a name="line.70"></a>
+<span class="sourceLineNo">071</span>        CSPVariable[] a = allPairs[first];<a name="line.71"></a>
+<span class="sourceLineNo">072</span>        allPairs[first] = allPairs[second];<a name="line.72"></a>
+<span class="sourceLineNo">073</span>        allPairs[second] = a;<a name="line.73"></a>
+<span class="sourceLineNo">074</span>    }<a name="line.74"></a>
+<span class="sourceLineNo">075</span><a name="line.75"></a>
+<span class="sourceLineNo">076</span>    private void buildBinaryConstraintGraph(Random rnd) {<a name="line.76"></a>
+<span class="sourceLineNo">077</span>        int numberOfAllPairs = variables().size() * (variables().size() - 1) / 2;<a name="line.77"></a>
+<span class="sourceLineNo">078</span>        CSPVariable[][] allPairs = new CSPVariable[numberOfAllPairs][];<a name="line.78"></a>
+<span class="sourceLineNo">079</span>        int idx = 0;<a name="line.79"></a>
+<span class="sourceLineNo">080</span>        for (CSPVariable v1 : variables()) {<a name="line.80"></a>
+<span class="sourceLineNo">081</span>            for (CSPVariable v2 : variables()) {<a name="line.81"></a>
+<span class="sourceLineNo">082</span>                if (v1.getId() &gt;= v2.getId())<a name="line.82"></a>
+<span class="sourceLineNo">083</span>                    continue;<a name="line.83"></a>
+<span class="sourceLineNo">084</span>                allPairs[idx++] = new CSPVariable[] { v1, v2 };<a name="line.84"></a>
+<span class="sourceLineNo">085</span>            }<a name="line.85"></a>
+<span class="sourceLineNo">086</span>        }<a name="line.86"></a>
+<span class="sourceLineNo">087</span>        idx = 0;<a name="line.87"></a>
+<span class="sourceLineNo">088</span>        for (Iterator&lt;Constraint&lt;CSPVariable, CSPValue&gt;&gt; i = constraints().iterator(); i.hasNext();) {<a name="line.88"></a>
+<span class="sourceLineNo">089</span>            CSPBinaryConstraint c = (CSPBinaryConstraint) i.next();<a name="line.89"></a>
+<span class="sourceLineNo">090</span>            swap(allPairs, idx, idx + (int) (rnd.nextDouble() * (numberOfAllPairs - idx)));<a name="line.90"></a>
+<span class="sourceLineNo">091</span>            c.addVariable(allPairs[idx][0]);<a name="line.91"></a>
+<span class="sourceLineNo">092</span>            c.addVariable(allPairs[idx][1]);<a name="line.92"></a>
+<span class="sourceLineNo">093</span>            c.init(rnd);<a name="line.93"></a>
+<span class="sourceLineNo">094</span>            idx++;<a name="line.94"></a>
+<span class="sourceLineNo">095</span>        }<a name="line.95"></a>
+<span class="sourceLineNo">096</span>    }<a name="line.96"></a>
+<span class="sourceLineNo">097</span><a name="line.97"></a>
+<span class="sourceLineNo">098</span>    private void generate(int nrVariables, int nrValues, int nrConstraints, int nrCompatiblePairs, long seed) {<a name="line.98"></a>
+<span class="sourceLineNo">099</span>        Random rnd = new Random(seed);<a name="line.99"></a>
+<span class="sourceLineNo">100</span><a name="line.100"></a>
+<span class="sourceLineNo">101</span>        for (int i = 0; i &lt; nrVariables; i++) {<a name="line.101"></a>
+<span class="sourceLineNo">102</span>            CSPVariable var = new CSPVariable(i + 1, nrValues);<a name="line.102"></a>
+<span class="sourceLineNo">103</span>            addVariable(var);<a name="line.103"></a>
+<span class="sourceLineNo">104</span>        }<a name="line.104"></a>
+<span class="sourceLineNo">105</span><a name="line.105"></a>
+<span class="sourceLineNo">106</span>        for (int i = 0; i &lt; nrConstraints; i++) {<a name="line.106"></a>
+<span class="sourceLineNo">107</span>            CSPBinaryConstraint c = new CSPBinaryConstraint(i + 1, nrCompatiblePairs);<a name="line.107"></a>
+<span class="sourceLineNo">108</span>            addConstraint(c);<a name="line.108"></a>
+<span class="sourceLineNo">109</span>        }<a name="line.109"></a>
+<span class="sourceLineNo">110</span><a name="line.110"></a>
+<span class="sourceLineNo">111</span>        buildBinaryConstraintGraph(rnd);<a name="line.111"></a>
+<span class="sourceLineNo">112</span>    }<a name="line.112"></a>
+<span class="sourceLineNo">113</span>}<a name="line.113"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

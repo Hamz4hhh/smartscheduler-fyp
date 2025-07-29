@@ -1,0 +1,341 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.cpsolver.coursett.sectioning;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import java.util.ArrayList;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import java.util.Collections;<a name="line.4"></a>
+<span class="sourceLineNo">005</span>import java.util.Comparator;<a name="line.5"></a>
+<span class="sourceLineNo">006</span>import java.util.HashSet;<a name="line.6"></a>
+<span class="sourceLineNo">007</span>import java.util.LinkedList;<a name="line.7"></a>
+<span class="sourceLineNo">008</span>import java.util.List;<a name="line.8"></a>
+<span class="sourceLineNo">009</span>import java.util.Map;<a name="line.9"></a>
+<span class="sourceLineNo">010</span>import java.util.Queue;<a name="line.10"></a>
+<span class="sourceLineNo">011</span>import java.util.Set;<a name="line.11"></a>
+<span class="sourceLineNo">012</span><a name="line.12"></a>
+<span class="sourceLineNo">013</span>import org.cpsolver.coursett.constraint.JenrlConstraint;<a name="line.13"></a>
+<span class="sourceLineNo">014</span>import org.cpsolver.coursett.criteria.StudentConflict;<a name="line.14"></a>
+<span class="sourceLineNo">015</span>import org.cpsolver.coursett.model.Configuration;<a name="line.15"></a>
+<span class="sourceLineNo">016</span>import org.cpsolver.coursett.model.Lecture;<a name="line.16"></a>
+<span class="sourceLineNo">017</span>import org.cpsolver.coursett.model.Placement;<a name="line.17"></a>
+<span class="sourceLineNo">018</span>import org.cpsolver.coursett.model.Student;<a name="line.18"></a>
+<span class="sourceLineNo">019</span><a name="line.19"></a>
+<span class="sourceLineNo">020</span>/**<a name="line.20"></a>
+<span class="sourceLineNo">021</span> * A class wrapping a student, including an ordered set of possible enrollment into a given<a name="line.21"></a>
+<span class="sourceLineNo">022</span> * course.<a name="line.22"></a>
+<span class="sourceLineNo">023</span> * <a name="line.23"></a>
+<span class="sourceLineNo">024</span> * @author  Tom&#225;&#353; M&#252;ller<a name="line.24"></a>
+<span class="sourceLineNo">025</span> * @version CourseTT 1.3 (University Course Timetabling)&lt;br&gt;<a name="line.25"></a>
+<span class="sourceLineNo">026</span> *          Copyright (C) 2017 Tom&#225;&#353; M&#252;ller&lt;br&gt;<a name="line.26"></a>
+<span class="sourceLineNo">027</span> *          &lt;a href="mailto:muller@unitime.org"&gt;muller@unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.27"></a>
+<span class="sourceLineNo">028</span> *          &lt;a href="http://muller.unitime.org"&gt;http://muller.unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.28"></a>
+<span class="sourceLineNo">029</span> * &lt;br&gt;<a name="line.29"></a>
+<span class="sourceLineNo">030</span> *          This library is free software; you can redistribute it and/or modify<a name="line.30"></a>
+<span class="sourceLineNo">031</span> *          it under the terms of the GNU Lesser General Public License as<a name="line.31"></a>
+<span class="sourceLineNo">032</span> *          published by the Free Software Foundation; either version 3 of the<a name="line.32"></a>
+<span class="sourceLineNo">033</span> *          License, or (at your option) any later version. &lt;br&gt;<a name="line.33"></a>
+<span class="sourceLineNo">034</span> * &lt;br&gt;<a name="line.34"></a>
+<span class="sourceLineNo">035</span> *          This library is distributed in the hope that it will be useful, but<a name="line.35"></a>
+<span class="sourceLineNo">036</span> *          WITHOUT ANY WARRANTY; without even the implied warranty of<a name="line.36"></a>
+<span class="sourceLineNo">037</span> *          MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU<a name="line.37"></a>
+<span class="sourceLineNo">038</span> *          Lesser General Public License for more details. &lt;br&gt;<a name="line.38"></a>
+<span class="sourceLineNo">039</span> * &lt;br&gt;<a name="line.39"></a>
+<span class="sourceLineNo">040</span> *          You should have received a copy of the GNU Lesser General Public<a name="line.40"></a>
+<span class="sourceLineNo">041</span> *          License along with this library; if not see<a name="line.41"></a>
+<span class="sourceLineNo">042</span> *          &lt;a href='http://www.gnu.org/licenses/'&gt;http://www.gnu.org/licenses/&lt;/a&gt;.<a name="line.42"></a>
+<span class="sourceLineNo">043</span> */<a name="line.43"></a>
+<span class="sourceLineNo">044</span>public class SctStudent implements Comparable&lt;SctStudent&gt; {<a name="line.44"></a>
+<span class="sourceLineNo">045</span>    private SctModel iModel;<a name="line.45"></a>
+<span class="sourceLineNo">046</span>    private Student iStudent;<a name="line.46"></a>
+<span class="sourceLineNo">047</span>    private List&lt;SctEnrollment&gt; iEnrollments = null;<a name="line.47"></a>
+<span class="sourceLineNo">048</span>    private double iTotalEnrollmentWeight = 0.0;<a name="line.48"></a>
+<span class="sourceLineNo">049</span>    private Double iOfferingWeight = null;<a name="line.49"></a>
+<span class="sourceLineNo">050</span>    private List&lt;Lecture&gt; iInstructing = null;<a name="line.50"></a>
+<span class="sourceLineNo">051</span>    <a name="line.51"></a>
+<span class="sourceLineNo">052</span>    /**<a name="line.52"></a>
+<span class="sourceLineNo">053</span>     * Constructor.<a name="line.53"></a>
+<span class="sourceLineNo">054</span>     * @param model student sectioning model<a name="line.54"></a>
+<span class="sourceLineNo">055</span>     * @param student student to represent<a name="line.55"></a>
+<span class="sourceLineNo">056</span>     */<a name="line.56"></a>
+<span class="sourceLineNo">057</span>    public SctStudent(SctModel model, Student student) {<a name="line.57"></a>
+<span class="sourceLineNo">058</span>        iStudent = student;<a name="line.58"></a>
+<span class="sourceLineNo">059</span>        iModel = model;<a name="line.59"></a>
+<span class="sourceLineNo">060</span>    }<a name="line.60"></a>
+<span class="sourceLineNo">061</span>    <a name="line.61"></a>
+<span class="sourceLineNo">062</span>    /**<a name="line.62"></a>
+<span class="sourceLineNo">063</span>     * Student sectioning model<a name="line.63"></a>
+<span class="sourceLineNo">064</span>     */<a name="line.64"></a>
+<span class="sourceLineNo">065</span>    public SctModel getModel() { return iModel; }<a name="line.65"></a>
+<span class="sourceLineNo">066</span>    <a name="line.66"></a>
+<span class="sourceLineNo">067</span>    /**<a name="line.67"></a>
+<span class="sourceLineNo">068</span>     * Student for which the possible enrollments are being computed<a name="line.68"></a>
+<span class="sourceLineNo">069</span>     */<a name="line.69"></a>
+<span class="sourceLineNo">070</span>    public Student getStudent() { return iStudent; }<a name="line.70"></a>
+<span class="sourceLineNo">071</span>    <a name="line.71"></a>
+<span class="sourceLineNo">072</span>    /**<a name="line.72"></a>
+<span class="sourceLineNo">073</span>     * Current enrollment of this student<a name="line.73"></a>
+<span class="sourceLineNo">074</span>     * @param checkInstructor if the student is also instructor and he/she is instructing this class, return classes he/she is instructing instead<a name="line.74"></a>
+<span class="sourceLineNo">075</span>     * @return current enrollment of this student into the given course<a name="line.75"></a>
+<span class="sourceLineNo">076</span>     */<a name="line.76"></a>
+<span class="sourceLineNo">077</span>    public SctEnrollment getCurrentEnrollment(boolean checkInstructor) {<a name="line.77"></a>
+<span class="sourceLineNo">078</span>        if (checkInstructor &amp;&amp; isInstructing())<a name="line.78"></a>
+<span class="sourceLineNo">079</span>            return new SctEnrollment(-1, this, getInstructingLectures());<a name="line.79"></a>
+<span class="sourceLineNo">080</span>        List&lt;Lecture&gt; lectures = new ArrayList&lt;Lecture&gt;();<a name="line.80"></a>
+<span class="sourceLineNo">081</span>        for (Lecture lecture: getStudent().getLectures())<a name="line.81"></a>
+<span class="sourceLineNo">082</span>            if (getModel().getOfferingId().equals(lecture.getConfiguration().getOfferingId()))<a name="line.82"></a>
+<span class="sourceLineNo">083</span>                lectures.add(lecture);<a name="line.83"></a>
+<span class="sourceLineNo">084</span>        return new SctEnrollment(-1, this, lectures);<a name="line.84"></a>
+<span class="sourceLineNo">085</span>    }<a name="line.85"></a>
+<span class="sourceLineNo">086</span>    <a name="line.86"></a>
+<span class="sourceLineNo">087</span>    /**<a name="line.87"></a>
+<span class="sourceLineNo">088</span>     * List of lectures of the given course that the student is instructing (if he/she is also an instructor, using {@link Student#getInstructor()})<a name="line.88"></a>
+<span class="sourceLineNo">089</span>     * @return list of lectures of the given course that the student is instructing<a name="line.89"></a>
+<span class="sourceLineNo">090</span>     */<a name="line.90"></a>
+<span class="sourceLineNo">091</span>    public List&lt;Lecture&gt; getInstructingLectures() {<a name="line.91"></a>
+<span class="sourceLineNo">092</span>        if (iInstructing == null &amp;&amp; getStudent().getInstructor() != null) {<a name="line.92"></a>
+<span class="sourceLineNo">093</span>            iInstructing = new ArrayList&lt;Lecture&gt;();<a name="line.93"></a>
+<span class="sourceLineNo">094</span>            for (Lecture lecture: getStudent().getInstructor().variables())<a name="line.94"></a>
+<span class="sourceLineNo">095</span>                if (getModel().getOfferingId().equals(lecture.getConfiguration().getOfferingId()))<a name="line.95"></a>
+<span class="sourceLineNo">096</span>                    iInstructing.add(lecture);<a name="line.96"></a>
+<span class="sourceLineNo">097</span>        }<a name="line.97"></a>
+<span class="sourceLineNo">098</span>        return iInstructing;<a name="line.98"></a>
+<span class="sourceLineNo">099</span>    }<a name="line.99"></a>
+<span class="sourceLineNo">100</span>    <a name="line.100"></a>
+<span class="sourceLineNo">101</span>    /**<a name="line.101"></a>
+<span class="sourceLineNo">102</span>     * Is student also an instructor of the given course?<a name="line.102"></a>
+<span class="sourceLineNo">103</span>     */<a name="line.103"></a>
+<span class="sourceLineNo">104</span>    public boolean isInstructing() {<a name="line.104"></a>
+<span class="sourceLineNo">105</span>        return getStudent().getInstructor() != null &amp;&amp; !getInstructingLectures().isEmpty();<a name="line.105"></a>
+<span class="sourceLineNo">106</span>    }<a name="line.106"></a>
+<span class="sourceLineNo">107</span>    <a name="line.107"></a>
+<span class="sourceLineNo">108</span>    /**<a name="line.108"></a>
+<span class="sourceLineNo">109</span>     * Conflict weight of a lecture pair<a name="line.109"></a>
+<span class="sourceLineNo">110</span>     */<a name="line.110"></a>
+<span class="sourceLineNo">111</span>    public double getJenrConflictWeight(Lecture l1, Lecture l2) {<a name="line.111"></a>
+<span class="sourceLineNo">112</span>        Placement p1 = getModel().getAssignment().getValue(l1);<a name="line.112"></a>
+<span class="sourceLineNo">113</span>        Placement p2 = getModel().getAssignment().getValue(l2);<a name="line.113"></a>
+<span class="sourceLineNo">114</span>        if (p1 == null || p2 == null) return 0.0;<a name="line.114"></a>
+<span class="sourceLineNo">115</span>        if (getModel().getStudentConflictCriteria() == null) {<a name="line.115"></a>
+<span class="sourceLineNo">116</span>            if (JenrlConstraint.isInConflict(p1, p2, getModel().getTimetableModel().getDistanceMetric(), getModel().getTimetableModel().getStudentWorkDayLimit()))<a name="line.116"></a>
+<span class="sourceLineNo">117</span>                return getStudent().getJenrlWeight(l1, l2);<a name="line.117"></a>
+<span class="sourceLineNo">118</span>            return 0.0;<a name="line.118"></a>
+<span class="sourceLineNo">119</span>        }<a name="line.119"></a>
+<span class="sourceLineNo">120</span>        double weight = 0.0;<a name="line.120"></a>
+<span class="sourceLineNo">121</span>        for (StudentConflict sc: getModel().getStudentConflictCriteria())<a name="line.121"></a>
+<span class="sourceLineNo">122</span>            if (sc.isApplicable(getStudent(), p1.variable(), p2.variable()) &amp;&amp; sc.inConflict(p1, p2))<a name="line.122"></a>
+<span class="sourceLineNo">123</span>                weight += sc.getWeight() * getStudent().getJenrlWeight(l1, l2);<a name="line.123"></a>
+<span class="sourceLineNo">124</span>        return weight;<a name="line.124"></a>
+<span class="sourceLineNo">125</span>    }<a name="line.125"></a>
+<span class="sourceLineNo">126</span>    <a name="line.126"></a>
+<span class="sourceLineNo">127</span>    /**<a name="line.127"></a>
+<span class="sourceLineNo">128</span>     * All scheduling subpart ids of a configuration.<a name="line.128"></a>
+<span class="sourceLineNo">129</span>     */<a name="line.129"></a>
+<span class="sourceLineNo">130</span>    private List&lt;Long&gt; getSubpartIds(Configuration configuration) {<a name="line.130"></a>
+<span class="sourceLineNo">131</span>        List&lt;Long&gt; subpartIds = new ArrayList&lt;Long&gt;();<a name="line.131"></a>
+<span class="sourceLineNo">132</span>        Queue&lt;Lecture&gt; queue = new LinkedList&lt;Lecture&gt;();<a name="line.132"></a>
+<span class="sourceLineNo">133</span>        for (Map.Entry&lt;Long, Set&lt;Lecture&gt;&gt; e: configuration.getTopLectures().entrySet()) {<a name="line.133"></a>
+<span class="sourceLineNo">134</span>            subpartIds.add(e.getKey());<a name="line.134"></a>
+<span class="sourceLineNo">135</span>            queue.add(e.getValue().iterator().next());<a name="line.135"></a>
+<span class="sourceLineNo">136</span>        }<a name="line.136"></a>
+<span class="sourceLineNo">137</span>        Lecture lecture = null;<a name="line.137"></a>
+<span class="sourceLineNo">138</span>        while ((lecture = queue.poll()) != null) {<a name="line.138"></a>
+<span class="sourceLineNo">139</span>            if (lecture.getChildren() != null)<a name="line.139"></a>
+<span class="sourceLineNo">140</span>                for (Map.Entry&lt;Long, List&lt;Lecture&gt;&gt; e: lecture.getChildren().entrySet()) {<a name="line.140"></a>
+<span class="sourceLineNo">141</span>                    subpartIds.add(e.getKey());<a name="line.141"></a>
+<span class="sourceLineNo">142</span>                    queue.add(e.getValue().iterator().next());<a name="line.142"></a>
+<span class="sourceLineNo">143</span>                }<a name="line.143"></a>
+<span class="sourceLineNo">144</span>        }<a name="line.144"></a>
+<span class="sourceLineNo">145</span>        return subpartIds;<a name="line.145"></a>
+<span class="sourceLineNo">146</span>    }<a name="line.146"></a>
+<span class="sourceLineNo">147</span>    <a name="line.147"></a>
+<span class="sourceLineNo">148</span>    /**<a name="line.148"></a>
+<span class="sourceLineNo">149</span>     * Compute all possible enrollments<a name="line.149"></a>
+<span class="sourceLineNo">150</span>     */<a name="line.150"></a>
+<span class="sourceLineNo">151</span>    private void computeEnrollments(Configuration configuration, Map&lt;Long, Set&lt;Lecture&gt;&gt; subparts, List&lt;Long&gt; subpartIds, Set&lt;Lecture&gt; enrollment, double conflictWeight) {<a name="line.151"></a>
+<span class="sourceLineNo">152</span>        if (enrollment.size() == subpartIds.size()) {<a name="line.152"></a>
+<span class="sourceLineNo">153</span>            iEnrollments.add(new SctEnrollment(iEnrollments.size(), this, enrollment, conflictWeight));<a name="line.153"></a>
+<span class="sourceLineNo">154</span>            iTotalEnrollmentWeight += conflictWeight;<a name="line.154"></a>
+<span class="sourceLineNo">155</span>        } else {<a name="line.155"></a>
+<span class="sourceLineNo">156</span>            Set&lt;Lecture&gt; lectures = subparts.get(subpartIds.get(enrollment.size()));<a name="line.156"></a>
+<span class="sourceLineNo">157</span>            for (Lecture lecture: lectures) {<a name="line.157"></a>
+<span class="sourceLineNo">158</span>                if (lecture.getParent() != null &amp;&amp; !enrollment.contains(lecture.getParent())) continue;<a name="line.158"></a>
+<span class="sourceLineNo">159</span>                if (!getStudent().canEnroll(lecture)) continue;<a name="line.159"></a>
+<span class="sourceLineNo">160</span>                double delta = 0.0;<a name="line.160"></a>
+<span class="sourceLineNo">161</span>                for (Lecture other: getStudent().getLectures())<a name="line.161"></a>
+<span class="sourceLineNo">162</span>                    if (!configuration.getOfferingId().equals(other.getConfiguration().getOfferingId()))<a name="line.162"></a>
+<span class="sourceLineNo">163</span>                        delta += getJenrConflictWeight(lecture, other);<a name="line.163"></a>
+<span class="sourceLineNo">164</span>                for (Lecture other: enrollment)<a name="line.164"></a>
+<span class="sourceLineNo">165</span>                    delta += getJenrConflictWeight(lecture, other);<a name="line.165"></a>
+<span class="sourceLineNo">166</span>                enrollment.add(lecture);<a name="line.166"></a>
+<span class="sourceLineNo">167</span>                computeEnrollments(configuration, subparts, subpartIds, enrollment, conflictWeight + delta);<a name="line.167"></a>
+<span class="sourceLineNo">168</span>                enrollment.remove(lecture);<a name="line.168"></a>
+<span class="sourceLineNo">169</span>            }<a name="line.169"></a>
+<span class="sourceLineNo">170</span>        }<a name="line.170"></a>
+<span class="sourceLineNo">171</span>    }<a name="line.171"></a>
+<span class="sourceLineNo">172</span>    <a name="line.172"></a>
+<span class="sourceLineNo">173</span>    /**<a name="line.173"></a>
+<span class="sourceLineNo">174</span>     * Compute all possible enrollments<a name="line.174"></a>
+<span class="sourceLineNo">175</span>     */<a name="line.175"></a>
+<span class="sourceLineNo">176</span>    private void computeEnrollments() {<a name="line.176"></a>
+<span class="sourceLineNo">177</span>        iEnrollments = new ArrayList&lt;SctEnrollment&gt;();<a name="line.177"></a>
+<span class="sourceLineNo">178</span>        if (isInstructing()) {<a name="line.178"></a>
+<span class="sourceLineNo">179</span>            double conflictWeight = 0.0;<a name="line.179"></a>
+<span class="sourceLineNo">180</span>            for (Lecture lecture: getInstructingLectures()) {<a name="line.180"></a>
+<span class="sourceLineNo">181</span>                for (Lecture other: getStudent().getLectures())<a name="line.181"></a>
+<span class="sourceLineNo">182</span>                    if (!getModel().getOfferingId().equals(other.getConfiguration().getOfferingId()))<a name="line.182"></a>
+<span class="sourceLineNo">183</span>                        conflictWeight += getJenrConflictWeight(lecture, other);<a name="line.183"></a>
+<span class="sourceLineNo">184</span>            }<a name="line.184"></a>
+<span class="sourceLineNo">185</span>            iEnrollments.add(new SctEnrollment(0, this, getInstructingLectures(), conflictWeight));<a name="line.185"></a>
+<span class="sourceLineNo">186</span>            return;<a name="line.186"></a>
+<span class="sourceLineNo">187</span>        }<a name="line.187"></a>
+<span class="sourceLineNo">188</span>        for (Configuration configuration: getModel().getConfigurations()) {<a name="line.188"></a>
+<span class="sourceLineNo">189</span>            Map&lt;Long, Set&lt;Lecture&gt;&gt; subparts = getModel().getSubparts(configuration);<a name="line.189"></a>
+<span class="sourceLineNo">190</span>            List&lt;Long&gt; subpartIds = getSubpartIds(configuration);<a name="line.190"></a>
+<span class="sourceLineNo">191</span>            computeEnrollments(configuration, subparts, subpartIds, new HashSet&lt;Lecture&gt;(), 0.0);<a name="line.191"></a>
+<span class="sourceLineNo">192</span>        }<a name="line.192"></a>
+<span class="sourceLineNo">193</span>        Collections.sort(iEnrollments);<a name="line.193"></a>
+<span class="sourceLineNo">194</span>    }<a name="line.194"></a>
+<span class="sourceLineNo">195</span>    <a name="line.195"></a>
+<span class="sourceLineNo">196</span>    /**<a name="line.196"></a>
+<span class="sourceLineNo">197</span>     * Return all possible enrollments of the given student into the given course<a name="line.197"></a>
+<span class="sourceLineNo">198</span>     */<a name="line.198"></a>
+<span class="sourceLineNo">199</span>    public List&lt;SctEnrollment&gt; getEnrollments() {<a name="line.199"></a>
+<span class="sourceLineNo">200</span>        if (iEnrollments == null) computeEnrollments();<a name="line.200"></a>
+<span class="sourceLineNo">201</span>        return iEnrollments;<a name="line.201"></a>
+<span class="sourceLineNo">202</span>    }<a name="line.202"></a>
+<span class="sourceLineNo">203</span>    <a name="line.203"></a>
+<span class="sourceLineNo">204</span>    public List&lt;SctEnrollment&gt; getEnrollments(Comparator&lt;SctEnrollment&gt; cmp) {<a name="line.204"></a>
+<span class="sourceLineNo">205</span>        if (iEnrollments == null) computeEnrollments();<a name="line.205"></a>
+<span class="sourceLineNo">206</span>        if (cmp != null)<a name="line.206"></a>
+<span class="sourceLineNo">207</span>            Collections.sort(iEnrollments, cmp);<a name="line.207"></a>
+<span class="sourceLineNo">208</span>        return iEnrollments;<a name="line.208"></a>
+<span class="sourceLineNo">209</span>    }<a name="line.209"></a>
+<span class="sourceLineNo">210</span>    <a name="line.210"></a>
+<span class="sourceLineNo">211</span>    /**<a name="line.211"></a>
+<span class="sourceLineNo">212</span>     * Number of all possible enrollments of the given student into the given course<a name="line.212"></a>
+<span class="sourceLineNo">213</span>     */<a name="line.213"></a>
+<span class="sourceLineNo">214</span>    public int getNumberOfEnrollments() {<a name="line.214"></a>
+<span class="sourceLineNo">215</span>        if (iEnrollments == null) computeEnrollments();<a name="line.215"></a>
+<span class="sourceLineNo">216</span>        return iEnrollments.size();<a name="line.216"></a>
+<span class="sourceLineNo">217</span>    }<a name="line.217"></a>
+<span class="sourceLineNo">218</span>    <a name="line.218"></a>
+<span class="sourceLineNo">219</span>    /**<a name="line.219"></a>
+<span class="sourceLineNo">220</span>     * Average conflict weight<a name="line.220"></a>
+<span class="sourceLineNo">221</span>     */<a name="line.221"></a>
+<span class="sourceLineNo">222</span>    public double getAverageConflictWeight() {<a name="line.222"></a>
+<span class="sourceLineNo">223</span>        if (iEnrollments == null) computeEnrollments();<a name="line.223"></a>
+<span class="sourceLineNo">224</span>        return iTotalEnrollmentWeight / iEnrollments.size();<a name="line.224"></a>
+<span class="sourceLineNo">225</span>    }<a name="line.225"></a>
+<span class="sourceLineNo">226</span>    <a name="line.226"></a>
+<span class="sourceLineNo">227</span>    /**<a name="line.227"></a>
+<span class="sourceLineNo">228</span>     * Offering weight using {@link Student#getOfferingWeight(Long)}<a name="line.228"></a>
+<span class="sourceLineNo">229</span>     */<a name="line.229"></a>
+<span class="sourceLineNo">230</span>    public double getOfferingWeight() {<a name="line.230"></a>
+<span class="sourceLineNo">231</span>        if (iOfferingWeight == null)<a name="line.231"></a>
+<span class="sourceLineNo">232</span>            iOfferingWeight = getStudent().getOfferingWeight(getModel().getOfferingId());<a name="line.232"></a>
+<span class="sourceLineNo">233</span>        return iOfferingWeight;<a name="line.233"></a>
+<span class="sourceLineNo">234</span>    }<a name="line.234"></a>
+<span class="sourceLineNo">235</span>    <a name="line.235"></a>
+<span class="sourceLineNo">236</span>    /**<a name="line.236"></a>
+<span class="sourceLineNo">237</span>     * Compare two students using their curriculum information<a name="line.237"></a>
+<span class="sourceLineNo">238</span>     */<a name="line.238"></a>
+<span class="sourceLineNo">239</span>    public int compare(Student s1, Student s2) {<a name="line.239"></a>
+<span class="sourceLineNo">240</span>        int cmp = (s1.getCurriculum() == null ? "" : s1.getCurriculum()).compareToIgnoreCase(s2.getCurriculum() == null ? "" : s2.getCurriculum());<a name="line.240"></a>
+<span class="sourceLineNo">241</span>        if (cmp != 0) return cmp;<a name="line.241"></a>
+<span class="sourceLineNo">242</span>        cmp = (s1.getAcademicArea() == null ? "" : s1.getAcademicArea()).compareToIgnoreCase(s2.getAcademicArea() == null ? "" : s2.getAcademicArea());<a name="line.242"></a>
+<span class="sourceLineNo">243</span>        if (cmp != 0) return cmp;<a name="line.243"></a>
+<span class="sourceLineNo">244</span>        cmp = (s1.getMajor() == null ? "" : s1.getMajor()).compareToIgnoreCase(s2.getMajor() == null ? "" : s2.getMajor());<a name="line.244"></a>
+<span class="sourceLineNo">245</span>        if (cmp != 0) return cmp;<a name="line.245"></a>
+<span class="sourceLineNo">246</span>        cmp = (s1.getAcademicClassification() == null ? "" : s1.getAcademicClassification()).compareToIgnoreCase(s2.getAcademicClassification() == null ? "" : s2.getAcademicClassification());<a name="line.246"></a>
+<span class="sourceLineNo">247</span>        if (cmp != 0) return cmp;<a name="line.247"></a>
+<span class="sourceLineNo">248</span>        return s1.getId().compareTo(s2.getId());<a name="line.248"></a>
+<span class="sourceLineNo">249</span>    }<a name="line.249"></a>
+<span class="sourceLineNo">250</span><a name="line.250"></a>
+<span class="sourceLineNo">251</span>    /**<a name="line.251"></a>
+<span class="sourceLineNo">252</span>     * Compare two student, using average conflict weight, number of possible enrollments and their curriculum information.<a name="line.252"></a>
+<span class="sourceLineNo">253</span>     * Student that is harder to schedule goes first.<a name="line.253"></a>
+<span class="sourceLineNo">254</span>     */<a name="line.254"></a>
+<span class="sourceLineNo">255</span>    @Override<a name="line.255"></a>
+<span class="sourceLineNo">256</span>    public int compareTo(SctStudent s) {<a name="line.256"></a>
+<span class="sourceLineNo">257</span>        int cmp = Double.compare(s.getAverageConflictWeight(), getAverageConflictWeight());<a name="line.257"></a>
+<span class="sourceLineNo">258</span>        if (cmp != 0) return cmp;<a name="line.258"></a>
+<span class="sourceLineNo">259</span>        cmp = Double.compare(getNumberOfEnrollments(), s.getNumberOfEnrollments());<a name="line.259"></a>
+<span class="sourceLineNo">260</span>        if (cmp != 0) return cmp;<a name="line.260"></a>
+<span class="sourceLineNo">261</span>        return compare(getStudent(), s.getStudent());<a name="line.261"></a>
+<span class="sourceLineNo">262</span>    }<a name="line.262"></a>
+<span class="sourceLineNo">263</span>    <a name="line.263"></a>
+<span class="sourceLineNo">264</span>    @Override<a name="line.264"></a>
+<span class="sourceLineNo">265</span>    public String toString() {<a name="line.265"></a>
+<span class="sourceLineNo">266</span>        return getStudent() + "{enrls:" + getEnrollments().size() + (getEnrollments().isEmpty() ? "" : ", best:" + getEnrollments().get(0).getConflictWeight()) + ", avg:" + getAverageConflictWeight() + "}";<a name="line.266"></a>
+<span class="sourceLineNo">267</span>    }<a name="line.267"></a>
+<span class="sourceLineNo">268</span><a name="line.268"></a>
+<span class="sourceLineNo">269</span>}<a name="line.269"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

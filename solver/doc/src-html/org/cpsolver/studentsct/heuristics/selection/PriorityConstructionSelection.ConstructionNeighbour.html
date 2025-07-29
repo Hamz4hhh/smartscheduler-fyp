@@ -1,0 +1,321 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.cpsolver.studentsct.heuristics.selection;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import java.text.DecimalFormat;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import java.util.HashMap;<a name="line.4"></a>
+<span class="sourceLineNo">005</span>import java.util.Iterator;<a name="line.5"></a>
+<span class="sourceLineNo">006</span>import java.util.List;<a name="line.6"></a>
+<span class="sourceLineNo">007</span>import java.util.Map;<a name="line.7"></a>
+<span class="sourceLineNo">008</span><a name="line.8"></a>
+<span class="sourceLineNo">009</span>import org.cpsolver.ifs.assignment.Assignment;<a name="line.9"></a>
+<span class="sourceLineNo">010</span>import org.cpsolver.ifs.heuristics.NeighbourSelection;<a name="line.10"></a>
+<span class="sourceLineNo">011</span>import org.cpsolver.ifs.model.Neighbour;<a name="line.11"></a>
+<span class="sourceLineNo">012</span>import org.cpsolver.ifs.solution.Solution;<a name="line.12"></a>
+<span class="sourceLineNo">013</span>import org.cpsolver.ifs.solver.Solver;<a name="line.13"></a>
+<span class="sourceLineNo">014</span>import org.cpsolver.ifs.util.DataProperties;<a name="line.14"></a>
+<span class="sourceLineNo">015</span>import org.cpsolver.ifs.util.Progress;<a name="line.15"></a>
+<span class="sourceLineNo">016</span>import org.cpsolver.studentsct.StudentSectioningModel;<a name="line.16"></a>
+<span class="sourceLineNo">017</span>import org.cpsolver.studentsct.heuristics.selection.BranchBoundSelection.BranchBoundNeighbour;<a name="line.17"></a>
+<span class="sourceLineNo">018</span>import org.cpsolver.studentsct.heuristics.studentord.StudentChoiceRealFirstOrder;<a name="line.18"></a>
+<span class="sourceLineNo">019</span>import org.cpsolver.studentsct.heuristics.studentord.StudentOrder;<a name="line.19"></a>
+<span class="sourceLineNo">020</span>import org.cpsolver.studentsct.model.Enrollment;<a name="line.20"></a>
+<span class="sourceLineNo">021</span>import org.cpsolver.studentsct.model.Request;<a name="line.21"></a>
+<span class="sourceLineNo">022</span>import org.cpsolver.studentsct.model.Student;<a name="line.22"></a>
+<span class="sourceLineNo">023</span><a name="line.23"></a>
+<span class="sourceLineNo">024</span><a name="line.24"></a>
+<span class="sourceLineNo">025</span>/**<a name="line.25"></a>
+<span class="sourceLineNo">026</span> * This selection is very much like {@link BranchBoundSelection}, but it works in cycles<a name="line.26"></a>
+<span class="sourceLineNo">027</span> * (over all the students) assigning only the first N priority courses. It starts with<a name="line.27"></a>
+<span class="sourceLineNo">028</span> * N = 1 and increases it by one after each cycle. The selection ends when no student can <a name="line.28"></a>
+<span class="sourceLineNo">029</span> * get more requests assigned in a whole cycle. Run the selection only once (at the <a name="line.29"></a>
+<span class="sourceLineNo">030</span> * beginning), the selection falls back to {@link BranchBoundSelection} if there are already<a name="line.30"></a>
+<span class="sourceLineNo">031</span> * some requests assigned at the time of initialization.<a name="line.31"></a>
+<span class="sourceLineNo">032</span> * <a name="line.32"></a>
+<span class="sourceLineNo">033</span> * &lt;br&gt;<a name="line.33"></a>
+<span class="sourceLineNo">034</span> * &lt;br&gt;<a name="line.34"></a>
+<span class="sourceLineNo">035</span> * <a name="line.35"></a>
+<span class="sourceLineNo">036</span> * @author  Tom&#225;&#353; M&#252;ller<a name="line.36"></a>
+<span class="sourceLineNo">037</span> * @version StudentSct 1.3 (Student Sectioning)&lt;br&gt;<a name="line.37"></a>
+<span class="sourceLineNo">038</span> *          Copyright (C) 2007 - 2014 Tom&#225;&#353; M&#252;ller&lt;br&gt;<a name="line.38"></a>
+<span class="sourceLineNo">039</span> *          &lt;a href="mailto:muller@unitime.org"&gt;muller@unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.39"></a>
+<span class="sourceLineNo">040</span> *          &lt;a href="http://muller.unitime.org"&gt;http://muller.unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.40"></a>
+<span class="sourceLineNo">041</span> * &lt;br&gt;<a name="line.41"></a>
+<span class="sourceLineNo">042</span> *          This library is free software; you can redistribute it and/or modify<a name="line.42"></a>
+<span class="sourceLineNo">043</span> *          it under the terms of the GNU Lesser General Public License as<a name="line.43"></a>
+<span class="sourceLineNo">044</span> *          published by the Free Software Foundation; either version 3 of the<a name="line.44"></a>
+<span class="sourceLineNo">045</span> *          License, or (at your option) any later version. &lt;br&gt;<a name="line.45"></a>
+<span class="sourceLineNo">046</span> * &lt;br&gt;<a name="line.46"></a>
+<span class="sourceLineNo">047</span> *          This library is distributed in the hope that it will be useful, but<a name="line.47"></a>
+<span class="sourceLineNo">048</span> *          WITHOUT ANY WARRANTY; without even the implied warranty of<a name="line.48"></a>
+<span class="sourceLineNo">049</span> *          MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU<a name="line.49"></a>
+<span class="sourceLineNo">050</span> *          Lesser General Public License for more details. &lt;br&gt;<a name="line.50"></a>
+<span class="sourceLineNo">051</span> * &lt;br&gt;<a name="line.51"></a>
+<span class="sourceLineNo">052</span> *          You should have received a copy of the GNU Lesser General Public<a name="line.52"></a>
+<span class="sourceLineNo">053</span> *          License along with this library; if not see<a name="line.53"></a>
+<span class="sourceLineNo">054</span> *          &lt;a href='http://www.gnu.org/licenses/'&gt;http://www.gnu.org/licenses/&lt;/a&gt;.<a name="line.54"></a>
+<span class="sourceLineNo">055</span> */<a name="line.55"></a>
+<span class="sourceLineNo">056</span><a name="line.56"></a>
+<span class="sourceLineNo">057</span>public class PriorityConstructionSelection implements NeighbourSelection&lt;Request, Enrollment&gt; {<a name="line.57"></a>
+<span class="sourceLineNo">058</span>    private static org.apache.logging.log4j.Logger sLog = org.apache.logging.log4j.LogManager.getLogger(PriorityConstructionSelection.class);<a name="line.58"></a>
+<span class="sourceLineNo">059</span>    private static DecimalFormat sDF = new DecimalFormat("0.00");<a name="line.59"></a>
+<span class="sourceLineNo">060</span>    private int iCycle = 0;<a name="line.60"></a>
+<span class="sourceLineNo">061</span>    private int iMaxCycles = 7;<a name="line.61"></a>
+<span class="sourceLineNo">062</span>    private boolean iImproved = false;<a name="line.62"></a>
+<span class="sourceLineNo">063</span>    private boolean iSkip = false;<a name="line.63"></a>
+<span class="sourceLineNo">064</span>    private BranchBoundSelection iBranchBoundSelection = null;<a name="line.64"></a>
+<span class="sourceLineNo">065</span>    protected Iterator&lt;Student&gt; iStudentsEnumeration = null;<a name="line.65"></a>
+<span class="sourceLineNo">066</span>    protected StudentOrder iOrder = new StudentChoiceRealFirstOrder();<a name="line.66"></a>
+<span class="sourceLineNo">067</span>    protected List&lt;Student&gt; iStudents = null;<a name="line.67"></a>
+<span class="sourceLineNo">068</span><a name="line.68"></a>
+<span class="sourceLineNo">069</span>    /**<a name="line.69"></a>
+<span class="sourceLineNo">070</span>     * Constructor<a name="line.70"></a>
+<span class="sourceLineNo">071</span>     * <a name="line.71"></a>
+<span class="sourceLineNo">072</span>     * @param properties<a name="line.72"></a>
+<span class="sourceLineNo">073</span>     *            configuration<a name="line.73"></a>
+<span class="sourceLineNo">074</span>     */<a name="line.74"></a>
+<span class="sourceLineNo">075</span>    public PriorityConstructionSelection(DataProperties properties) {<a name="line.75"></a>
+<span class="sourceLineNo">076</span>        iBranchBoundSelection = new BranchBoundSelection(properties);<a name="line.76"></a>
+<span class="sourceLineNo">077</span>        if (properties.getProperty("Neighbour.PriorityConstructionOrder") != null) {<a name="line.77"></a>
+<span class="sourceLineNo">078</span>            try {<a name="line.78"></a>
+<span class="sourceLineNo">079</span>                iOrder = (StudentOrder) Class.forName(properties.getProperty("Neighbour.PriorityConstructionOrder"))<a name="line.79"></a>
+<span class="sourceLineNo">080</span>                        .getConstructor(new Class[] { DataProperties.class }).newInstance(new Object[] { properties });<a name="line.80"></a>
+<span class="sourceLineNo">081</span>            } catch (Exception e) {<a name="line.81"></a>
+<span class="sourceLineNo">082</span>                sLog.error("Unable to set student order, reason:" + e.getMessage(), e);<a name="line.82"></a>
+<span class="sourceLineNo">083</span>            }<a name="line.83"></a>
+<span class="sourceLineNo">084</span>        }<a name="line.84"></a>
+<span class="sourceLineNo">085</span>        iMaxCycles = properties.getPropertyInteger("Neighbour.PriorityConstructionCycles", iMaxCycles);<a name="line.85"></a>
+<span class="sourceLineNo">086</span>    }<a name="line.86"></a>
+<span class="sourceLineNo">087</span>    <a name="line.87"></a>
+<span class="sourceLineNo">088</span>    /**<a name="line.88"></a>
+<span class="sourceLineNo">089</span>     * Initialize<a name="line.89"></a>
+<span class="sourceLineNo">090</span>     */<a name="line.90"></a>
+<span class="sourceLineNo">091</span>    @Override<a name="line.91"></a>
+<span class="sourceLineNo">092</span>    public void init(Solver&lt;Request, Enrollment&gt; solver) {<a name="line.92"></a>
+<span class="sourceLineNo">093</span>        iCycle = 1;<a name="line.93"></a>
+<span class="sourceLineNo">094</span>        iImproved = false;<a name="line.94"></a>
+<span class="sourceLineNo">095</span>        iSkip = !solver.currentSolution().getModel().assignedVariables(solver.currentSolution().getAssignment()).isEmpty();<a name="line.95"></a>
+<span class="sourceLineNo">096</span>        if (iSkip) {<a name="line.96"></a>
+<span class="sourceLineNo">097</span>            iBranchBoundSelection.init(solver);<a name="line.97"></a>
+<span class="sourceLineNo">098</span>        } else {<a name="line.98"></a>
+<span class="sourceLineNo">099</span>            iStudents = iOrder.order(((StudentSectioningModel) solver.currentSolution().getModel()).getStudents());<a name="line.99"></a>
+<span class="sourceLineNo">100</span>            iStudentsEnumeration = iStudents.iterator();<a name="line.100"></a>
+<span class="sourceLineNo">101</span>            iBranchBoundSelection.init(solver, "Construction[" + iCycle + "]...");<a name="line.101"></a>
+<span class="sourceLineNo">102</span>        }<a name="line.102"></a>
+<span class="sourceLineNo">103</span>    }<a name="line.103"></a>
+<span class="sourceLineNo">104</span>    <a name="line.104"></a>
+<span class="sourceLineNo">105</span>    /**<a name="line.105"></a>
+<span class="sourceLineNo">106</span>     * Find best solution for the next student using {@link BranchBoundSelection}.<a name="line.106"></a>
+<span class="sourceLineNo">107</span>     * @param solution current selection<a name="line.107"></a>
+<span class="sourceLineNo">108</span>     * @return generated neighbour<a name="line.108"></a>
+<span class="sourceLineNo">109</span>     */<a name="line.109"></a>
+<span class="sourceLineNo">110</span>    public Neighbour&lt;Request, Enrollment&gt; branchAndBound(Solution&lt;Request, Enrollment&gt; solution) {<a name="line.110"></a>
+<span class="sourceLineNo">111</span>        while (iStudentsEnumeration.hasNext()) {<a name="line.111"></a>
+<span class="sourceLineNo">112</span>            Student student = iStudentsEnumeration.next();<a name="line.112"></a>
+<span class="sourceLineNo">113</span>            Progress.getInstance(solution.getModel()).incProgress();<a name="line.113"></a>
+<span class="sourceLineNo">114</span>            /*<a name="line.114"></a>
+<span class="sourceLineNo">115</span>            if (student.nrRequests() &lt; iCycle) {<a name="line.115"></a>
+<span class="sourceLineNo">116</span>                // not enough requests -&gt; nothing to improve -&gt; skip<a name="line.116"></a>
+<span class="sourceLineNo">117</span>                continue;<a name="line.117"></a>
+<span class="sourceLineNo">118</span>            }<a name="line.118"></a>
+<span class="sourceLineNo">119</span>            if (student.nrAssignedRequests() + 1 &lt; iCycle) {<a name="line.119"></a>
+<span class="sourceLineNo">120</span>                // previous step cycle already did not improve the assignment -&gt; skip<a name="line.120"></a>
+<span class="sourceLineNo">121</span>                continue;<a name="line.121"></a>
+<span class="sourceLineNo">122</span>            }<a name="line.122"></a>
+<span class="sourceLineNo">123</span>            */<a name="line.123"></a>
+<span class="sourceLineNo">124</span>            Neighbour&lt;Request, Enrollment&gt; neighbour = iBranchBoundSelection.getSelection(solution.getAssignment(), student).select();<a name="line.124"></a>
+<span class="sourceLineNo">125</span>            if (neighbour != null)<a name="line.125"></a>
+<span class="sourceLineNo">126</span>                return neighbour;<a name="line.126"></a>
+<span class="sourceLineNo">127</span>        }<a name="line.127"></a>
+<span class="sourceLineNo">128</span>        return null;<a name="line.128"></a>
+<span class="sourceLineNo">129</span>    }<a name="line.129"></a>
+<span class="sourceLineNo">130</span>    <a name="line.130"></a>
+<span class="sourceLineNo">131</span>    /** Increment cycle <a name="line.131"></a>
+<span class="sourceLineNo">132</span>     * @param solution current solution<a name="line.132"></a>
+<span class="sourceLineNo">133</span>     **/<a name="line.133"></a>
+<span class="sourceLineNo">134</span>    protected void nextCycle(Solution&lt;Request, Enrollment&gt; solution) {<a name="line.134"></a>
+<span class="sourceLineNo">135</span>        iCycle ++; iImproved = false;<a name="line.135"></a>
+<span class="sourceLineNo">136</span>        sLog.debug("Assigning up to " + iCycle + " requests...");<a name="line.136"></a>
+<span class="sourceLineNo">137</span>        <a name="line.137"></a>
+<span class="sourceLineNo">138</span>        StudentSectioningModel m = (StudentSectioningModel)solution.getModel();<a name="line.138"></a>
+<span class="sourceLineNo">139</span>        double tv = m.getTotalValue(solution.getAssignment(), true);<a name="line.139"></a>
+<span class="sourceLineNo">140</span>        sLog.debug("**CURR** " + solution.getModel().toString() + ", TM:" + sDF.format(solution.getTime() / 3600.0) + "h, " + <a name="line.140"></a>
+<span class="sourceLineNo">141</span>                "TV:" + sDF.format(-tv) + " (" + sDF.format(-100.0 * tv / m.getStudents().size()) + "%)");<a name="line.141"></a>
+<span class="sourceLineNo">142</span>        <a name="line.142"></a>
+<span class="sourceLineNo">143</span>        iStudentsEnumeration = iStudents.iterator();<a name="line.143"></a>
+<span class="sourceLineNo">144</span>        Progress.getInstance(solution.getModel()).setPhase("Construction[" + iCycle + "]...", iStudents.size());<a name="line.144"></a>
+<span class="sourceLineNo">145</span>    }<a name="line.145"></a>
+<span class="sourceLineNo">146</span><a name="line.146"></a>
+<span class="sourceLineNo">147</span>    /**<a name="line.147"></a>
+<span class="sourceLineNo">148</span>     * Select neighbor. All students are taken, one by one in a random order.<a name="line.148"></a>
+<span class="sourceLineNo">149</span>     * For each student a branch &amp;amp; bound search is employed.<a name="line.149"></a>
+<span class="sourceLineNo">150</span>     */<a name="line.150"></a>
+<span class="sourceLineNo">151</span>    @Override<a name="line.151"></a>
+<span class="sourceLineNo">152</span>    public Neighbour&lt;Request, Enrollment&gt; selectNeighbour(Solution&lt;Request, Enrollment&gt; solution) {<a name="line.152"></a>
+<span class="sourceLineNo">153</span>        if (iSkip)<a name="line.153"></a>
+<span class="sourceLineNo">154</span>            return iBranchBoundSelection.selectNeighbour(solution);<a name="line.154"></a>
+<span class="sourceLineNo">155</span>        Neighbour&lt;Request, Enrollment&gt; n = branchAndBound(solution);<a name="line.155"></a>
+<span class="sourceLineNo">156</span>        if (n == null) {<a name="line.156"></a>
+<span class="sourceLineNo">157</span>            if (iCycle == iMaxCycles || !iImproved) return null;<a name="line.157"></a>
+<span class="sourceLineNo">158</span>            nextCycle(solution);<a name="line.158"></a>
+<span class="sourceLineNo">159</span>            n = branchAndBound(solution);<a name="line.159"></a>
+<span class="sourceLineNo">160</span>        }<a name="line.160"></a>
+<span class="sourceLineNo">161</span>        return (n == null ? null : new ConstructionNeighbour((BranchBoundNeighbour)n));<a name="line.161"></a>
+<span class="sourceLineNo">162</span>        <a name="line.162"></a>
+<span class="sourceLineNo">163</span>    }<a name="line.163"></a>
+<span class="sourceLineNo">164</span>    <a name="line.164"></a>
+<span class="sourceLineNo">165</span>    /**<a name="line.165"></a>
+<span class="sourceLineNo">166</span>     * Takes {@link BranchBoundNeighbour} but only assign the given<a name="line.166"></a>
+<span class="sourceLineNo">167</span>     * number of assignments, corresponding to the number of cycles.<a name="line.167"></a>
+<span class="sourceLineNo">168</span>     */<a name="line.168"></a>
+<span class="sourceLineNo">169</span>    public class ConstructionNeighbour implements Neighbour&lt;Request, Enrollment&gt;{<a name="line.169"></a>
+<span class="sourceLineNo">170</span>        private BranchBoundNeighbour iNeighbour;<a name="line.170"></a>
+<span class="sourceLineNo">171</span>        <a name="line.171"></a>
+<span class="sourceLineNo">172</span>        public ConstructionNeighbour(BranchBoundNeighbour neighbour) {<a name="line.172"></a>
+<span class="sourceLineNo">173</span>            iNeighbour = neighbour;<a name="line.173"></a>
+<span class="sourceLineNo">174</span>        }<a name="line.174"></a>
+<span class="sourceLineNo">175</span><a name="line.175"></a>
+<span class="sourceLineNo">176</span>        /**<a name="line.176"></a>
+<span class="sourceLineNo">177</span>         * Only assign given number of assignments (from the first priority down).<a name="line.177"></a>
+<span class="sourceLineNo">178</span>         * Mark the cycle as improving if there was enough assignments to do.<a name="line.178"></a>
+<span class="sourceLineNo">179</span>         */<a name="line.179"></a>
+<span class="sourceLineNo">180</span>        @Override<a name="line.180"></a>
+<span class="sourceLineNo">181</span>        public void assign(Assignment&lt;Request, Enrollment&gt; assignment, long iteration) {<a name="line.181"></a>
+<span class="sourceLineNo">182</span>            if (iCycle &gt;= iMaxCycles) {<a name="line.182"></a>
+<span class="sourceLineNo">183</span>                iNeighbour.assign(assignment, iteration);<a name="line.183"></a>
+<span class="sourceLineNo">184</span>                return;<a name="line.184"></a>
+<span class="sourceLineNo">185</span>            }<a name="line.185"></a>
+<span class="sourceLineNo">186</span>            for (Request r: iNeighbour.getStudent().getRequests())<a name="line.186"></a>
+<span class="sourceLineNo">187</span>                assignment.unassign(iteration, r);<a name="line.187"></a>
+<span class="sourceLineNo">188</span>            int n = iCycle;<a name="line.188"></a>
+<span class="sourceLineNo">189</span>            for (int i = 0; i &lt; iNeighbour.getAssignment().length; i++) {<a name="line.189"></a>
+<span class="sourceLineNo">190</span>                if (iNeighbour.getAssignment()[i] != null) {<a name="line.190"></a>
+<span class="sourceLineNo">191</span>                    assignment.assign(iteration, iNeighbour.getAssignment()[i]);<a name="line.191"></a>
+<span class="sourceLineNo">192</span>                    n --;<a name="line.192"></a>
+<span class="sourceLineNo">193</span>                }<a name="line.193"></a>
+<span class="sourceLineNo">194</span>                if (n == 0) {<a name="line.194"></a>
+<span class="sourceLineNo">195</span>                    iImproved = true; break;<a name="line.195"></a>
+<span class="sourceLineNo">196</span>                }<a name="line.196"></a>
+<span class="sourceLineNo">197</span>            }<a name="line.197"></a>
+<span class="sourceLineNo">198</span>        }<a name="line.198"></a>
+<span class="sourceLineNo">199</span><a name="line.199"></a>
+<span class="sourceLineNo">200</span>        @Override<a name="line.200"></a>
+<span class="sourceLineNo">201</span>        public double value(Assignment&lt;Request, Enrollment&gt; assignment) {<a name="line.201"></a>
+<span class="sourceLineNo">202</span>            return iNeighbour.value(assignment);<a name="line.202"></a>
+<span class="sourceLineNo">203</span>        }<a name="line.203"></a>
+<span class="sourceLineNo">204</span>        <a name="line.204"></a>
+<span class="sourceLineNo">205</span>        @Override<a name="line.205"></a>
+<span class="sourceLineNo">206</span>        public String toString() {<a name="line.206"></a>
+<span class="sourceLineNo">207</span>            int n = iCycle;<a name="line.207"></a>
+<span class="sourceLineNo">208</span>            StringBuffer sb = new StringBuffer("B&amp;B[" + n + "]{ " + iNeighbour.getStudent() + " " + sDF.format(-value(null) * 100.0) + "%");<a name="line.208"></a>
+<span class="sourceLineNo">209</span>            int idx = 0;<a name="line.209"></a>
+<span class="sourceLineNo">210</span>            for (Iterator&lt;Request&gt; e = iNeighbour.getStudent().getRequests().iterator(); e.hasNext(); idx++) {<a name="line.210"></a>
+<span class="sourceLineNo">211</span>                Request request = e.next();<a name="line.211"></a>
+<span class="sourceLineNo">212</span>                sb.append("\n  " + request);<a name="line.212"></a>
+<span class="sourceLineNo">213</span>                Enrollment enrollment = iNeighbour.getAssignment()[idx];<a name="line.213"></a>
+<span class="sourceLineNo">214</span>                if (enrollment == null) {<a name="line.214"></a>
+<span class="sourceLineNo">215</span>                    sb.append("  -- not assigned");<a name="line.215"></a>
+<span class="sourceLineNo">216</span>                } else {<a name="line.216"></a>
+<span class="sourceLineNo">217</span>                    sb.append("  -- " + enrollment);<a name="line.217"></a>
+<span class="sourceLineNo">218</span>                    n --;<a name="line.218"></a>
+<span class="sourceLineNo">219</span>                }<a name="line.219"></a>
+<span class="sourceLineNo">220</span>                if (n == 0) break;<a name="line.220"></a>
+<span class="sourceLineNo">221</span>            }<a name="line.221"></a>
+<span class="sourceLineNo">222</span>            sb.append("\n}");<a name="line.222"></a>
+<span class="sourceLineNo">223</span>            return sb.toString();<a name="line.223"></a>
+<span class="sourceLineNo">224</span>        }<a name="line.224"></a>
+<span class="sourceLineNo">225</span><a name="line.225"></a>
+<span class="sourceLineNo">226</span>        @Override<a name="line.226"></a>
+<span class="sourceLineNo">227</span>        public Map&lt;Request, Enrollment&gt; assignments() {<a name="line.227"></a>
+<span class="sourceLineNo">228</span>            Map&lt;Request, Enrollment&gt; ret = new HashMap&lt;Request, Enrollment&gt;();<a name="line.228"></a>
+<span class="sourceLineNo">229</span>            if (iCycle &gt;= iMaxCycles) {<a name="line.229"></a>
+<span class="sourceLineNo">230</span>                return iNeighbour.assignments();<a name="line.230"></a>
+<span class="sourceLineNo">231</span>            }<a name="line.231"></a>
+<span class="sourceLineNo">232</span>            for (Request r: iNeighbour.getStudent().getRequests())<a name="line.232"></a>
+<span class="sourceLineNo">233</span>                ret.put(r, null);<a name="line.233"></a>
+<span class="sourceLineNo">234</span>            int n = iCycle;<a name="line.234"></a>
+<span class="sourceLineNo">235</span>            for (int i = 0; i &lt; iNeighbour.getAssignment().length; i++) {<a name="line.235"></a>
+<span class="sourceLineNo">236</span>                if (iNeighbour.getAssignment()[i] != null) {<a name="line.236"></a>
+<span class="sourceLineNo">237</span>                    ret.put(iNeighbour.getAssignment()[i].variable(), iNeighbour.getAssignment()[i]);<a name="line.237"></a>
+<span class="sourceLineNo">238</span>                    n --;<a name="line.238"></a>
+<span class="sourceLineNo">239</span>                }<a name="line.239"></a>
+<span class="sourceLineNo">240</span>                if (n == 0) {<a name="line.240"></a>
+<span class="sourceLineNo">241</span>                    iImproved = true; break;<a name="line.241"></a>
+<span class="sourceLineNo">242</span>                }<a name="line.242"></a>
+<span class="sourceLineNo">243</span>            }<a name="line.243"></a>
+<span class="sourceLineNo">244</span>            return ret;<a name="line.244"></a>
+<span class="sourceLineNo">245</span>        }<a name="line.245"></a>
+<span class="sourceLineNo">246</span>    }<a name="line.246"></a>
+<span class="sourceLineNo">247</span><a name="line.247"></a>
+<span class="sourceLineNo">248</span>    <a name="line.248"></a>
+<span class="sourceLineNo">249</span>}<a name="line.249"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

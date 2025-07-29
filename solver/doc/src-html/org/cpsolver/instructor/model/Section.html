@@ -1,0 +1,402 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.cpsolver.instructor.model;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import java.util.Collection;<a name="line.3"></a>
+<span class="sourceLineNo">004</span><a name="line.4"></a>
+<span class="sourceLineNo">005</span>import org.cpsolver.coursett.Constants;<a name="line.5"></a>
+<span class="sourceLineNo">006</span>import org.cpsolver.coursett.model.TimeLocation;<a name="line.6"></a>
+<span class="sourceLineNo">007</span>import org.cpsolver.instructor.criteria.DifferentLecture;<a name="line.7"></a>
+<span class="sourceLineNo">008</span><a name="line.8"></a>
+<span class="sourceLineNo">009</span>/**<a name="line.9"></a>
+<span class="sourceLineNo">010</span> * Section. A section (part of a teaching request that needs an instructor) has an id, a name, a time, a room.<a name="line.10"></a>
+<span class="sourceLineNo">011</span> * A section may be allowed to overlap in time (in which case the overlapping time is to be minimized) and/or<a name="line.11"></a>
+<span class="sourceLineNo">012</span> * marked as common. This is, for instance, to be able to ensure that all assignments of a course that are<a name="line.12"></a>
+<span class="sourceLineNo">013</span> * given to a single instructor share the same lecture.  <a name="line.13"></a>
+<span class="sourceLineNo">014</span> * <a name="line.14"></a>
+<span class="sourceLineNo">015</span> * @author  Tom&#225;&#353; M&#252;ller<a name="line.15"></a>
+<span class="sourceLineNo">016</span> * @version IFS 1.3 (Instructor Sectioning)&lt;br&gt;<a name="line.16"></a>
+<span class="sourceLineNo">017</span> *          Copyright (C) 2016 Tom&#225;&#353; M&#252;ller&lt;br&gt;<a name="line.17"></a>
+<span class="sourceLineNo">018</span> *          &lt;a href="mailto:muller@unitime.org"&gt;muller@unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.18"></a>
+<span class="sourceLineNo">019</span> *          &lt;a href="http://muller.unitime.org"&gt;http://muller.unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.19"></a>
+<span class="sourceLineNo">020</span> * &lt;br&gt;<a name="line.20"></a>
+<span class="sourceLineNo">021</span> *          This library is free software; you can redistribute it and/or modify<a name="line.21"></a>
+<span class="sourceLineNo">022</span> *          it under the terms of the GNU Lesser General Public License as<a name="line.22"></a>
+<span class="sourceLineNo">023</span> *          published by the Free Software Foundation; either version 3 of the<a name="line.23"></a>
+<span class="sourceLineNo">024</span> *          License, or (at your option) any later version. &lt;br&gt;<a name="line.24"></a>
+<span class="sourceLineNo">025</span> * &lt;br&gt;<a name="line.25"></a>
+<span class="sourceLineNo">026</span> *          This library is distributed in the hope that it will be useful, but<a name="line.26"></a>
+<span class="sourceLineNo">027</span> *          WITHOUT ANY WARRANTY; without even the implied warranty of<a name="line.27"></a>
+<span class="sourceLineNo">028</span> *          MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU<a name="line.28"></a>
+<span class="sourceLineNo">029</span> *          Lesser General Public License for more details. &lt;br&gt;<a name="line.29"></a>
+<span class="sourceLineNo">030</span> * &lt;br&gt;<a name="line.30"></a>
+<span class="sourceLineNo">031</span> *          You should have received a copy of the GNU Lesser General Public<a name="line.31"></a>
+<span class="sourceLineNo">032</span> *          License along with this library; if not see<a name="line.32"></a>
+<span class="sourceLineNo">033</span> *          &lt;a href='http://www.gnu.org/licenses/'&gt;http://www.gnu.org/licenses/&lt;/a&gt;.<a name="line.33"></a>
+<span class="sourceLineNo">034</span> */<a name="line.34"></a>
+<span class="sourceLineNo">035</span>public class Section {<a name="line.35"></a>
+<span class="sourceLineNo">036</span>    private Long iId;<a name="line.36"></a>
+<span class="sourceLineNo">037</span>    private String iExternalId;<a name="line.37"></a>
+<span class="sourceLineNo">038</span>    private String iType;<a name="line.38"></a>
+<span class="sourceLineNo">039</span>    private String iName;<a name="line.39"></a>
+<span class="sourceLineNo">040</span>    private TimeLocation iTime;<a name="line.40"></a>
+<span class="sourceLineNo">041</span>    private String iRoom;<a name="line.41"></a>
+<span class="sourceLineNo">042</span>    private boolean iAllowOverlap;<a name="line.42"></a>
+<span class="sourceLineNo">043</span>    private boolean iCommon;<a name="line.43"></a>
+<span class="sourceLineNo">044</span>    <a name="line.44"></a>
+<span class="sourceLineNo">045</span>    /**<a name="line.45"></a>
+<span class="sourceLineNo">046</span>     * Constructor<a name="line.46"></a>
+<span class="sourceLineNo">047</span>     * @param id section unique id<a name="line.47"></a>
+<span class="sourceLineNo">048</span>     * @param externalId section external id<a name="line.48"></a>
+<span class="sourceLineNo">049</span>     * @param type instructional type<a name="line.49"></a>
+<span class="sourceLineNo">050</span>     * @param name section name<a name="line.50"></a>
+<span class="sourceLineNo">051</span>     * @param time section time assignment<a name="line.51"></a>
+<span class="sourceLineNo">052</span>     * @param room section room assignment<a name="line.52"></a>
+<span class="sourceLineNo">053</span>     * @param allowOverlap can this section overlap with some other section<a name="line.53"></a>
+<span class="sourceLineNo">054</span>     * @param common is this a common part of the course<a name="line.54"></a>
+<span class="sourceLineNo">055</span>     */<a name="line.55"></a>
+<span class="sourceLineNo">056</span>    public Section(long id, String externalId, String type, String name, TimeLocation time, String room, boolean allowOverlap, boolean common) {<a name="line.56"></a>
+<span class="sourceLineNo">057</span>        iId = id;<a name="line.57"></a>
+<span class="sourceLineNo">058</span>        iExternalId = externalId;<a name="line.58"></a>
+<span class="sourceLineNo">059</span>        iType = type;<a name="line.59"></a>
+<span class="sourceLineNo">060</span>        iName = name;<a name="line.60"></a>
+<span class="sourceLineNo">061</span>        iTime = time;<a name="line.61"></a>
+<span class="sourceLineNo">062</span>        iRoom = room;<a name="line.62"></a>
+<span class="sourceLineNo">063</span>        iAllowOverlap = allowOverlap;<a name="line.63"></a>
+<span class="sourceLineNo">064</span>        iCommon = common;<a name="line.64"></a>
+<span class="sourceLineNo">065</span>    }<a name="line.65"></a>
+<span class="sourceLineNo">066</span>    <a name="line.66"></a>
+<span class="sourceLineNo">067</span>    /**<a name="line.67"></a>
+<span class="sourceLineNo">068</span>     * Section unique id that was provided in the constructor<a name="line.68"></a>
+<span class="sourceLineNo">069</span>     * @return section unique id<a name="line.69"></a>
+<span class="sourceLineNo">070</span>     */<a name="line.70"></a>
+<span class="sourceLineNo">071</span>    public Long getSectionId() { return iId; }<a name="line.71"></a>
+<span class="sourceLineNo">072</span>    <a name="line.72"></a>
+<span class="sourceLineNo">073</span>    /**<a name="line.73"></a>
+<span class="sourceLineNo">074</span>     * Section external unique id that was provided in the constructor<a name="line.74"></a>
+<span class="sourceLineNo">075</span>     * @return section external id<a name="line.75"></a>
+<span class="sourceLineNo">076</span>     */<a name="line.76"></a>
+<span class="sourceLineNo">077</span>    public String getExternalId() { return iExternalId; }<a name="line.77"></a>
+<span class="sourceLineNo">078</span>    <a name="line.78"></a>
+<span class="sourceLineNo">079</span>    /**<a name="line.79"></a>
+<span class="sourceLineNo">080</span>     * Section instructional type (e.g., Lecture) that was provided in the constructor<a name="line.80"></a>
+<span class="sourceLineNo">081</span>     * @return section instructional type<a name="line.81"></a>
+<span class="sourceLineNo">082</span>     */<a name="line.82"></a>
+<span class="sourceLineNo">083</span>    public String getSectionType() { return iType; }<a name="line.83"></a>
+<span class="sourceLineNo">084</span>    <a name="line.84"></a>
+<span class="sourceLineNo">085</span>    /**<a name="line.85"></a>
+<span class="sourceLineNo">086</span>     * Has section type filled in?<a name="line.86"></a>
+<span class="sourceLineNo">087</span>     * @return true, if there is a section instructional type filled in<a name="line.87"></a>
+<span class="sourceLineNo">088</span>     */<a name="line.88"></a>
+<span class="sourceLineNo">089</span>    public boolean hasSectionType() { return iType != null &amp;&amp; !iType.isEmpty(); }<a name="line.89"></a>
+<span class="sourceLineNo">090</span>    <a name="line.90"></a>
+<span class="sourceLineNo">091</span>    /**<a name="line.91"></a>
+<span class="sourceLineNo">092</span>     * Section name that was provided in the constructor<a name="line.92"></a>
+<span class="sourceLineNo">093</span>     * @return section name<a name="line.93"></a>
+<span class="sourceLineNo">094</span>     */<a name="line.94"></a>
+<span class="sourceLineNo">095</span>    public String getSectionName() { return iName; }<a name="line.95"></a>
+<span class="sourceLineNo">096</span>    <a name="line.96"></a>
+<span class="sourceLineNo">097</span>    /**<a name="line.97"></a>
+<span class="sourceLineNo">098</span>     * Section time that was provided in the constructor<a name="line.98"></a>
+<span class="sourceLineNo">099</span>     * @return section time<a name="line.99"></a>
+<span class="sourceLineNo">100</span>     */<a name="line.100"></a>
+<span class="sourceLineNo">101</span>    public TimeLocation getTime() { return iTime; }<a name="line.101"></a>
+<span class="sourceLineNo">102</span>    <a name="line.102"></a>
+<span class="sourceLineNo">103</span>    /**<a name="line.103"></a>
+<span class="sourceLineNo">104</span>     * Has section time filled in?<a name="line.104"></a>
+<span class="sourceLineNo">105</span>     * @return true if section is assigned in time<a name="line.105"></a>
+<span class="sourceLineNo">106</span>     */<a name="line.106"></a>
+<span class="sourceLineNo">107</span>    public boolean hasTime() { return getTime() != null &amp;&amp; getTime().getDayCode() != 0; }<a name="line.107"></a>
+<span class="sourceLineNo">108</span>    <a name="line.108"></a>
+<span class="sourceLineNo">109</span>    /**<a name="line.109"></a>
+<span class="sourceLineNo">110</span>     * Section room (or rooms)<a name="line.110"></a>
+<span class="sourceLineNo">111</span>     * @return section room<a name="line.111"></a>
+<span class="sourceLineNo">112</span>     */<a name="line.112"></a>
+<span class="sourceLineNo">113</span>    public String getRoom() { return iRoom; }<a name="line.113"></a>
+<span class="sourceLineNo">114</span>    <a name="line.114"></a>
+<span class="sourceLineNo">115</span>    /**<a name="line.115"></a>
+<span class="sourceLineNo">116</span>     * Has section room filled in?<a name="line.116"></a>
+<span class="sourceLineNo">117</span>     * @return true if section is assigned in space<a name="line.117"></a>
+<span class="sourceLineNo">118</span>     */<a name="line.118"></a>
+<span class="sourceLineNo">119</span>    public boolean hasRoom() { return iRoom != null &amp;&amp; !iRoom.isEmpty(); }<a name="line.119"></a>
+<span class="sourceLineNo">120</span>    <a name="line.120"></a>
+<span class="sourceLineNo">121</span>    /**<a name="line.121"></a>
+<span class="sourceLineNo">122</span>     * Are time overlaps with other sections and with prohibited time preferences allowed? If true, the number of overlapping time slots should be minimized instead.<a name="line.122"></a>
+<span class="sourceLineNo">123</span>     * @return true if other sections can overlap with this section or if the student can teach this section even when he/she is unavailable<a name="line.123"></a>
+<span class="sourceLineNo">124</span>     */<a name="line.124"></a>
+<span class="sourceLineNo">125</span>    public boolean isAllowOverlap() { return iAllowOverlap; }<a name="line.125"></a>
+<span class="sourceLineNo">126</span>    <a name="line.126"></a>
+<span class="sourceLineNo">127</span>    /**<a name="line.127"></a>
+<span class="sourceLineNo">128</span>     * Is common part of the course (e.g., a lecture)? It is possible to either require all assignments of a course that are given to the same instructor to have<a name="line.128"></a>
+<span class="sourceLineNo">129</span>     * to share the common part (when {@link TeachingRequest#getSameCommonPreference()} is true) or to minimize the different sections that are not shared among all the assignments<a name="line.129"></a>
+<span class="sourceLineNo">130</span>     * (using {@link DifferentLecture} criterion and {@link TeachingRequest#nrSameLectures(TeachingRequest)}). <a name="line.130"></a>
+<span class="sourceLineNo">131</span>     * @return true if this section forms a common part of the course<a name="line.131"></a>
+<span class="sourceLineNo">132</span>     */<a name="line.132"></a>
+<span class="sourceLineNo">133</span>    public boolean isCommon() { return iCommon; }<a name="line.133"></a>
+<span class="sourceLineNo">134</span>    <a name="line.134"></a>
+<span class="sourceLineNo">135</span>    /**<a name="line.135"></a>
+<span class="sourceLineNo">136</span>     * Check if this section overlaps in time with some other section<a name="line.136"></a>
+<span class="sourceLineNo">137</span>     * @param section the other section<a name="line.137"></a>
+<span class="sourceLineNo">138</span>     * @return true, if neither of the two sections allow for overlap and they are assigned in overlapping times (see {@link TimeLocation#hasIntersection(TimeLocation)})<a name="line.138"></a>
+<span class="sourceLineNo">139</span>     */<a name="line.139"></a>
+<span class="sourceLineNo">140</span>    public boolean isOverlapping(Section section) {<a name="line.140"></a>
+<span class="sourceLineNo">141</span>        if (isAllowOverlap() || section.isAllowOverlap()) return false;<a name="line.141"></a>
+<span class="sourceLineNo">142</span>        if (getTime() == null || section.getTime() == null) return false;<a name="line.142"></a>
+<span class="sourceLineNo">143</span>        return getTime().hasIntersection(section.getTime());<a name="line.143"></a>
+<span class="sourceLineNo">144</span>    }<a name="line.144"></a>
+<span class="sourceLineNo">145</span>    <a name="line.145"></a>
+<span class="sourceLineNo">146</span>    /**<a name="line.146"></a>
+<span class="sourceLineNo">147</span>     * Check if this section overlaps in time with at least one of the given sections<a name="line.147"></a>
+<span class="sourceLineNo">148</span>     * @param sections the other sections<a name="line.148"></a>
+<span class="sourceLineNo">149</span>     * @return true, if there is a section among the sections that overlaps in time with this section (see {@link Section#isOverlapping(Section)})<a name="line.149"></a>
+<span class="sourceLineNo">150</span>     */<a name="line.150"></a>
+<span class="sourceLineNo">151</span>    public boolean isOverlapping(Collection&lt;Section&gt; sections) {<a name="line.151"></a>
+<span class="sourceLineNo">152</span>        if (isAllowOverlap()) return false;<a name="line.152"></a>
+<span class="sourceLineNo">153</span>        if (getTime() == null) return false;<a name="line.153"></a>
+<span class="sourceLineNo">154</span>        if (sections.contains(this)) return false;<a name="line.154"></a>
+<span class="sourceLineNo">155</span>        for (Section section : sections) {<a name="line.155"></a>
+<span class="sourceLineNo">156</span>            if (section.isAllowOverlap()) continue;<a name="line.156"></a>
+<span class="sourceLineNo">157</span>            if (section.getTime() == null) continue;<a name="line.157"></a>
+<span class="sourceLineNo">158</span>            if (getTime().hasIntersection(section.getTime())) return true;<a name="line.158"></a>
+<span class="sourceLineNo">159</span>        }<a name="line.159"></a>
+<span class="sourceLineNo">160</span>        return false;<a name="line.160"></a>
+<span class="sourceLineNo">161</span>    }<a name="line.161"></a>
+<span class="sourceLineNo">162</span>    <a name="line.162"></a>
+<span class="sourceLineNo">163</span>    /**<a name="line.163"></a>
+<span class="sourceLineNo">164</span>     * Check if this section is back to back with some other section<a name="line.164"></a>
+<span class="sourceLineNo">165</span>     * @param section the other section<a name="line.165"></a>
+<span class="sourceLineNo">166</span>     * @return true, if this section is back-to-back with the other section<a name="line.166"></a>
+<span class="sourceLineNo">167</span>     */<a name="line.167"></a>
+<span class="sourceLineNo">168</span>    public boolean isBackToBack(Section section) {<a name="line.168"></a>
+<span class="sourceLineNo">169</span>        if (getTime() == null || section.getTime() == null) return false;<a name="line.169"></a>
+<span class="sourceLineNo">170</span>        return getTime().shareWeeks(section.getTime()) &amp;&amp; getTime().shareDays(section.getTime()) &amp;&amp; <a name="line.170"></a>
+<span class="sourceLineNo">171</span>                (getTime().getStartSlot() + getTime().getLength() == section.getTime().getStartSlot() || section.getTime().getStartSlot() + section.getTime().getLength() == getTime().getStartSlot());<a name="line.171"></a>
+<span class="sourceLineNo">172</span>    }<a name="line.172"></a>
+<span class="sourceLineNo">173</span>    <a name="line.173"></a>
+<span class="sourceLineNo">174</span>    /**<a name="line.174"></a>
+<span class="sourceLineNo">175</span>     * Check if this section has the same days as some other section<a name="line.175"></a>
+<span class="sourceLineNo">176</span>     * @param section the other section<a name="line.176"></a>
+<span class="sourceLineNo">177</span>     * @return 0 if all the days are different, 1 if all the days are the same<a name="line.177"></a>
+<span class="sourceLineNo">178</span>     */<a name="line.178"></a>
+<span class="sourceLineNo">179</span>    public double percSameDays(Section section) {<a name="line.179"></a>
+<span class="sourceLineNo">180</span>        if (getTime() == null || section.getTime() == null) return 0;<a name="line.180"></a>
+<span class="sourceLineNo">181</span>        double ret = 0.0;<a name="line.181"></a>
+<span class="sourceLineNo">182</span>        for (int dayCode: Constants.DAY_CODES)<a name="line.182"></a>
+<span class="sourceLineNo">183</span>            if ((getTime().getDayCode() &amp; dayCode) != 0 &amp;&amp; (section.getTime().getDayCode() &amp; dayCode) != 0) ret ++;<a name="line.183"></a>
+<span class="sourceLineNo">184</span>        return ret / Math.min(getTime().getNrMeetings(), section.getTime().getNrMeetings());<a name="line.184"></a>
+<span class="sourceLineNo">185</span>    }<a name="line.185"></a>
+<span class="sourceLineNo">186</span>    <a name="line.186"></a>
+<span class="sourceLineNo">187</span>    /**<a name="line.187"></a>
+<span class="sourceLineNo">188</span>     * Check if this section is placed in the same room as the other section<a name="line.188"></a>
+<span class="sourceLineNo">189</span>     * @param section the other section<a name="line.189"></a>
+<span class="sourceLineNo">190</span>     * @return true, if both sections have no room or if they have the same room<a name="line.190"></a>
+<span class="sourceLineNo">191</span>     */<a name="line.191"></a>
+<span class="sourceLineNo">192</span>    public boolean isSameRoom(Section section) {<a name="line.192"></a>
+<span class="sourceLineNo">193</span>        return hasRoom() == section.hasRoom() &amp;&amp; (!hasRoom() || getRoom().equals(section.getRoom()));<a name="line.193"></a>
+<span class="sourceLineNo">194</span>    }<a name="line.194"></a>
+<span class="sourceLineNo">195</span><a name="line.195"></a>
+<span class="sourceLineNo">196</span>    /**<a name="line.196"></a>
+<span class="sourceLineNo">197</span>     * Check if this section has the same instructional type as the other section<a name="line.197"></a>
+<span class="sourceLineNo">198</span>     * @param section the other section<a name="line.198"></a>
+<span class="sourceLineNo">199</span>     * @return true, if both sections have no instructional type or if they have the same instructional type<a name="line.199"></a>
+<span class="sourceLineNo">200</span>     */<a name="line.200"></a>
+<span class="sourceLineNo">201</span>    public boolean isSameSectionType(Section section) {<a name="line.201"></a>
+<span class="sourceLineNo">202</span>        return hasSectionType() == section.hasSectionType() &amp;&amp; (!hasSectionType() || getSectionType().equals(section.getSectionType()));<a name="line.202"></a>
+<span class="sourceLineNo">203</span>    }<a name="line.203"></a>
+<span class="sourceLineNo">204</span>    <a name="line.204"></a>
+<span class="sourceLineNo">205</span>    /**<a name="line.205"></a>
+<span class="sourceLineNo">206</span>     * Check if this section is back-to-back with some other section in the list<a name="line.206"></a>
+<span class="sourceLineNo">207</span>     * @param sections the other sections<a name="line.207"></a>
+<span class="sourceLineNo">208</span>     * @param diffRoomWeight different room penalty (should be between 1 and 0)<a name="line.208"></a>
+<span class="sourceLineNo">209</span>     * @param diffTypeWeight different instructional type penalty (should be between 1 and 0)<a name="line.209"></a>
+<span class="sourceLineNo">210</span>     * @return 1.0 if there is a section in the list that is back-to-back and in the same room and with the same type, 0.0 if there is no back-to-back section in the list, etc.<a name="line.210"></a>
+<span class="sourceLineNo">211</span>     * If there are multiple back-to-back sections, the best back-to-back value is returned.<a name="line.211"></a>
+<span class="sourceLineNo">212</span>     */<a name="line.212"></a>
+<span class="sourceLineNo">213</span>    public double countBackToBacks(Collection&lt;Section&gt; sections, double diffRoomWeight, double diffTypeWeight) {<a name="line.213"></a>
+<span class="sourceLineNo">214</span>        if (sections.contains(this)) return 0.0;<a name="line.214"></a>
+<span class="sourceLineNo">215</span>        double btb = 0;<a name="line.215"></a>
+<span class="sourceLineNo">216</span>        for (Section section : sections)<a name="line.216"></a>
+<span class="sourceLineNo">217</span>            if (isBackToBack(section)) {<a name="line.217"></a>
+<span class="sourceLineNo">218</span>                double w = 1.0;<a name="line.218"></a>
+<span class="sourceLineNo">219</span>                if (!isSameRoom(section)) w *= diffRoomWeight;<a name="line.219"></a>
+<span class="sourceLineNo">220</span>                if (!isSameSectionType(section)) w *= diffTypeWeight;<a name="line.220"></a>
+<span class="sourceLineNo">221</span>                if (w &gt; btb) btb = w;<a name="line.221"></a>
+<span class="sourceLineNo">222</span>            }<a name="line.222"></a>
+<span class="sourceLineNo">223</span>        return btb;<a name="line.223"></a>
+<span class="sourceLineNo">224</span>    }<a name="line.224"></a>
+<span class="sourceLineNo">225</span>    <a name="line.225"></a>
+<span class="sourceLineNo">226</span>    /**<a name="line.226"></a>
+<span class="sourceLineNo">227</span>     * Check if this section has the same days with some other section in the list<a name="line.227"></a>
+<span class="sourceLineNo">228</span>     * @param sections the other sections<a name="line.228"></a>
+<span class="sourceLineNo">229</span>     * @param diffRoomWeight different room penalty (should be between 1 and 0)<a name="line.229"></a>
+<span class="sourceLineNo">230</span>     * @param diffTypeWeight different instructional type penalty (should be between 1 and 0)<a name="line.230"></a>
+<span class="sourceLineNo">231</span>     * @return 1.0 if there is a section in the list that has the same days and in the same room and with the same type, 0.0 if there is no same days section in the list, etc.<a name="line.231"></a>
+<span class="sourceLineNo">232</span>     * If there are multiple same days sections, the best same days value is returned.<a name="line.232"></a>
+<span class="sourceLineNo">233</span>     */<a name="line.233"></a>
+<span class="sourceLineNo">234</span>    public double countSameDays(Collection&lt;Section&gt; sections, double diffRoomWeight, double diffTypeWeight) {<a name="line.234"></a>
+<span class="sourceLineNo">235</span>        if (sections.contains(this)) return 0.0;<a name="line.235"></a>
+<span class="sourceLineNo">236</span>        double sd = 0;<a name="line.236"></a>
+<span class="sourceLineNo">237</span>        for (Section section : sections) {<a name="line.237"></a>
+<span class="sourceLineNo">238</span>            double w = percSameDays(section);<a name="line.238"></a>
+<span class="sourceLineNo">239</span>            if (!isSameRoom(section)) w *= diffRoomWeight;<a name="line.239"></a>
+<span class="sourceLineNo">240</span>            if (!isSameSectionType(section)) w *= diffTypeWeight;<a name="line.240"></a>
+<span class="sourceLineNo">241</span>            if (w &gt; sd) sd = w;<a name="line.241"></a>
+<span class="sourceLineNo">242</span>        }<a name="line.242"></a>
+<span class="sourceLineNo">243</span>        return sd;<a name="line.243"></a>
+<span class="sourceLineNo">244</span>    }<a name="line.244"></a>
+<span class="sourceLineNo">245</span>    <a name="line.245"></a>
+<span class="sourceLineNo">246</span>    /**<a name="line.246"></a>
+<span class="sourceLineNo">247</span>     * Check if this section has the same room with some other section in the list<a name="line.247"></a>
+<span class="sourceLineNo">248</span>     * @param sections the other sections<a name="line.248"></a>
+<span class="sourceLineNo">249</span>     * @param diffTypeWeight different instructional type penalty (should be between 1 and 0)<a name="line.249"></a>
+<span class="sourceLineNo">250</span>     * @return 1.0 if there is a section in the list that has the same room and with the same type, 0.0 if there is no same room section in the list, etc.<a name="line.250"></a>
+<span class="sourceLineNo">251</span>     * If there are multiple same room sections, the best same room value is returned.<a name="line.251"></a>
+<span class="sourceLineNo">252</span>     */<a name="line.252"></a>
+<span class="sourceLineNo">253</span>    public double countSameRooms(Collection&lt;Section&gt; sections, double diffTypeWeight) {<a name="line.253"></a>
+<span class="sourceLineNo">254</span>        if (sections.contains(this)) return 0.0;<a name="line.254"></a>
+<span class="sourceLineNo">255</span>        double sr = 0;<a name="line.255"></a>
+<span class="sourceLineNo">256</span>        for (Section section : sections) {<a name="line.256"></a>
+<span class="sourceLineNo">257</span>            if (isSameRoom(section)) {<a name="line.257"></a>
+<span class="sourceLineNo">258</span>                double w = 1.0;<a name="line.258"></a>
+<span class="sourceLineNo">259</span>                if (!isSameSectionType(section)) w *= diffTypeWeight;<a name="line.259"></a>
+<span class="sourceLineNo">260</span>                if (w &gt; sr) sr = w;<a name="line.260"></a>
+<span class="sourceLineNo">261</span>            }<a name="line.261"></a>
+<span class="sourceLineNo">262</span>        }<a name="line.262"></a>
+<span class="sourceLineNo">263</span>        return sr;<a name="line.263"></a>
+<span class="sourceLineNo">264</span>    }<a name="line.264"></a>
+<span class="sourceLineNo">265</span>    <a name="line.265"></a>
+<span class="sourceLineNo">266</span>    /**<a name="line.266"></a>
+<span class="sourceLineNo">267</span>     * If this section can overlap in time with the other section, compute the number of overlapping time slots<a name="line.267"></a>
+<span class="sourceLineNo">268</span>     * @param section the other section<a name="line.268"></a>
+<span class="sourceLineNo">269</span>     * @return number of shared days times number of shared slots (a day)<a name="line.269"></a>
+<span class="sourceLineNo">270</span>     */<a name="line.270"></a>
+<span class="sourceLineNo">271</span>    public int share(Section section) {<a name="line.271"></a>
+<span class="sourceLineNo">272</span>        if (getTime() != null &amp;&amp; section.getTime() != null &amp;&amp; (isAllowOverlap() || section.isAllowOverlap()) &amp;&amp; getTime().hasIntersection(section.getTime()))<a name="line.272"></a>
+<span class="sourceLineNo">273</span>            return getTime().nrSharedDays(section.getTime()) * getTime().nrSharedHours(section.getTime());<a name="line.273"></a>
+<span class="sourceLineNo">274</span>        else<a name="line.274"></a>
+<span class="sourceLineNo">275</span>            return 0;<a name="line.275"></a>
+<span class="sourceLineNo">276</span>    }<a name="line.276"></a>
+<span class="sourceLineNo">277</span>    <a name="line.277"></a>
+<span class="sourceLineNo">278</span>    /**<a name="line.278"></a>
+<span class="sourceLineNo">279</span>     * Compute the number of overlapping time slots between this section and the given time<a name="line.279"></a>
+<span class="sourceLineNo">280</span>     * @param time the given time<a name="line.280"></a>
+<span class="sourceLineNo">281</span>     * @return number of shared days times number of shared slots (a day)<a name="line.281"></a>
+<span class="sourceLineNo">282</span>     */<a name="line.282"></a>
+<span class="sourceLineNo">283</span>    public int share(TimeLocation time) {<a name="line.283"></a>
+<span class="sourceLineNo">284</span>        if (getTime() != null &amp;&amp; time != null &amp;&amp; getTime().hasIntersection(time))<a name="line.284"></a>
+<span class="sourceLineNo">285</span>            return getTime().nrSharedDays(time) * getTime().nrSharedHours(time);<a name="line.285"></a>
+<span class="sourceLineNo">286</span>        else<a name="line.286"></a>
+<span class="sourceLineNo">287</span>            return 0;<a name="line.287"></a>
+<span class="sourceLineNo">288</span>    }<a name="line.288"></a>
+<span class="sourceLineNo">289</span>    <a name="line.289"></a>
+<span class="sourceLineNo">290</span>    /**<a name="line.290"></a>
+<span class="sourceLineNo">291</span>     * If this section can overlap in time with any of the given section, compute the number of overlapping time slots<a name="line.291"></a>
+<span class="sourceLineNo">292</span>     * @param sections the other sections<a name="line.292"></a>
+<span class="sourceLineNo">293</span>     * @return number of shared days times number of shared slots (a day)<a name="line.293"></a>
+<span class="sourceLineNo">294</span>     */<a name="line.294"></a>
+<span class="sourceLineNo">295</span>    public int share(Collection&lt;Section&gt; sections) {<a name="line.295"></a>
+<span class="sourceLineNo">296</span>        if (sections.contains(this)) return 0;<a name="line.296"></a>
+<span class="sourceLineNo">297</span>        int ret = 0;<a name="line.297"></a>
+<span class="sourceLineNo">298</span>        for (Section section : sections)<a name="line.298"></a>
+<span class="sourceLineNo">299</span>            ret += share(section);<a name="line.299"></a>
+<span class="sourceLineNo">300</span>        return ret;<a name="line.300"></a>
+<span class="sourceLineNo">301</span>    }<a name="line.301"></a>
+<span class="sourceLineNo">302</span>    <a name="line.302"></a>
+<span class="sourceLineNo">303</span>    /**<a name="line.303"></a>
+<span class="sourceLineNo">304</span>     * Format the time statement<a name="line.304"></a>
+<span class="sourceLineNo">305</span>     * @param useAmPm use 12-hours or 24-hours format<a name="line.305"></a>
+<span class="sourceLineNo">306</span>     * @return &amp;lt;Days of week&amp;gt; &amp;lt;Start time&amp;gt; - &amp;lt;End time&amp;gt;<a name="line.306"></a>
+<span class="sourceLineNo">307</span>     */<a name="line.307"></a>
+<span class="sourceLineNo">308</span>    public String getTimeName(boolean useAmPm) {<a name="line.308"></a>
+<span class="sourceLineNo">309</span>        if (getTime() == null || getTime().getDayCode() == 0) return "-";<a name="line.309"></a>
+<span class="sourceLineNo">310</span>        return getTime().getDayHeader() + " " + getTime().getStartTimeHeader(useAmPm) + " - " + getTime().getEndTimeHeader(useAmPm);<a name="line.310"></a>
+<span class="sourceLineNo">311</span>    }<a name="line.311"></a>
+<span class="sourceLineNo">312</span>    <a name="line.312"></a>
+<span class="sourceLineNo">313</span>    @Override<a name="line.313"></a>
+<span class="sourceLineNo">314</span>    public String toString() {<a name="line.314"></a>
+<span class="sourceLineNo">315</span>        return (getExternalId() != null ? (getSectionType() == null ? "" : getSectionType() + " ") + getExternalId() :<a name="line.315"></a>
+<span class="sourceLineNo">316</span>            getSectionName() != null ? getSectionName() : getTime() != null ? getTime().getName(true) : "S" + getSectionId());<a name="line.316"></a>
+<span class="sourceLineNo">317</span>    }<a name="line.317"></a>
+<span class="sourceLineNo">318</span>    <a name="line.318"></a>
+<span class="sourceLineNo">319</span>    @Override<a name="line.319"></a>
+<span class="sourceLineNo">320</span>    public int hashCode() {<a name="line.320"></a>
+<span class="sourceLineNo">321</span>        return getSectionId().hashCode();<a name="line.321"></a>
+<span class="sourceLineNo">322</span>    }<a name="line.322"></a>
+<span class="sourceLineNo">323</span>    <a name="line.323"></a>
+<span class="sourceLineNo">324</span>    @Override<a name="line.324"></a>
+<span class="sourceLineNo">325</span>    public boolean equals(Object o) {<a name="line.325"></a>
+<span class="sourceLineNo">326</span>        if (o == null || !(o instanceof Section)) return false;<a name="line.326"></a>
+<span class="sourceLineNo">327</span>        Section s = (Section)o;<a name="line.327"></a>
+<span class="sourceLineNo">328</span>        return getSectionId().equals(s.getSectionId());<a name="line.328"></a>
+<span class="sourceLineNo">329</span>    }<a name="line.329"></a>
+<span class="sourceLineNo">330</span>}<a name="line.330"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

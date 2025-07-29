@@ -1,0 +1,238 @@
+Solution info: [
+    Assigned variables: 100.00% (150/150)
+    Back-to-back instructor preferences: 100.00% (0)
+    Distribution preferences: 100.00% (0.00)
+    Iteration: 13728699
+    Memory usage: 156.24M
+    Overall solution value: 3.12
+    Room Size Penalty: 0.13
+    Room preferences: 100.00% (0)
+    Same subpart balancing penalty: 0.00
+    Speed: 7627.05 it/s
+    Student conflicts: 0 [committed:0, distance:0, hard:0]
+    Time: 30.00 min
+    Time preferences: 100.00% (0.00)
+    Too big rooms: 2.83% (17)
+    Useless half-hours: 0.08% (0 + 14)
+  ]
+Bounds: [
+    Back-to-back instructor preferences max: 84.0
+    Distribution preferences max: 0.0
+    Distribution preferences min: 0.0
+    Room preferences max: 0.0
+    Room preferences min: 0.0
+    Time preferences max: 448.0
+    Time preferences min: 0.0
+    Too big rooms max: 600.0
+    Useless half-hours: 4200.0
+  ]
+Room info:
+id, name, size, used_day, used_total
+8023,r8023,4,564,564
+8024,r8024,2,528,540
+8019,r8019,2,588,588
+8020,r8020,1,600,612
+8022,r8022,1,162,180
+8015,r8015,1,474,480
+8016,r8016,1,576,576
+Class info:
+id, name, min_class_limit, max_class_limit, room2limit_ratio, half_hours
+231391,c231391,2,2,1.0,36
+231393,c231393,4,4,1.0,120
+231395,c231395,4,4,1.0,24
+231396,c231396,4,4,1.0,24
+231397,c231397,4,4,1.0,24
+231411,c231411,1,1,1.0,12
+231412,c231412,1,1,1.0,12
+231413,c231413,1,1,1.0,12
+231414,c231414,1,1,1.0,12
+231415,c231415,1,1,1.0,12
+231416,c231416,1,1,1.0,12
+231417,c231417,1,1,1.0,12
+231418,c231418,1,1,1.0,12
+231419,c231419,1,1,1.0,12
+231420,c231420,1,1,1.0,12
+231421,c231421,1,1,1.0,12
+231399,c231399,1,1,1.0,24
+231400,c231400,1,1,1.0,24
+231401,c231401,1,1,1.0,24
+231402,c231402,1,1,1.0,24
+231403,c231403,1,1,1.0,24
+231404,c231404,1,1,1.0,24
+231405,c231405,1,1,1.0,24
+231406,c231406,1,1,1.0,24
+231407,c231407,1,1,1.0,24
+231408,c231408,1,1,1.0,24
+231409,c231409,1,1,1.0,24
+231423,c231423,4,4,1.0,12
+231424,c231424,4,4,1.0,12
+231425,c231425,4,4,1.0,12
+231434,c231434,2,2,1.0,24
+231435,c231435,2,2,1.0,24
+231429,c231429,1,1,1.0,24
+231430,c231430,1,1,1.0,24
+231431,c231431,1,1,1.0,24
+231432,c231432,1,1,1.0,24
+231437,c231437,4,4,1.0,36
+231438,c231438,4,4,1.0,36
+231439,c231439,4,4,1.0,36
+231441,c231441,1,1,1.0,12
+231445,c231445,1,1,1.0,12
+231449,c231449,1,1,1.0,12
+231451,c231451,1,1,1.0,12
+231443,c231443,1,1,1.0,12
+231446,c231446,1,1,1.0,12
+231448,c231448,1,1,1.0,12
+231452,c231452,1,1,1.0,12
+231442,c231442,1,1,1.0,12
+231444,c231444,1,1,1.0,12
+231447,c231447,1,1,1.0,12
+231450,c231450,1,1,1.0,12
+231456,c231456,4,4,1.0,24
+231457,c231457,4,4,1.0,24
+231458,c231458,4,4,1.0,24
+231461,c231461,1,1,1.0,36
+231466,c231466,1,1,1.0,36
+231467,c231467,1,1,1.0,36
+231468,c231468,1,1,1.0,36
+231460,c231460,1,1,1.0,36
+231462,c231462,1,1,1.0,36
+231463,c231463,1,1,1.0,36
+231465,c231465,1,1,1.0,36
+231464,c231464,1,1,1.0,36
+231469,c231469,1,1,1.0,36
+231470,c231470,1,1,1.0,36
+231471,c231471,1,1,1.0,36
+231480,c231480,1,1,1.0,12
+231477,c231477,1,1,1.0,12
+231484,c231484,1,1,1.0,12
+231479,c231479,1,1,1.0,12
+231483,c231483,1,1,1.0,12
+231473,c231473,1,1,1.0,12
+231474,c231474,1,1,1.0,12
+231478,c231478,1,1,1.0,12
+231476,c231476,1,1,1.0,12
+231475,c231475,1,1,1.0,12
+231481,c231481,1,1,1.0,12
+231482,c231482,1,1,1.0,12
+231486,c231486,1,1,1.0,36
+231487,c231487,1,1,1.0,36
+231488,c231488,1,1,1.0,36
+231489,c231489,1,1,1.0,36
+231490,c231490,1,1,1.0,36
+231491,c231491,1,1,1.0,36
+231492,c231492,1,1,1.0,36
+231493,c231493,1,1,1.0,36
+231494,c231494,1,1,1.0,36
+231496,c231496,4,4,1.0,36
+231498,c231498,1,1,1.0,36
+231499,c231499,1,1,1.0,36
+231500,c231500,1,1,1.0,36
+231501,c231501,1,1,1.0,36
+231502,c231502,1,1,1.0,36
+231503,c231503,1,1,1.0,36
+231504,c231504,1,1,1.0,36
+231505,c231505,1,1,1.0,36
+231506,c231506,1,1,1.0,36
+231507,c231507,1,1,1.0,36
+231511,c231511,1,1,1.0,12
+231515,c231515,1,1,1.0,12
+231518,c231518,1,1,1.0,12
+231516,c231516,1,1,1.0,12
+231512,c231512,1,1,1.0,12
+231513,c231513,1,1,1.0,12
+231509,c231509,1,1,1.0,12
+231510,c231510,1,1,1.0,12
+231514,c231514,1,1,1.0,12
+231517,c231517,1,1,1.0,12
+231524,c231524,3,3,1.0,24
+231520,c231520,1,1,1.0,24
+231521,c231521,1,1,1.0,24
+231522,c231522,1,1,1.0,24
+231526,c231526,2,2,1.0,36
+231527,c231527,2,2,1.0,36
+231531,c231531,1,1,1.0,12
+231532,c231532,1,1,1.0,12
+231529,c231529,1,1,1.0,12
+231530,c231530,1,1,1.0,12
+231534,c231534,2,2,1.0,36
+231535,c231535,2,2,1.0,36
+231537,c231537,2,2,1.0,36
+231539,c231539,3,3,1.0,24
+231541,c231541,1,1,1.0,24
+231542,c231542,1,1,1.0,24
+231543,c231543,1,1,1.0,24
+231545,c231545,4,4,1.0,12
+231547,c231547,2,2,1.0,36
+231549,c231549,2,2,1.0,24
+231550,c231550,3,3,1.0,24
+231553,c231553,1,1,1.0,12
+231556,c231556,1,1,1.0,12
+231552,c231552,1,1,1.0,12
+231554,c231554,1,1,1.0,12
+231555,c231555,1,1,1.0,12
+231560,c231560,1,1,1.0,24
+231562,c231562,1,1,1.0,24
+231559,c231559,1,1,1.0,24
+231561,c231561,1,1,1.0,24
+231558,c231558,1,1,1.0,24
+231564,c231564,2,2,1.0,36
+231565,c231565,2,2,1.0,36
+231567,c231567,4,4,1.0,36
+231569,c231569,2,2,1.0,36
+231570,c231570,2,2,1.0,36
+231572,c231572,2,2,1.0,36
+231573,c231573,2,2,1.0,36
+231577,c231577,1,1,1.0,12
+231578,c231578,1,1,1.0,12
+231575,c231575,1,1,1.0,12
+231576,c231576,1,1,1.0,12
+Total number of classes: 150
+Total number of instructional offerings: 21 (14.000%)
+Total number of configurations: 21 (14.000%)
+Total number of scheduling subparts: 35 (23.333%)
+Average number classes per subpart: 4.286
+Average number classes per config: 7.143
+Average number classes per offering: 7.143
+Total number of classes with only one value: 0 (0.000%)
+Total number of classes with only one time: 0 (0.000%)
+Total number of classes with only one room: 63 (42.000%)
+Total number of classes requesting no room: 0 (0.000%)
+Total number of classes requesting one room: 150 (100.000%)
+Total number of classes requesting one or more rooms: 150 (100.000%)
+Average number of requested rooms: 1.000
+Average minimal class limit: 1.467
+Average maximal class limit: 1.467
+Average number of placements: 66.880
+Average number of time locations: 30.780
+Average number of room locations: 2.873
+Average minimal requested room size: 1.487
+Average maximal requested room size: 3.120
+Average requested room sizes: 2.142
+Average maximum normalized time preference: 2.613
+Average minimum normalized time preference: -0.373
+Average normalized time preference,2.987
+Average maximum room preferences: -0.080
+Average minimum room preferences: -0.080
+Average room preferences,0.000
+Total number of students:19
+Total amount of student enrollments: 199
+Total amount of joined enrollments: 1002
+Average number of students: 0.127
+Average number of enrollemnts (per student): 10.474
+Total amount of inevitable student conflicts: 0 (0.000%)
+Average number of meetings (per class): 1.540
+Average number of hours per class: 1.967
+Total number of rooms: 7
+Minimal room size: 1
+Maximal room size: 4
+Average room size: 1.714
+Maximal distance between two rooms: 0.000
+Average distance between two rooms: 0.000
+Average hours available: 50.000
+Total number of instructors: 3
+Total class-instructor assignments: 24 (16.000%)
+Average classes per instructor: 8.000
+Total number of group constraints: 79 (52.667%)
+Total number of hard group constraints: 53 (35.333%)
+Average classes per group constraint: 3.342

@@ -1,0 +1,891 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.cpsolver.ifs.util;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import java.io.ByteArrayOutputStream;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import java.io.File;<a name="line.4"></a>
+<span class="sourceLineNo">005</span>import java.io.FileInputStream;<a name="line.5"></a>
+<span class="sourceLineNo">006</span>import java.io.IOException;<a name="line.6"></a>
+<span class="sourceLineNo">007</span>import java.io.OutputStream;<a name="line.7"></a>
+<span class="sourceLineNo">008</span>import java.io.PrintStream;<a name="line.8"></a>
+<span class="sourceLineNo">009</span>import java.util.ArrayList;<a name="line.9"></a>
+<span class="sourceLineNo">010</span>import java.util.Collection;<a name="line.10"></a>
+<span class="sourceLineNo">011</span>import java.util.Date;<a name="line.11"></a>
+<span class="sourceLineNo">012</span>import java.util.Enumeration;<a name="line.12"></a>
+<span class="sourceLineNo">013</span>import java.util.HashSet;<a name="line.13"></a>
+<span class="sourceLineNo">014</span>import java.util.Iterator;<a name="line.14"></a>
+<span class="sourceLineNo">015</span>import java.util.List;<a name="line.15"></a>
+<span class="sourceLineNo">016</span>import java.util.Map;<a name="line.16"></a>
+<span class="sourceLineNo">017</span>import java.util.Properties;<a name="line.17"></a>
+<span class="sourceLineNo">018</span>import java.util.Random;<a name="line.18"></a>
+<span class="sourceLineNo">019</span>import java.util.Set;<a name="line.19"></a>
+<span class="sourceLineNo">020</span>import java.util.StringTokenizer;<a name="line.20"></a>
+<span class="sourceLineNo">021</span>import java.util.TreeSet;<a name="line.21"></a>
+<span class="sourceLineNo">022</span><a name="line.22"></a>
+<span class="sourceLineNo">023</span>import org.apache.logging.log4j.Level;<a name="line.23"></a>
+<span class="sourceLineNo">024</span>import org.apache.logging.log4j.LogManager;<a name="line.24"></a>
+<span class="sourceLineNo">025</span>import org.apache.logging.log4j.Logger;<a name="line.25"></a>
+<span class="sourceLineNo">026</span>import org.apache.logging.log4j.core.config.Configurator;<a name="line.26"></a>
+<span class="sourceLineNo">027</span>import org.apache.logging.log4j.core.config.builder.api.AppenderComponentBuilder;<a name="line.27"></a>
+<span class="sourceLineNo">028</span>import org.apache.logging.log4j.core.config.builder.api.ComponentBuilder;<a name="line.28"></a>
+<span class="sourceLineNo">029</span>import org.apache.logging.log4j.core.config.builder.api.ConfigurationBuilder;<a name="line.29"></a>
+<span class="sourceLineNo">030</span>import org.apache.logging.log4j.core.config.builder.api.ConfigurationBuilderFactory;<a name="line.30"></a>
+<span class="sourceLineNo">031</span>import org.apache.logging.log4j.core.config.builder.api.LayoutComponentBuilder;<a name="line.31"></a>
+<span class="sourceLineNo">032</span>import org.apache.logging.log4j.core.config.builder.api.LoggerComponentBuilder;<a name="line.32"></a>
+<span class="sourceLineNo">033</span>import org.apache.logging.log4j.core.config.builder.api.RootLoggerComponentBuilder;<a name="line.33"></a>
+<span class="sourceLineNo">034</span>import org.apache.logging.log4j.core.config.builder.impl.BuiltConfiguration;<a name="line.34"></a>
+<span class="sourceLineNo">035</span><a name="line.35"></a>
+<span class="sourceLineNo">036</span>/**<a name="line.36"></a>
+<span class="sourceLineNo">037</span> * Several auxiliary static methods.<a name="line.37"></a>
+<span class="sourceLineNo">038</span> * <a name="line.38"></a>
+<span class="sourceLineNo">039</span> * @author  Tom&#225;&#353; M&#252;ller<a name="line.39"></a>
+<span class="sourceLineNo">040</span> * @version IFS 1.3 (Iterative Forward Search)&lt;br&gt;<a name="line.40"></a>
+<span class="sourceLineNo">041</span> *          Copyright (C) 2006 - 2014 Tom&#225;&#353; M&#252;ller&lt;br&gt;<a name="line.41"></a>
+<span class="sourceLineNo">042</span> *          &lt;a href="mailto:muller@unitime.org"&gt;muller@unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.42"></a>
+<span class="sourceLineNo">043</span> *          &lt;a href="http://muller.unitime.org"&gt;http://muller.unitime.org&lt;/a&gt;&lt;br&gt;<a name="line.43"></a>
+<span class="sourceLineNo">044</span> * &lt;br&gt;<a name="line.44"></a>
+<span class="sourceLineNo">045</span> *          This library is free software; you can redistribute it and/or modify<a name="line.45"></a>
+<span class="sourceLineNo">046</span> *          it under the terms of the GNU Lesser General Public License as<a name="line.46"></a>
+<span class="sourceLineNo">047</span> *          published by the Free Software Foundation; either version 3 of the<a name="line.47"></a>
+<span class="sourceLineNo">048</span> *          License, or (at your option) any later version. &lt;br&gt;<a name="line.48"></a>
+<span class="sourceLineNo">049</span> * &lt;br&gt;<a name="line.49"></a>
+<span class="sourceLineNo">050</span> *          This library is distributed in the hope that it will be useful, but<a name="line.50"></a>
+<span class="sourceLineNo">051</span> *          WITHOUT ANY WARRANTY; without even the implied warranty of<a name="line.51"></a>
+<span class="sourceLineNo">052</span> *          MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU<a name="line.52"></a>
+<span class="sourceLineNo">053</span> *          Lesser General Public License for more details. &lt;br&gt;<a name="line.53"></a>
+<span class="sourceLineNo">054</span> * &lt;br&gt;<a name="line.54"></a>
+<span class="sourceLineNo">055</span> *          You should have received a copy of the GNU Lesser General Public<a name="line.55"></a>
+<span class="sourceLineNo">056</span> *          License along with this library; if not see<a name="line.56"></a>
+<span class="sourceLineNo">057</span> *          &lt;a href='http://www.gnu.org/licenses/'&gt;http://www.gnu.org/licenses/&lt;/a&gt;.<a name="line.57"></a>
+<span class="sourceLineNo">058</span> */<a name="line.58"></a>
+<span class="sourceLineNo">059</span>public class ToolBox {<a name="line.59"></a>
+<span class="sourceLineNo">060</span>    private static long sSeed = System.currentTimeMillis();<a name="line.60"></a>
+<span class="sourceLineNo">061</span>    private static Random sRandom = new Random(sSeed);<a name="line.61"></a>
+<span class="sourceLineNo">062</span><a name="line.62"></a>
+<span class="sourceLineNo">063</span>    /** Returns random number (int) from the set 0 .. limit - 1 <a name="line.63"></a>
+<span class="sourceLineNo">064</span>     * @param limit a limit <a name="line.64"></a>
+<span class="sourceLineNo">065</span>     * @return a random number between 0 and limit - 1<a name="line.65"></a>
+<span class="sourceLineNo">066</span>     **/<a name="line.66"></a>
+<span class="sourceLineNo">067</span>    public static int random(int limit) {<a name="line.67"></a>
+<span class="sourceLineNo">068</span>        return (int) (random() * limit);<a name="line.68"></a>
+<span class="sourceLineNo">069</span>    }<a name="line.69"></a>
+<span class="sourceLineNo">070</span><a name="line.70"></a>
+<span class="sourceLineNo">071</span>    /** Returns random element from the given set of elements <a name="line.71"></a>
+<span class="sourceLineNo">072</span>     * @param set collection of objects<a name="line.72"></a>
+<span class="sourceLineNo">073</span>     * @param &lt;E&gt; some type<a name="line.73"></a>
+<span class="sourceLineNo">074</span>     * @return randomly selected object<a name="line.74"></a>
+<span class="sourceLineNo">075</span>     **/<a name="line.75"></a>
+<span class="sourceLineNo">076</span>    public static &lt;E&gt; E random(Collection&lt;E&gt; set) {<a name="line.76"></a>
+<span class="sourceLineNo">077</span>        switch (set == null ? 0 : set.size()) {<a name="line.77"></a>
+<span class="sourceLineNo">078</span>            case 0:<a name="line.78"></a>
+<span class="sourceLineNo">079</span>                return null;<a name="line.79"></a>
+<span class="sourceLineNo">080</span>            case 1:<a name="line.80"></a>
+<span class="sourceLineNo">081</span>                return set.iterator().next();<a name="line.81"></a>
+<span class="sourceLineNo">082</span>            case 2:<a name="line.82"></a>
+<span class="sourceLineNo">083</span>                Iterator&lt;E&gt; i = set.iterator();<a name="line.83"></a>
+<span class="sourceLineNo">084</span>                if (sRandom.nextBoolean()) i.next();<a name="line.84"></a>
+<span class="sourceLineNo">085</span>                return i.next();<a name="line.85"></a>
+<span class="sourceLineNo">086</span>            default:<a name="line.86"></a>
+<span class="sourceLineNo">087</span>                int index = random(set.size());<a name="line.87"></a>
+<span class="sourceLineNo">088</span>                if (set instanceof List&lt;?&gt;) return ((List&lt;E&gt;)set).get(index);<a name="line.88"></a>
+<span class="sourceLineNo">089</span>                Iterator&lt;E&gt; it = set.iterator();<a name="line.89"></a>
+<span class="sourceLineNo">090</span>                for (int j = 0; j &lt; index; j++) it.next();<a name="line.90"></a>
+<span class="sourceLineNo">091</span>                return it.next();<a name="line.91"></a>
+<span class="sourceLineNo">092</span>        }<a name="line.92"></a>
+<span class="sourceLineNo">093</span>    }<a name="line.93"></a>
+<span class="sourceLineNo">094</span><a name="line.94"></a>
+<span class="sourceLineNo">095</span>    /**<a name="line.95"></a>
+<span class="sourceLineNo">096</span>     * Returns a randomly generated subset of the given set<a name="line.96"></a>
+<span class="sourceLineNo">097</span>     * <a name="line.97"></a>
+<span class="sourceLineNo">098</span>     * @param set<a name="line.98"></a>
+<span class="sourceLineNo">099</span>     *            set<a name="line.99"></a>
+<span class="sourceLineNo">100</span>     * @param part<a name="line.100"></a>
+<span class="sourceLineNo">101</span>     *            probability of selection of an element into the resultant<a name="line.101"></a>
+<span class="sourceLineNo">102</span>     *            subset<a name="line.102"></a>
+<span class="sourceLineNo">103</span>     * @param &lt;E&gt; some type<a name="line.103"></a>
+<span class="sourceLineNo">104</span>     * @return randomly selected subset<a name="line.104"></a>
+<span class="sourceLineNo">105</span>     */<a name="line.105"></a>
+<span class="sourceLineNo">106</span>    public static &lt;E&gt; Collection&lt;E&gt; subSet(Collection&lt;E&gt; set, double part) {<a name="line.106"></a>
+<span class="sourceLineNo">107</span>        return subSet(set, part, 1);<a name="line.107"></a>
+<span class="sourceLineNo">108</span>    }<a name="line.108"></a>
+<span class="sourceLineNo">109</span><a name="line.109"></a>
+<span class="sourceLineNo">110</span>    /** Swaps two elements in the list*/<a name="line.110"></a>
+<span class="sourceLineNo">111</span>    private static &lt;E&gt; void swap(List&lt;E&gt; list, int first, int second) {<a name="line.111"></a>
+<span class="sourceLineNo">112</span>        E o = list.get(first);<a name="line.112"></a>
+<span class="sourceLineNo">113</span>        list.set(first, list.get(second));<a name="line.113"></a>
+<span class="sourceLineNo">114</span>        list.set(second, o);<a name="line.114"></a>
+<span class="sourceLineNo">115</span>    }<a name="line.115"></a>
+<span class="sourceLineNo">116</span><a name="line.116"></a>
+<span class="sourceLineNo">117</span>    /**<a name="line.117"></a>
+<span class="sourceLineNo">118</span>     * Returns a randomly generated subset of the given set<a name="line.118"></a>
+<span class="sourceLineNo">119</span>     * <a name="line.119"></a>
+<span class="sourceLineNo">120</span>     * @param set<a name="line.120"></a>
+<span class="sourceLineNo">121</span>     *            set<a name="line.121"></a>
+<span class="sourceLineNo">122</span>     * @param part<a name="line.122"></a>
+<span class="sourceLineNo">123</span>     *            probability of selection of an element into the resultant<a name="line.123"></a>
+<span class="sourceLineNo">124</span>     *            subset<a name="line.124"></a>
+<span class="sourceLineNo">125</span>     * @param minSize<a name="line.125"></a>
+<span class="sourceLineNo">126</span>     *            minimal size of the returned subset<a name="line.126"></a>
+<span class="sourceLineNo">127</span>     * @param &lt;E&gt; some type<a name="line.127"></a>
+<span class="sourceLineNo">128</span>     * @return randomly selected subset<a name="line.128"></a>
+<span class="sourceLineNo">129</span>     */<a name="line.129"></a>
+<span class="sourceLineNo">130</span>    public static &lt;E&gt; Collection&lt;E&gt; subSet(Collection&lt;E&gt; set, double part, int minSize) {<a name="line.130"></a>
+<span class="sourceLineNo">131</span>        if (set.size() &lt;= minSize || part &gt;= 1.0)<a name="line.131"></a>
+<span class="sourceLineNo">132</span>            return set;<a name="line.132"></a>
+<span class="sourceLineNo">133</span>        ArrayList&lt;E&gt; subSet = new ArrayList&lt;E&gt;(set);<a name="line.133"></a>
+<span class="sourceLineNo">134</span>        int size = set.size();<a name="line.134"></a>
+<span class="sourceLineNo">135</span>        int numberToSelect = Math.max(minSize, (int) (part * set.size()));<a name="line.135"></a>
+<span class="sourceLineNo">136</span>        for (int idx = 0; idx &lt; numberToSelect; idx++) {<a name="line.136"></a>
+<span class="sourceLineNo">137</span>            swap(subSet, idx, idx + (int) (random() * (size - idx)));<a name="line.137"></a>
+<span class="sourceLineNo">138</span>        }<a name="line.138"></a>
+<span class="sourceLineNo">139</span>        return subSet.subList(0, numberToSelect);<a name="line.139"></a>
+<span class="sourceLineNo">140</span>    }<a name="line.140"></a>
+<span class="sourceLineNo">141</span><a name="line.141"></a>
+<span class="sourceLineNo">142</span>    /** Trim a string to have given length<a name="line.142"></a>
+<span class="sourceLineNo">143</span>     * @param s a string to trim<a name="line.143"></a>
+<span class="sourceLineNo">144</span>     * @param length a length to trim to<a name="line.144"></a>
+<span class="sourceLineNo">145</span>     * @return trimmed and padded string of the given length<a name="line.145"></a>
+<span class="sourceLineNo">146</span>     **/<a name="line.146"></a>
+<span class="sourceLineNo">147</span>    public static String trim(String s, int length) {<a name="line.147"></a>
+<span class="sourceLineNo">148</span>        if (s.length() &gt; length)<a name="line.148"></a>
+<span class="sourceLineNo">149</span>            return s.substring(0, length);<a name="line.149"></a>
+<span class="sourceLineNo">150</span>        StringBuffer sb = new StringBuffer(s);<a name="line.150"></a>
+<span class="sourceLineNo">151</span>        while (sb.length() &lt; length)<a name="line.151"></a>
+<span class="sourceLineNo">152</span>            sb.append(" ");<a name="line.152"></a>
+<span class="sourceLineNo">153</span>        return sb.toString();<a name="line.153"></a>
+<span class="sourceLineNo">154</span>    }<a name="line.154"></a>
+<span class="sourceLineNo">155</span><a name="line.155"></a>
+<span class="sourceLineNo">156</span>    /** Multiline representation of a collection <a name="line.156"></a>
+<span class="sourceLineNo">157</span>     * @param col a collection<a name="line.157"></a>
+<span class="sourceLineNo">158</span>     * @param tab tab size<a name="line.158"></a>
+<span class="sourceLineNo">159</span>     * @return string representation<a name="line.159"></a>
+<span class="sourceLineNo">160</span>     **/<a name="line.160"></a>
+<span class="sourceLineNo">161</span>    public static String col2string(Collection&lt;?&gt; col, int tab) {<a name="line.161"></a>
+<span class="sourceLineNo">162</span>        StringBuffer tabsb = new StringBuffer();<a name="line.162"></a>
+<span class="sourceLineNo">163</span>        while (tabsb.length() &lt; 2 * tab)<a name="line.163"></a>
+<span class="sourceLineNo">164</span>            tabsb.append("  ");<a name="line.164"></a>
+<span class="sourceLineNo">165</span>        StringBuffer sb = new StringBuffer("[\n");<a name="line.165"></a>
+<span class="sourceLineNo">166</span>        for (Iterator&lt;?&gt; i = col.iterator(); i.hasNext();) {<a name="line.166"></a>
+<span class="sourceLineNo">167</span>            sb.append(tabsb + "  " + i.next() + (i.hasNext() ? "," : "") + "\n");<a name="line.167"></a>
+<span class="sourceLineNo">168</span>        }<a name="line.168"></a>
+<span class="sourceLineNo">169</span>        sb.append(tabsb + "]");<a name="line.169"></a>
+<span class="sourceLineNo">170</span>        return sb.toString();<a name="line.170"></a>
+<span class="sourceLineNo">171</span>    }<a name="line.171"></a>
+<span class="sourceLineNo">172</span><a name="line.172"></a>
+<span class="sourceLineNo">173</span>    /** Multiline representation of a dictionary<a name="line.173"></a>
+<span class="sourceLineNo">174</span>     * @param dict a map<a name="line.174"></a>
+<span class="sourceLineNo">175</span>     * @param tab tab size<a name="line.175"></a>
+<span class="sourceLineNo">176</span>     * @param &lt;K&gt; a key class<a name="line.176"></a>
+<span class="sourceLineNo">177</span>     * @param &lt;V&gt; a value class<a name="line.177"></a>
+<span class="sourceLineNo">178</span>     * @return string representation<a name="line.178"></a>
+<span class="sourceLineNo">179</span>     */<a name="line.179"></a>
+<span class="sourceLineNo">180</span>    public static &lt;K, V&gt; String dict2string(Map&lt;K, V&gt; dict, int tab) {<a name="line.180"></a>
+<span class="sourceLineNo">181</span>        StringBuffer tabsb = new StringBuffer();<a name="line.181"></a>
+<span class="sourceLineNo">182</span>        while (tabsb.length() &lt; 2 * tab)<a name="line.182"></a>
+<span class="sourceLineNo">183</span>            tabsb.append("  ");<a name="line.183"></a>
+<span class="sourceLineNo">184</span>        StringBuffer sb = new StringBuffer("[\n");<a name="line.184"></a>
+<span class="sourceLineNo">185</span>        TreeSet&lt;K&gt; keys = new TreeSet&lt;K&gt;(dict.keySet());<a name="line.185"></a>
+<span class="sourceLineNo">186</span>        for (K key : keys) {<a name="line.186"></a>
+<span class="sourceLineNo">187</span>            V value = dict.get(key);<a name="line.187"></a>
+<span class="sourceLineNo">188</span>            sb.append(tabsb + "  " + key + ": " + value + "\n");<a name="line.188"></a>
+<span class="sourceLineNo">189</span>        }<a name="line.189"></a>
+<span class="sourceLineNo">190</span>        sb.append(tabsb + "]");<a name="line.190"></a>
+<span class="sourceLineNo">191</span>        return sb.toString();<a name="line.191"></a>
+<span class="sourceLineNo">192</span>    }<a name="line.192"></a>
+<span class="sourceLineNo">193</span><a name="line.193"></a>
+<span class="sourceLineNo">194</span>    /**<a name="line.194"></a>
+<span class="sourceLineNo">195</span>     * Root mean square<a name="line.195"></a>
+<span class="sourceLineNo">196</span>     * <a name="line.196"></a>
+<span class="sourceLineNo">197</span>     * @param n<a name="line.197"></a>
+<span class="sourceLineNo">198</span>     *            number of tests<a name="line.198"></a>
+<span class="sourceLineNo">199</span>     * @param x<a name="line.199"></a>
+<span class="sourceLineNo">200</span>     *            total value of all tests<a name="line.200"></a>
+<span class="sourceLineNo">201</span>     * @param x2<a name="line.201"></a>
+<span class="sourceLineNo">202</span>     *            total value^2 of all tests<a name="line.202"></a>
+<span class="sourceLineNo">203</span>     * @return root mean square<a name="line.203"></a>
+<span class="sourceLineNo">204</span>     */<a name="line.204"></a>
+<span class="sourceLineNo">205</span>    public static double rms(int n, double x, double x2) {<a name="line.205"></a>
+<span class="sourceLineNo">206</span>        double var = x2 / n;<a name="line.206"></a>
+<span class="sourceLineNo">207</span>        double mean = x / n;<a name="line.207"></a>
+<span class="sourceLineNo">208</span>        return Math.sqrt(Math.abs(var - mean * mean));<a name="line.208"></a>
+<span class="sourceLineNo">209</span>    }<a name="line.209"></a>
+<span class="sourceLineNo">210</span><a name="line.210"></a>
+<span class="sourceLineNo">211</span>    /** Merge source with target <a name="line.211"></a>
+<span class="sourceLineNo">212</span>     * @param target target list<a name="line.212"></a>
+<span class="sourceLineNo">213</span>     * @param source source list<a name="line.213"></a>
+<span class="sourceLineNo">214</span>     * @param &lt;E&gt; some object<a name="line.214"></a>
+<span class="sourceLineNo">215</span>     **/<a name="line.215"></a>
+<span class="sourceLineNo">216</span>    public static &lt;E&gt; void merge(List&lt;E&gt; target, Collection&lt;E&gt; source) {<a name="line.216"></a>
+<span class="sourceLineNo">217</span>        for (E o : source) {<a name="line.217"></a>
+<span class="sourceLineNo">218</span>            if (!target.contains(o))<a name="line.218"></a>
+<span class="sourceLineNo">219</span>                target.add(o);<a name="line.219"></a>
+<span class="sourceLineNo">220</span>        }<a name="line.220"></a>
+<span class="sourceLineNo">221</span>    }<a name="line.221"></a>
+<span class="sourceLineNo">222</span><a name="line.222"></a>
+<span class="sourceLineNo">223</span>    /** Returns intersection of two collections<a name="line.223"></a>
+<span class="sourceLineNo">224</span>     * @param source1 first collection<a name="line.224"></a>
+<span class="sourceLineNo">225</span>     * @param source2 second collection<a name="line.225"></a>
+<span class="sourceLineNo">226</span>     * @param &lt;E&gt; some object<a name="line.226"></a>
+<span class="sourceLineNo">227</span>     * @return intersection<a name="line.227"></a>
+<span class="sourceLineNo">228</span>     */<a name="line.228"></a>
+<span class="sourceLineNo">229</span>    public static &lt;E&gt; List&lt;E&gt; intersect(Collection&lt;E&gt; source1, Collection&lt;E&gt; source2) {<a name="line.229"></a>
+<span class="sourceLineNo">230</span>        List&lt;E&gt; target = new ArrayList&lt;E&gt;();<a name="line.230"></a>
+<span class="sourceLineNo">231</span>        for (E o : source1) {<a name="line.231"></a>
+<span class="sourceLineNo">232</span>            if (!source2.contains(o))<a name="line.232"></a>
+<span class="sourceLineNo">233</span>                target.add(o);<a name="line.233"></a>
+<span class="sourceLineNo">234</span>        }<a name="line.234"></a>
+<span class="sourceLineNo">235</span>        return target;<a name="line.235"></a>
+<span class="sourceLineNo">236</span>    }<a name="line.236"></a>
+<span class="sourceLineNo">237</span><a name="line.237"></a>
+<span class="sourceLineNo">238</span>    /**<a name="line.238"></a>
+<span class="sourceLineNo">239</span>     * Sets seeds for {@link ToolBox#getRandom()} and {@link ToolBox#random()}<a name="line.239"></a>
+<span class="sourceLineNo">240</span>     * methods.<a name="line.240"></a>
+<span class="sourceLineNo">241</span>     * @param seed random seed<a name="line.241"></a>
+<span class="sourceLineNo">242</span>     */<a name="line.242"></a>
+<span class="sourceLineNo">243</span>    public static void setSeed(long seed) {<a name="line.243"></a>
+<span class="sourceLineNo">244</span>        sSeed = seed;<a name="line.244"></a>
+<span class="sourceLineNo">245</span>        sRandom = new Random(sSeed);<a name="line.245"></a>
+<span class="sourceLineNo">246</span>    }<a name="line.246"></a>
+<span class="sourceLineNo">247</span><a name="line.247"></a>
+<span class="sourceLineNo">248</span>    /** Gets current seed <a name="line.248"></a>
+<span class="sourceLineNo">249</span>     * @return random seed<a name="line.249"></a>
+<span class="sourceLineNo">250</span>     **/<a name="line.250"></a>
+<span class="sourceLineNo">251</span>    public static long getSeed() {<a name="line.251"></a>
+<span class="sourceLineNo">252</span>        return sSeed;<a name="line.252"></a>
+<span class="sourceLineNo">253</span>    }<a name="line.253"></a>
+<span class="sourceLineNo">254</span><a name="line.254"></a>
+<span class="sourceLineNo">255</span>    /** Gets random number generator <a name="line.255"></a>
+<span class="sourceLineNo">256</span>     * @return random number generator<a name="line.256"></a>
+<span class="sourceLineNo">257</span>     **/<a name="line.257"></a>
+<span class="sourceLineNo">258</span>    public static Random getRandom() {<a name="line.258"></a>
+<span class="sourceLineNo">259</span>        return sRandom;<a name="line.259"></a>
+<span class="sourceLineNo">260</span>    }<a name="line.260"></a>
+<span class="sourceLineNo">261</span><a name="line.261"></a>
+<span class="sourceLineNo">262</span>    /** Generates random double number <a name="line.262"></a>
+<span class="sourceLineNo">263</span>     * @return random number<a name="line.263"></a>
+<span class="sourceLineNo">264</span>     **/<a name="line.264"></a>
+<span class="sourceLineNo">265</span>    public static double random() {<a name="line.265"></a>
+<span class="sourceLineNo">266</span>        return sRandom.nextDouble();<a name="line.266"></a>
+<span class="sourceLineNo">267</span>    }<a name="line.267"></a>
+<span class="sourceLineNo">268</span><a name="line.268"></a>
+<span class="sourceLineNo">269</span>    /** Configurates log4j loging */<a name="line.269"></a>
+<span class="sourceLineNo">270</span>    public static void configureLogging() {<a name="line.270"></a>
+<span class="sourceLineNo">271</span>        if ("true".equalsIgnoreCase(System.getProperty("org.cpsolver.debug", "false"))) {<a name="line.271"></a>
+<span class="sourceLineNo">272</span>            Configurator.setLevel("org.cpsolver", Level.DEBUG);<a name="line.272"></a>
+<span class="sourceLineNo">273</span>        }<a name="line.273"></a>
+<span class="sourceLineNo">274</span>    }<a name="line.274"></a>
+<span class="sourceLineNo">275</span>    <a name="line.275"></a>
+<span class="sourceLineNo">276</span>    /**<a name="line.276"></a>
+<span class="sourceLineNo">277</span>     * Setup log4j logging<a name="line.277"></a>
+<span class="sourceLineNo">278</span>     * <a name="line.278"></a>
+<span class="sourceLineNo">279</span>     * @param logFile  log file<a name="line.279"></a>
+<span class="sourceLineNo">280</span>     * @param debug true if debug messages should be logged (use -Ddebug=true to enable debug message)<a name="line.280"></a>
+<span class="sourceLineNo">281</span>     */<a name="line.281"></a>
+<span class="sourceLineNo">282</span>    public static void setupLogging(File logFile, boolean debug) {<a name="line.282"></a>
+<span class="sourceLineNo">283</span>        ConfigurationBuilder&lt;BuiltConfiguration&gt; builder = ConfigurationBuilderFactory.newConfigurationBuilder();<a name="line.283"></a>
+<span class="sourceLineNo">284</span>        <a name="line.284"></a>
+<span class="sourceLineNo">285</span>        AppenderComponentBuilder console = builder.newAppender("stdout", "Console");<a name="line.285"></a>
+<span class="sourceLineNo">286</span>        console.addAttribute("target", "SYSTEM_OUT");<a name="line.286"></a>
+<span class="sourceLineNo">287</span>        LayoutComponentBuilder consoleLayout = builder.newLayout("PatternLayout");<a name="line.287"></a>
+<span class="sourceLineNo">288</span>        consoleLayout.addAttribute("pattern", "%-5p %c{2}: %m%n");<a name="line.288"></a>
+<span class="sourceLineNo">289</span>        console.add(consoleLayout);<a name="line.289"></a>
+<span class="sourceLineNo">290</span>        builder.add(console);<a name="line.290"></a>
+<span class="sourceLineNo">291</span>        <a name="line.291"></a>
+<span class="sourceLineNo">292</span>        RootLoggerComponentBuilder root = builder.newRootLogger(Level.INFO);<a name="line.292"></a>
+<span class="sourceLineNo">293</span>        root.add(builder.newAppenderRef("stdout"));<a name="line.293"></a>
+<span class="sourceLineNo">294</span>        builder.add(root);<a name="line.294"></a>
+<span class="sourceLineNo">295</span>        <a name="line.295"></a>
+<span class="sourceLineNo">296</span>        if (logFile != null) {<a name="line.296"></a>
+<span class="sourceLineNo">297</span>            AppenderComponentBuilder file = builder.newAppender("log", "File");<a name="line.297"></a>
+<span class="sourceLineNo">298</span>            file.addAttribute("fileName", logFile.getPath());<a name="line.298"></a>
+<span class="sourceLineNo">299</span>            <a name="line.299"></a>
+<span class="sourceLineNo">300</span>            LayoutComponentBuilder filePattern = builder.newLayout("PatternLayout");<a name="line.300"></a>
+<span class="sourceLineNo">301</span>            filePattern.addAttribute("pattern", "%d{dd-MMM-yy HH:mm:ss.SSS} [%t] %-5p %c{2}&gt; %m%n");<a name="line.301"></a>
+<span class="sourceLineNo">302</span>            file.add(filePattern);<a name="line.302"></a>
+<span class="sourceLineNo">303</span>            builder.add(file);<a name="line.303"></a>
+<span class="sourceLineNo">304</span>            <a name="line.304"></a>
+<span class="sourceLineNo">305</span>            LoggerComponentBuilder logger = builder.newLogger("org.cpsolver", debug ? Level.DEBUG : Level.INFO);<a name="line.305"></a>
+<span class="sourceLineNo">306</span>            logger.add(builder.newAppenderRef("log"));<a name="line.306"></a>
+<span class="sourceLineNo">307</span>            logger.addAttribute("additivity", true);<a name="line.307"></a>
+<span class="sourceLineNo">308</span>            builder.add(logger);<a name="line.308"></a>
+<span class="sourceLineNo">309</span>        }<a name="line.309"></a>
+<span class="sourceLineNo">310</span>        Configurator.reconfigure(builder.build());<a name="line.310"></a>
+<span class="sourceLineNo">311</span>    }<a name="line.311"></a>
+<span class="sourceLineNo">312</span><a name="line.312"></a>
+<span class="sourceLineNo">313</span>    /**<a name="line.313"></a>
+<span class="sourceLineNo">314</span>     * Configure log4j logging<a name="line.314"></a>
+<span class="sourceLineNo">315</span>     * <a name="line.315"></a>
+<span class="sourceLineNo">316</span>     * @param logDir<a name="line.316"></a>
+<span class="sourceLineNo">317</span>     *            output folder<a name="line.317"></a>
+<span class="sourceLineNo">318</span>     * @param properties<a name="line.318"></a>
+<span class="sourceLineNo">319</span>     *            some other log4j properties<a name="line.319"></a>
+<span class="sourceLineNo">320</span>     * @return name of the log file<a name="line.320"></a>
+<span class="sourceLineNo">321</span>     */<a name="line.321"></a>
+<span class="sourceLineNo">322</span>    public static String configureLogging(String logDir, Properties properties) {<a name="line.322"></a>
+<span class="sourceLineNo">323</span>        return configureLogging(logDir, properties, false);<a name="line.323"></a>
+<span class="sourceLineNo">324</span>    }<a name="line.324"></a>
+<span class="sourceLineNo">325</span><a name="line.325"></a>
+<span class="sourceLineNo">326</span>    /**<a name="line.326"></a>
+<span class="sourceLineNo">327</span>     * Configure log4j logging<a name="line.327"></a>
+<span class="sourceLineNo">328</span>     * <a name="line.328"></a>
+<span class="sourceLineNo">329</span>     * @param logDir<a name="line.329"></a>
+<span class="sourceLineNo">330</span>     *            output folder<a name="line.330"></a>
+<span class="sourceLineNo">331</span>     * @param properties<a name="line.331"></a>
+<span class="sourceLineNo">332</span>     *            some other log4j properties<a name="line.332"></a>
+<span class="sourceLineNo">333</span>     * @param timeInFileName <a name="line.333"></a>
+<span class="sourceLineNo">334</span>     *            if true log file is named debug_yyyy-MM-dd_(HH.mm.ss).log, it<a name="line.334"></a>
+<span class="sourceLineNo">335</span>     *            is named debug.log otherwise<a name="line.335"></a>
+<span class="sourceLineNo">336</span>     * @return name of the log file<a name="line.336"></a>
+<span class="sourceLineNo">337</span>     */<a name="line.337"></a>
+<span class="sourceLineNo">338</span>    public static String configureLogging(String logDir, Properties properties, boolean timeInFileName) {<a name="line.338"></a>
+<span class="sourceLineNo">339</span>        return configureLogging(logDir, properties, timeInFileName, true);<a name="line.339"></a>
+<span class="sourceLineNo">340</span>    }<a name="line.340"></a>
+<span class="sourceLineNo">341</span><a name="line.341"></a>
+<span class="sourceLineNo">342</span>    /**<a name="line.342"></a>
+<span class="sourceLineNo">343</span>     * Configure log4j logging<a name="line.343"></a>
+<span class="sourceLineNo">344</span>     * <a name="line.344"></a>
+<span class="sourceLineNo">345</span>     * @param logDir<a name="line.345"></a>
+<span class="sourceLineNo">346</span>     *            output folder<a name="line.346"></a>
+<span class="sourceLineNo">347</span>     * @param properties<a name="line.347"></a>
+<span class="sourceLineNo">348</span>     *            some other log4j properties<a name="line.348"></a>
+<span class="sourceLineNo">349</span>     * @param timeInFileName<a name="line.349"></a>
+<span class="sourceLineNo">350</span>     *            if true log file is named debug_yyyy-MM-dd_(HH.mm.ss).log, it<a name="line.350"></a>
+<span class="sourceLineNo">351</span>     *            is named debug.log otherwise<a name="line.351"></a>
+<span class="sourceLineNo">352</span>     * @param includeSystemOuts include system out and error in the log <a name="line.352"></a>
+<span class="sourceLineNo">353</span>     * @return name of the log file<a name="line.353"></a>
+<span class="sourceLineNo">354</span>     */<a name="line.354"></a>
+<span class="sourceLineNo">355</span>    public static String configureLogging(String logDir, Properties properties, boolean timeInFileName, boolean includeSystemOuts) {<a name="line.355"></a>
+<span class="sourceLineNo">356</span>        (new File(logDir)).mkdirs();<a name="line.356"></a>
+<span class="sourceLineNo">357</span><a name="line.357"></a>
+<span class="sourceLineNo">358</span>        ConfigurationBuilder&lt;BuiltConfiguration&gt; builder = ConfigurationBuilderFactory.newConfigurationBuilder();<a name="line.358"></a>
+<span class="sourceLineNo">359</span>        <a name="line.359"></a>
+<span class="sourceLineNo">360</span>        AppenderComponentBuilder console = builder.newAppender("stdout", "Console");<a name="line.360"></a>
+<span class="sourceLineNo">361</span>        LayoutComponentBuilder consoleLayout = builder.newLayout("PatternLayout");<a name="line.361"></a>
+<span class="sourceLineNo">362</span>        consoleLayout.addAttribute("pattern", "[%t] %m%n");<a name="line.362"></a>
+<span class="sourceLineNo">363</span>        console.add(consoleLayout);<a name="line.363"></a>
+<span class="sourceLineNo">364</span>        builder.add(console);<a name="line.364"></a>
+<span class="sourceLineNo">365</span>        <a name="line.365"></a>
+<span class="sourceLineNo">366</span>        AppenderComponentBuilder file = null;<a name="line.366"></a>
+<span class="sourceLineNo">367</span>        String fileName = null;<a name="line.367"></a>
+<span class="sourceLineNo">368</span>        if (timeInFileName) {<a name="line.368"></a>
+<span class="sourceLineNo">369</span>            file = builder.newAppender("log", "File");<a name="line.369"></a>
+<span class="sourceLineNo">370</span>            String time = new java.text.SimpleDateFormat("yyyy-MM-dd_(HH.mm.ss)", java.util.Locale.US).format(new Date());<a name="line.370"></a>
+<span class="sourceLineNo">371</span>            fileName = logDir + File.separator + "debug_" + time + ".log";<a name="line.371"></a>
+<span class="sourceLineNo">372</span>            file.addAttribute("fileName", fileName);<a name="line.372"></a>
+<span class="sourceLineNo">373</span>        } else {<a name="line.373"></a>
+<span class="sourceLineNo">374</span>            file = builder.newAppender("log", "RollingFile");<a name="line.374"></a>
+<span class="sourceLineNo">375</span>            fileName = logDir + File.separator + "debug.log";<a name="line.375"></a>
+<span class="sourceLineNo">376</span>            file.addAttribute("fileName", fileName);<a name="line.376"></a>
+<span class="sourceLineNo">377</span>            file.addAttribute("filePattern", logDir + File.separator + "debug-%d{MM-dd-yy}-%i.log.gz");<a name="line.377"></a>
+<span class="sourceLineNo">378</span>            ComponentBuilder&lt;?&gt; triggeringPolicies = builder.newComponent("Policies")<a name="line.378"></a>
+<span class="sourceLineNo">379</span>                    .addComponent(builder.newComponent("CronTriggeringPolicy").addAttribute("schedule", "0 0 0 * * ?"))<a name="line.379"></a>
+<span class="sourceLineNo">380</span>                    .addComponent(builder.newComponent("SizeBasedTriggeringPolicy").addAttribute("size", "100M"));<a name="line.380"></a>
+<span class="sourceLineNo">381</span>            file.addComponent(triggeringPolicies);<a name="line.381"></a>
+<span class="sourceLineNo">382</span>        }<a name="line.382"></a>
+<span class="sourceLineNo">383</span>        LayoutComponentBuilder filePattern = builder.newLayout("PatternLayout");<a name="line.383"></a>
+<span class="sourceLineNo">384</span>        filePattern.addAttribute("pattern", "%d{dd-MMM-yy HH:mm:ss.SSS} [%t] %-5p %c{2}&gt; %m%n");<a name="line.384"></a>
+<span class="sourceLineNo">385</span>        file.add(filePattern);<a name="line.385"></a>
+<span class="sourceLineNo">386</span>        builder.add(file);<a name="line.386"></a>
+<span class="sourceLineNo">387</span>        <a name="line.387"></a>
+<span class="sourceLineNo">388</span>        RootLoggerComponentBuilder root = builder.newRootLogger("true".equals(System.getProperty("org.cpsolver.debug", "false")) ? Level.DEBUG : Level.INFO);<a name="line.388"></a>
+<span class="sourceLineNo">389</span>        root.add(builder.newAppenderRef("log"));<a name="line.389"></a>
+<span class="sourceLineNo">390</span>        builder.add(root);<a name="line.390"></a>
+<span class="sourceLineNo">391</span>        <a name="line.391"></a>
+<span class="sourceLineNo">392</span>        LoggerComponentBuilder info = builder.newLogger("org.cpsolver", Level.INFO);<a name="line.392"></a>
+<span class="sourceLineNo">393</span>        info.add(builder.newAppenderRef("stdout"));<a name="line.393"></a>
+<span class="sourceLineNo">394</span>        info.addAttribute("additivity", true);<a name="line.394"></a>
+<span class="sourceLineNo">395</span>        builder.add(info);<a name="line.395"></a>
+<span class="sourceLineNo">396</span>        <a name="line.396"></a>
+<span class="sourceLineNo">397</span>        if (properties != null) {<a name="line.397"></a>
+<span class="sourceLineNo">398</span>            for (Map.Entry&lt;Object, Object&gt; e: properties.entrySet()) {<a name="line.398"></a>
+<span class="sourceLineNo">399</span>                String property = (String)e.getKey();<a name="line.399"></a>
+<span class="sourceLineNo">400</span>                String value = (String)e.getValue();<a name="line.400"></a>
+<span class="sourceLineNo">401</span>                if (property.startsWith("log4j.logger.")) {<a name="line.401"></a>
+<span class="sourceLineNo">402</span>                    if (value.indexOf(',') &lt; 0) {<a name="line.402"></a>
+<span class="sourceLineNo">403</span>                        LoggerComponentBuilder logger = builder.newLogger(property.substring("log4j.logger.".length()), Level.getLevel(value));<a name="line.403"></a>
+<span class="sourceLineNo">404</span>                        builder.add(logger);<a name="line.404"></a>
+<span class="sourceLineNo">405</span>                    } else {<a name="line.405"></a>
+<span class="sourceLineNo">406</span>                        String level = value.substring(0, value.indexOf(','));<a name="line.406"></a>
+<span class="sourceLineNo">407</span>                        String appender = value.substring(value.indexOf(',') + 1);<a name="line.407"></a>
+<span class="sourceLineNo">408</span>                        LoggerComponentBuilder logger = builder.newLogger(property.substring("log4j.logger.".length()), Level.getLevel(level));<a name="line.408"></a>
+<span class="sourceLineNo">409</span>                        for (String a: appender.split(","))<a name="line.409"></a>
+<span class="sourceLineNo">410</span>                            logger.add(builder.newAppenderRef(a));<a name="line.410"></a>
+<span class="sourceLineNo">411</span>                        builder.add(logger);<a name="line.411"></a>
+<span class="sourceLineNo">412</span>                    }<a name="line.412"></a>
+<span class="sourceLineNo">413</span>                }<a name="line.413"></a>
+<span class="sourceLineNo">414</span>            }<a name="line.414"></a>
+<span class="sourceLineNo">415</span>        }<a name="line.415"></a>
+<span class="sourceLineNo">416</span>        Configurator.reconfigure(builder.build());<a name="line.416"></a>
+<span class="sourceLineNo">417</span>        <a name="line.417"></a>
+<span class="sourceLineNo">418</span>        Logger log = LogManager.getRootLogger();<a name="line.418"></a>
+<span class="sourceLineNo">419</span>        log.info("-----------------------------------------------------------------------");<a name="line.419"></a>
+<span class="sourceLineNo">420</span>        log.info("IFS debug file");<a name="line.420"></a>
+<span class="sourceLineNo">421</span>        log.info("");<a name="line.421"></a>
+<span class="sourceLineNo">422</span>        log.info("Created: " + new Date());<a name="line.422"></a>
+<span class="sourceLineNo">423</span>        log.info("");<a name="line.423"></a>
+<span class="sourceLineNo">424</span>        log.info("System info:");<a name="line.424"></a>
+<span class="sourceLineNo">425</span>        log.info("System:      " + System.getProperty("os.name") + " " + System.getProperty("os.version") + " "<a name="line.425"></a>
+<span class="sourceLineNo">426</span>                + System.getProperty("os.arch"));<a name="line.426"></a>
+<span class="sourceLineNo">427</span>        log.info("CPU:         " + System.getProperty("sun.cpu.isalist") + " endian:"<a name="line.427"></a>
+<span class="sourceLineNo">428</span>                + System.getProperty("sun.cpu.endian") + " encoding:" + System.getProperty("sun.io.unicode.encoding"));<a name="line.428"></a>
+<span class="sourceLineNo">429</span>        log.info("Java:        " + System.getProperty("java.vendor") + ", " + System.getProperty("java.runtime.name")<a name="line.429"></a>
+<span class="sourceLineNo">430</span>                + " " + System.getProperty("java.runtime.version", System.getProperty("java.version")));<a name="line.430"></a>
+<span class="sourceLineNo">431</span>        log.info("User:        " + System.getProperty("user.name"));<a name="line.431"></a>
+<span class="sourceLineNo">432</span>        log.info("Timezone:    " + System.getProperty("user.timezone"));<a name="line.432"></a>
+<span class="sourceLineNo">433</span>        log.info("Working dir: " + System.getProperty("user.dir"));<a name="line.433"></a>
+<span class="sourceLineNo">434</span>        log.info("Classpath:   " + System.getProperty("java.class.path"));<a name="line.434"></a>
+<span class="sourceLineNo">435</span>        log.info("");<a name="line.435"></a>
+<span class="sourceLineNo">436</span>        if (includeSystemOuts) {<a name="line.436"></a>
+<span class="sourceLineNo">437</span>            System.setErr(new PrintStream(new LogOutputStream(System.err, org.apache.logging.log4j.LogManager.getLogger("STDERR"), Level.ERROR)));<a name="line.437"></a>
+<span class="sourceLineNo">438</span>            System.setOut(new PrintStream(new LogOutputStream(System.out, org.apache.logging.log4j.LogManager.getLogger("STDOUT"), Level.DEBUG)));<a name="line.438"></a>
+<span class="sourceLineNo">439</span>        }<a name="line.439"></a>
+<span class="sourceLineNo">440</span>        return fileName;<a name="line.440"></a>
+<span class="sourceLineNo">441</span>    }<a name="line.441"></a>
+<span class="sourceLineNo">442</span><a name="line.442"></a>
+<span class="sourceLineNo">443</span>    /**<a name="line.443"></a>
+<span class="sourceLineNo">444</span>     * Loads data properties. If there is INCLUDE property available, it is<a name="line.444"></a>
+<span class="sourceLineNo">445</span>     * interpreted as semi-colon separated list of porperty files which should<a name="line.445"></a>
+<span class="sourceLineNo">446</span>     * be also loaded (works recursively).<a name="line.446"></a>
+<span class="sourceLineNo">447</span>     * @param propertyFile a file to read<a name="line.447"></a>
+<span class="sourceLineNo">448</span>     * @return solver configuration<a name="line.448"></a>
+<span class="sourceLineNo">449</span>     * <a name="line.449"></a>
+<span class="sourceLineNo">450</span>     */<a name="line.450"></a>
+<span class="sourceLineNo">451</span>    public static DataProperties loadProperties(File propertyFile) {<a name="line.451"></a>
+<span class="sourceLineNo">452</span>        FileInputStream is = null;<a name="line.452"></a>
+<span class="sourceLineNo">453</span>        try {<a name="line.453"></a>
+<span class="sourceLineNo">454</span>            DataProperties ret = new DataProperties();<a name="line.454"></a>
+<span class="sourceLineNo">455</span>            is = new FileInputStream(propertyFile);<a name="line.455"></a>
+<span class="sourceLineNo">456</span>            ret.load(is);<a name="line.456"></a>
+<span class="sourceLineNo">457</span>            is.close();<a name="line.457"></a>
+<span class="sourceLineNo">458</span>            is = null;<a name="line.458"></a>
+<span class="sourceLineNo">459</span>            if (ret.getProperty("INCLUDE") != null) {<a name="line.459"></a>
+<span class="sourceLineNo">460</span><a name="line.460"></a>
+<span class="sourceLineNo">461</span>                StringTokenizer stk = new StringTokenizer(ret.getProperty("INCLUDE"), ";");<a name="line.461"></a>
+<span class="sourceLineNo">462</span>                while (stk.hasMoreTokens()) {<a name="line.462"></a>
+<span class="sourceLineNo">463</span>                    String aFile = stk.nextToken();<a name="line.463"></a>
+<span class="sourceLineNo">464</span>                    System.out.println("  Loading included file '" + aFile + "' ... ");<a name="line.464"></a>
+<span class="sourceLineNo">465</span>                    if ((new File(aFile)).exists())<a name="line.465"></a>
+<span class="sourceLineNo">466</span>                        is = new FileInputStream(aFile);<a name="line.466"></a>
+<span class="sourceLineNo">467</span>                    else if ((new File(propertyFile.getParent() + File.separator + aFile)).exists())<a name="line.467"></a>
+<span class="sourceLineNo">468</span>                        is = new FileInputStream(propertyFile.getParent() + File.separator + aFile);<a name="line.468"></a>
+<span class="sourceLineNo">469</span>                    else<a name="line.469"></a>
+<span class="sourceLineNo">470</span>                        System.err.println("Unable to find include file '" + aFile + "'.");<a name="line.470"></a>
+<span class="sourceLineNo">471</span>                    ret.load(is);<a name="line.471"></a>
+<span class="sourceLineNo">472</span>                    is.close();<a name="line.472"></a>
+<span class="sourceLineNo">473</span>                    is = null;<a name="line.473"></a>
+<span class="sourceLineNo">474</span>                }<a name="line.474"></a>
+<span class="sourceLineNo">475</span>                ret.remove("INCLUDE");<a name="line.475"></a>
+<span class="sourceLineNo">476</span>            }<a name="line.476"></a>
+<span class="sourceLineNo">477</span>            return ret;<a name="line.477"></a>
+<span class="sourceLineNo">478</span>        } catch (Exception e) {<a name="line.478"></a>
+<span class="sourceLineNo">479</span>            System.err.println("Unable to load property file " + propertyFile);<a name="line.479"></a>
+<span class="sourceLineNo">480</span>            e.printStackTrace();<a name="line.480"></a>
+<span class="sourceLineNo">481</span>            return new DataProperties();<a name="line.481"></a>
+<span class="sourceLineNo">482</span>        } finally {<a name="line.482"></a>
+<span class="sourceLineNo">483</span>            try {<a name="line.483"></a>
+<span class="sourceLineNo">484</span>                if (is != null)<a name="line.484"></a>
+<span class="sourceLineNo">485</span>                    is.close();<a name="line.485"></a>
+<span class="sourceLineNo">486</span>            } catch (IOException e) {<a name="line.486"></a>
+<span class="sourceLineNo">487</span>            }<a name="line.487"></a>
+<span class="sourceLineNo">488</span>        }<a name="line.488"></a>
+<span class="sourceLineNo">489</span>    }<a name="line.489"></a>
+<span class="sourceLineNo">490</span><a name="line.490"></a>
+<span class="sourceLineNo">491</span>    public static boolean equals(Object o1, Object o2) {<a name="line.491"></a>
+<span class="sourceLineNo">492</span>        return (o1 == null ? o2 == null : o1.equals(o2));<a name="line.492"></a>
+<span class="sourceLineNo">493</span>    }<a name="line.493"></a>
+<span class="sourceLineNo">494</span><a name="line.494"></a>
+<span class="sourceLineNo">495</span>    private static class LogOutputStream extends OutputStream {<a name="line.495"></a>
+<span class="sourceLineNo">496</span>        private Logger iLogger = null;<a name="line.496"></a>
+<span class="sourceLineNo">497</span>        private Level iLevel = null;<a name="line.497"></a>
+<span class="sourceLineNo">498</span>        private OutputStream iOldOutputStream;<a name="line.498"></a>
+<span class="sourceLineNo">499</span>        private ByteArrayOutputStream iOut = new ByteArrayOutputStream();<a name="line.499"></a>
+<span class="sourceLineNo">500</span><a name="line.500"></a>
+<span class="sourceLineNo">501</span>        public LogOutputStream(OutputStream oldOutputStream, Logger logger, Level level) {<a name="line.501"></a>
+<span class="sourceLineNo">502</span>            iLogger = logger;<a name="line.502"></a>
+<span class="sourceLineNo">503</span>            iLevel = level;<a name="line.503"></a>
+<span class="sourceLineNo">504</span>            iOldOutputStream = oldOutputStream;<a name="line.504"></a>
+<span class="sourceLineNo">505</span>        }<a name="line.505"></a>
+<span class="sourceLineNo">506</span><a name="line.506"></a>
+<span class="sourceLineNo">507</span>        @Override<a name="line.507"></a>
+<span class="sourceLineNo">508</span>        public void write(int b) throws IOException {<a name="line.508"></a>
+<span class="sourceLineNo">509</span>            iOldOutputStream.write(b);<a name="line.509"></a>
+<span class="sourceLineNo">510</span>            if (b == '\r')<a name="line.510"></a>
+<span class="sourceLineNo">511</span>                return;<a name="line.511"></a>
+<span class="sourceLineNo">512</span>            if (b == '\n') {<a name="line.512"></a>
+<span class="sourceLineNo">513</span>                iOut.flush();<a name="line.513"></a>
+<span class="sourceLineNo">514</span>                iLogger.log(iLevel, new String(iOut.toByteArray()));<a name="line.514"></a>
+<span class="sourceLineNo">515</span>                iOut.reset();<a name="line.515"></a>
+<span class="sourceLineNo">516</span>            } else<a name="line.516"></a>
+<span class="sourceLineNo">517</span>                iOut.write(b);<a name="line.517"></a>
+<span class="sourceLineNo">518</span>        }<a name="line.518"></a>
+<span class="sourceLineNo">519</span>    }<a name="line.519"></a>
+<span class="sourceLineNo">520</span>    <a name="line.520"></a>
+<span class="sourceLineNo">521</span>    /**<a name="line.521"></a>
+<span class="sourceLineNo">522</span>     * Convert array of elements into a list<a name="line.522"></a>
+<span class="sourceLineNo">523</span>     * @param obj array of elements<a name="line.523"></a>
+<span class="sourceLineNo">524</span>     * @return list of elements<a name="line.524"></a>
+<span class="sourceLineNo">525</span>     */<a name="line.525"></a>
+<span class="sourceLineNo">526</span>    public static &lt;E&gt; List&lt;E&gt; toList(@SuppressWarnings("unchecked") E... obj) {<a name="line.526"></a>
+<span class="sourceLineNo">527</span>        List&lt;E&gt; ret = new ArrayList&lt;E&gt;(obj == null ? 0 : obj.length);<a name="line.527"></a>
+<span class="sourceLineNo">528</span>        if (obj != null)<a name="line.528"></a>
+<span class="sourceLineNo">529</span>            for (E e: obj)<a name="line.529"></a>
+<span class="sourceLineNo">530</span>                ret.add(e);<a name="line.530"></a>
+<span class="sourceLineNo">531</span>        return ret;<a name="line.531"></a>
+<span class="sourceLineNo">532</span>    }<a name="line.532"></a>
+<span class="sourceLineNo">533</span>    <a name="line.533"></a>
+<span class="sourceLineNo">534</span>    /**<a name="line.534"></a>
+<span class="sourceLineNo">535</span>     * Compute number of K-tuples of N elements<a name="line.535"></a>
+<span class="sourceLineNo">536</span>     * @param N number of elements (e.g., number of room locations in a domain)<a name="line.536"></a>
+<span class="sourceLineNo">537</span>     * @param K size of a tuple (e.g., number of rooms a class needs)<a name="line.537"></a>
+<span class="sourceLineNo">538</span>     * @return number of different K-tupples of N elements<a name="line.538"></a>
+<span class="sourceLineNo">539</span>     */<a name="line.539"></a>
+<span class="sourceLineNo">540</span>    public static long binomial(int N, int K) {<a name="line.540"></a>
+<span class="sourceLineNo">541</span>        long ret = 1;<a name="line.541"></a>
+<span class="sourceLineNo">542</span>        for (int k = 0; k &lt; K; k++)<a name="line.542"></a>
+<span class="sourceLineNo">543</span>            ret = ret * (N-k) / (k+1);<a name="line.543"></a>
+<span class="sourceLineNo">544</span>        return ret;<a name="line.544"></a>
+<span class="sourceLineNo">545</span>    }<a name="line.545"></a>
+<span class="sourceLineNo">546</span>    <a name="line.546"></a>
+<span class="sourceLineNo">547</span>    /**<a name="line.547"></a>
+<span class="sourceLineNo">548</span>     * Create random sample (m-tuple) of given list of elements<a name="line.548"></a>
+<span class="sourceLineNo">549</span>     * @param items list of elements<a name="line.549"></a>
+<span class="sourceLineNo">550</span>     * @param m size of a tuple<a name="line.550"></a>
+<span class="sourceLineNo">551</span>     * @return random subset of the list of size m<a name="line.551"></a>
+<span class="sourceLineNo">552</span>     */<a name="line.552"></a>
+<span class="sourceLineNo">553</span>    public static &lt;E&gt; Set&lt;E&gt; sample(List&lt;E&gt; items, int m) {<a name="line.553"></a>
+<span class="sourceLineNo">554</span>        HashSet&lt;E&gt; res = new HashSet&lt;E&gt;(m);<a name="line.554"></a>
+<span class="sourceLineNo">555</span>        int n = items.size();<a name="line.555"></a>
+<span class="sourceLineNo">556</span>        for(int i = n - m; i &lt; n; i++){<a name="line.556"></a>
+<span class="sourceLineNo">557</span>            int pos = getRandom().nextInt(i+1);<a name="line.557"></a>
+<span class="sourceLineNo">558</span>            E item = items.get(pos);<a name="line.558"></a>
+<span class="sourceLineNo">559</span>            if (res.contains(item))<a name="line.559"></a>
+<span class="sourceLineNo">560</span>                res.add(items.get(i));<a name="line.560"></a>
+<span class="sourceLineNo">561</span>            else<a name="line.561"></a>
+<span class="sourceLineNo">562</span>                res.add(item);<a name="line.562"></a>
+<span class="sourceLineNo">563</span>        }<a name="line.563"></a>
+<span class="sourceLineNo">564</span>        return res;<a name="line.564"></a>
+<span class="sourceLineNo">565</span>    }<a name="line.565"></a>
+<span class="sourceLineNo">566</span>    <a name="line.566"></a>
+<span class="sourceLineNo">567</span>    /**<a name="line.567"></a>
+<span class="sourceLineNo">568</span>     * Generate given permutation<a name="line.568"></a>
+<span class="sourceLineNo">569</span>     * @param items list of elements<a name="line.569"></a>
+<span class="sourceLineNo">570</span>     * @param m size of a tuple (permutation)<a name="line.570"></a>
+<span class="sourceLineNo">571</span>     * @param id position of the permutation in the list of all permutations of m-tuples of the given list of elements<a name="line.571"></a>
+<span class="sourceLineNo">572</span>     * @return given subset of the list of size m<a name="line.572"></a>
+<span class="sourceLineNo">573</span>     */<a name="line.573"></a>
+<span class="sourceLineNo">574</span>    public static &lt;E&gt; List&lt;E&gt; permutation(final List&lt;E&gt; items, int m, long id) {<a name="line.574"></a>
+<span class="sourceLineNo">575</span>        List&lt;E&gt; ret = new ArrayList&lt;E&gt;();<a name="line.575"></a>
+<span class="sourceLineNo">576</span>        int n = items.size();<a name="line.576"></a>
+<span class="sourceLineNo">577</span>        int p = -1;<a name="line.577"></a>
+<span class="sourceLineNo">578</span>        for (int i = 0; i &lt; m - 1; i++) {<a name="line.578"></a>
+<span class="sourceLineNo">579</span>            p ++;<a name="line.579"></a>
+<span class="sourceLineNo">580</span>            for (long r = binomial(n - p - 1, m - i - 1); r &lt;= id; r = binomial(n - p - 1, m - i - 1))  {<a name="line.580"></a>
+<span class="sourceLineNo">581</span>                id -= r; p ++;<a name="line.581"></a>
+<span class="sourceLineNo">582</span>            }<a name="line.582"></a>
+<span class="sourceLineNo">583</span>            ret.add(items.get(p));<a name="line.583"></a>
+<span class="sourceLineNo">584</span>        }<a name="line.584"></a>
+<span class="sourceLineNo">585</span>        ret.add(items.get(p + 1 + (int)id));<a name="line.585"></a>
+<span class="sourceLineNo">586</span>        return ret;<a name="line.586"></a>
+<span class="sourceLineNo">587</span>    }<a name="line.587"></a>
+<span class="sourceLineNo">588</span>    <a name="line.588"></a>
+<span class="sourceLineNo">589</span>    /**<a name="line.589"></a>
+<span class="sourceLineNo">590</span>     * Generate a list of samples of the given list<a name="line.590"></a>
+<span class="sourceLineNo">591</span>     * @param items list of elements<a name="line.591"></a>
+<span class="sourceLineNo">592</span>     * @param m size of a sample<a name="line.592"></a>
+<span class="sourceLineNo">593</span>     * @param count number of samples<a name="line.593"></a>
+<span class="sourceLineNo">594</span>     * @return list of samples (m-tuples) of the given items <a name="line.594"></a>
+<span class="sourceLineNo">595</span>     */<a name="line.595"></a>
+<span class="sourceLineNo">596</span>    public static &lt;E&gt; Enumeration&lt;Collection&lt;E&gt;&gt; sample(final List&lt;E&gt; items, final int m, final int count) {<a name="line.596"></a>
+<span class="sourceLineNo">597</span>        final long limit = binomial(items.size(), m);<a name="line.597"></a>
+<span class="sourceLineNo">598</span>        if (count &gt;= limit) return permutations(items, m);<a name="line.598"></a>
+<span class="sourceLineNo">599</span>        return new Enumeration&lt;Collection&lt;E&gt;&gt;() {<a name="line.599"></a>
+<span class="sourceLineNo">600</span>            int el = 0; <a name="line.600"></a>
+<span class="sourceLineNo">601</span>            Set&lt;Long&gt; used = new HashSet&lt;Long&gt;();<a name="line.601"></a>
+<span class="sourceLineNo">602</span><a name="line.602"></a>
+<span class="sourceLineNo">603</span>            @Override<a name="line.603"></a>
+<span class="sourceLineNo">604</span>            public boolean hasMoreElements() {<a name="line.604"></a>
+<span class="sourceLineNo">605</span>                return el &lt; count &amp;&amp; el &lt; limit;<a name="line.605"></a>
+<span class="sourceLineNo">606</span>            }<a name="line.606"></a>
+<span class="sourceLineNo">607</span>            <a name="line.607"></a>
+<span class="sourceLineNo">608</span>            @Override<a name="line.608"></a>
+<span class="sourceLineNo">609</span>            public Set&lt;E&gt; nextElement() {<a name="line.609"></a>
+<span class="sourceLineNo">610</span>                int n = items.size();<a name="line.610"></a>
+<span class="sourceLineNo">611</span>                for (;;) {<a name="line.611"></a>
+<span class="sourceLineNo">612</span>                    HashSet&lt;E&gt; res = new HashSet&lt;E&gt;(m);<a name="line.612"></a>
+<span class="sourceLineNo">613</span>                    TreeSet&lt;Integer&gt; ids = new TreeSet&lt;Integer&gt;();<a name="line.613"></a>
+<span class="sourceLineNo">614</span>                    for(int i = n - m; i &lt; n; i++){<a name="line.614"></a>
+<span class="sourceLineNo">615</span>                        int pos = getRandom().nextInt(i+1);<a name="line.615"></a>
+<span class="sourceLineNo">616</span>                        E item = items.get(pos);<a name="line.616"></a>
+<span class="sourceLineNo">617</span>                        if (res.contains(item)) {<a name="line.617"></a>
+<span class="sourceLineNo">618</span>                            res.add(items.get(i));<a name="line.618"></a>
+<span class="sourceLineNo">619</span>                            ids.add(i);<a name="line.619"></a>
+<span class="sourceLineNo">620</span>                        } else {<a name="line.620"></a>
+<span class="sourceLineNo">621</span>                            res.add(item);<a name="line.621"></a>
+<span class="sourceLineNo">622</span>                            ids.add(pos);<a name="line.622"></a>
+<span class="sourceLineNo">623</span>                        }<a name="line.623"></a>
+<span class="sourceLineNo">624</span>                    }<a name="line.624"></a>
+<span class="sourceLineNo">625</span>                    long fp = 0;<a name="line.625"></a>
+<span class="sourceLineNo">626</span>                    for (Integer id: ids) {<a name="line.626"></a>
+<span class="sourceLineNo">627</span>                        fp = (n * fp) + id;<a name="line.627"></a>
+<span class="sourceLineNo">628</span>                    }<a name="line.628"></a>
+<span class="sourceLineNo">629</span>                    if (used.add(fp)) {<a name="line.629"></a>
+<span class="sourceLineNo">630</span>                        el ++;<a name="line.630"></a>
+<span class="sourceLineNo">631</span>                        return res;<a name="line.631"></a>
+<span class="sourceLineNo">632</span>                    }<a name="line.632"></a>
+<span class="sourceLineNo">633</span>                }<a name="line.633"></a>
+<span class="sourceLineNo">634</span>            }<a name="line.634"></a>
+<span class="sourceLineNo">635</span>        };<a name="line.635"></a>
+<span class="sourceLineNo">636</span>    }<a name="line.636"></a>
+<span class="sourceLineNo">637</span>    <a name="line.637"></a>
+<span class="sourceLineNo">638</span>    /**<a name="line.638"></a>
+<span class="sourceLineNo">639</span>     * Generate a list of all permutations of size m of the given list<a name="line.639"></a>
+<span class="sourceLineNo">640</span>     * @param items list of elements<a name="line.640"></a>
+<span class="sourceLineNo">641</span>     * @param m size of a permutation<a name="line.641"></a>
+<span class="sourceLineNo">642</span>     * @return list of all permutations (m-tuples) of the given items <a name="line.642"></a>
+<span class="sourceLineNo">643</span>     */<a name="line.643"></a>
+<span class="sourceLineNo">644</span>    public static &lt;E&gt; Enumeration&lt;Collection&lt;E&gt;&gt; permutations(final List&lt;E&gt; items, final int m) {<a name="line.644"></a>
+<span class="sourceLineNo">645</span>        return new Enumeration&lt;Collection&lt;E&gt;&gt;() {<a name="line.645"></a>
+<span class="sourceLineNo">646</span>            int n = items.size();<a name="line.646"></a>
+<span class="sourceLineNo">647</span>            int[] p = null;<a name="line.647"></a>
+<span class="sourceLineNo">648</span>            <a name="line.648"></a>
+<span class="sourceLineNo">649</span>            @Override<a name="line.649"></a>
+<span class="sourceLineNo">650</span>            public boolean hasMoreElements() {<a name="line.650"></a>
+<span class="sourceLineNo">651</span>                return p == null || p[0] &lt; n - m;<a name="line.651"></a>
+<span class="sourceLineNo">652</span>            }<a name="line.652"></a>
+<span class="sourceLineNo">653</span>            <a name="line.653"></a>
+<span class="sourceLineNo">654</span>            @Override<a name="line.654"></a>
+<span class="sourceLineNo">655</span>            public Collection&lt;E&gt; nextElement() {<a name="line.655"></a>
+<span class="sourceLineNo">656</span>                if (p == null) {<a name="line.656"></a>
+<span class="sourceLineNo">657</span>                    p = new int[m];<a name="line.657"></a>
+<span class="sourceLineNo">658</span>                    for (int i = 0; i &lt; m; i++)<a name="line.658"></a>
+<span class="sourceLineNo">659</span>                        p[i] = i;<a name="line.659"></a>
+<span class="sourceLineNo">660</span>                } else {<a name="line.660"></a>
+<span class="sourceLineNo">661</span>                    for (int i = m - 1; i &gt;= 0; i--) {<a name="line.661"></a>
+<span class="sourceLineNo">662</span>                        p[i] = p[i] + 1;<a name="line.662"></a>
+<span class="sourceLineNo">663</span>                        for (int j = i + 1; j &lt; m; j++)<a name="line.663"></a>
+<span class="sourceLineNo">664</span>                            p[j] = p[j - 1] + 1;<a name="line.664"></a>
+<span class="sourceLineNo">665</span>                        if (i == 0 || p[i] &lt;= n - (m - i)) break;<a name="line.665"></a>
+<span class="sourceLineNo">666</span>                    }<a name="line.666"></a>
+<span class="sourceLineNo">667</span>                }<a name="line.667"></a>
+<span class="sourceLineNo">668</span>                List&lt;E&gt; ret = new ArrayList&lt;E&gt;();<a name="line.668"></a>
+<span class="sourceLineNo">669</span>                for (int i = 0; i &lt; m; i++)<a name="line.669"></a>
+<span class="sourceLineNo">670</span>                    ret.add(items.get(p[i]));<a name="line.670"></a>
+<span class="sourceLineNo">671</span>                return ret;<a name="line.671"></a>
+<span class="sourceLineNo">672</span>            }<a name="line.672"></a>
+<span class="sourceLineNo">673</span>        };<a name="line.673"></a>
+<span class="sourceLineNo">674</span>    }<a name="line.674"></a>
+<span class="sourceLineNo">675</span>    <a name="line.675"></a>
+<span class="sourceLineNo">676</span>    /**<a name="line.676"></a>
+<span class="sourceLineNo">677</span>     * Generate a list of random samples combined of the given two lists<a name="line.677"></a>
+<span class="sourceLineNo">678</span>     * @param items1 list of first elements<a name="line.678"></a>
+<span class="sourceLineNo">679</span>     * @param m1 size of a first sample<a name="line.679"></a>
+<span class="sourceLineNo">680</span>     * @param items2 list of second elements<a name="line.680"></a>
+<span class="sourceLineNo">681</span>     * @param m2 size of a second sample<a name="line.681"></a>
+<span class="sourceLineNo">682</span>     * @param count number of samples<a name="line.682"></a>
+<span class="sourceLineNo">683</span>     * @return list of samples where each sample contains m1 elements of the first list and m2 elements of the second list <a name="line.683"></a>
+<span class="sourceLineNo">684</span>     */<a name="line.684"></a>
+<span class="sourceLineNo">685</span>    private static &lt;E&gt; Enumeration&lt;Collection&lt;E&gt;&gt; sample(final List&lt;E&gt; items1, final int m1, final List&lt;E&gt; items2, final int m2, final int count) {<a name="line.685"></a>
+<span class="sourceLineNo">686</span>        final long c1 = binomial(items1.size(), m1);<a name="line.686"></a>
+<span class="sourceLineNo">687</span>        final long c2 = binomial(items2.size(), m2);<a name="line.687"></a>
+<span class="sourceLineNo">688</span>        final long limit = c1 * c2;<a name="line.688"></a>
+<span class="sourceLineNo">689</span>        if (limit &lt;= 10l * count &amp;&amp; 10l * count &lt; Integer.MAX_VALUE) {<a name="line.689"></a>
+<span class="sourceLineNo">690</span>            return new Enumeration&lt;Collection&lt;E&gt;&gt;() {<a name="line.690"></a>
+<span class="sourceLineNo">691</span>                Set&lt;Integer&gt; used = new HashSet&lt;Integer&gt;();<a name="line.691"></a>
+<span class="sourceLineNo">692</span><a name="line.692"></a>
+<span class="sourceLineNo">693</span>                @Override<a name="line.693"></a>
+<span class="sourceLineNo">694</span>                public boolean hasMoreElements() {<a name="line.694"></a>
+<span class="sourceLineNo">695</span>                    return used.size() &lt; count &amp;&amp; used.size() &lt; limit;<a name="line.695"></a>
+<span class="sourceLineNo">696</span>                }<a name="line.696"></a>
+<span class="sourceLineNo">697</span>                <a name="line.697"></a>
+<span class="sourceLineNo">698</span>                @Override<a name="line.698"></a>
+<span class="sourceLineNo">699</span>                public Collection&lt;E&gt; nextElement() {<a name="line.699"></a>
+<span class="sourceLineNo">700</span>                    int id;<a name="line.700"></a>
+<span class="sourceLineNo">701</span>                    do {<a name="line.701"></a>
+<span class="sourceLineNo">702</span>                        id = getRandom().nextInt((int)limit);<a name="line.702"></a>
+<span class="sourceLineNo">703</span>                    } while (!used.add(id));<a name="line.703"></a>
+<span class="sourceLineNo">704</span>                    List&lt;E&gt; res = new ArrayList&lt;E&gt;(m1 + m2);<a name="line.704"></a>
+<span class="sourceLineNo">705</span>                    if (m1 &gt; 0)<a name="line.705"></a>
+<span class="sourceLineNo">706</span>                        res.addAll(permutation(items1, m1, id / c2));<a name="line.706"></a>
+<span class="sourceLineNo">707</span>                    if (m2 &gt; 0)<a name="line.707"></a>
+<span class="sourceLineNo">708</span>                        res.addAll(permutation(items2, m2, id % c2));<a name="line.708"></a>
+<span class="sourceLineNo">709</span>                    return res;<a name="line.709"></a>
+<span class="sourceLineNo">710</span>                }<a name="line.710"></a>
+<span class="sourceLineNo">711</span>            };            <a name="line.711"></a>
+<span class="sourceLineNo">712</span>        } else {<a name="line.712"></a>
+<span class="sourceLineNo">713</span>            return new Enumeration&lt;Collection&lt;E&gt;&gt;() {<a name="line.713"></a>
+<span class="sourceLineNo">714</span>                int n1 = items1.size(), n2 = items2.size();<a name="line.714"></a>
+<span class="sourceLineNo">715</span>                int el = 0; <a name="line.715"></a>
+<span class="sourceLineNo">716</span>                Set&lt;Long&gt; used = new HashSet&lt;Long&gt;();<a name="line.716"></a>
+<span class="sourceLineNo">717</span><a name="line.717"></a>
+<span class="sourceLineNo">718</span>                @Override<a name="line.718"></a>
+<span class="sourceLineNo">719</span>                public boolean hasMoreElements() {<a name="line.719"></a>
+<span class="sourceLineNo">720</span>                    return (count &lt; 0 || el &lt; count) &amp;&amp; el &lt; limit;<a name="line.720"></a>
+<span class="sourceLineNo">721</span>                }<a name="line.721"></a>
+<span class="sourceLineNo">722</span>                <a name="line.722"></a>
+<span class="sourceLineNo">723</span>                @Override<a name="line.723"></a>
+<span class="sourceLineNo">724</span>                public Collection&lt;E&gt; nextElement() {<a name="line.724"></a>
+<span class="sourceLineNo">725</span>                    for (;;) {<a name="line.725"></a>
+<span class="sourceLineNo">726</span>                        HashSet&lt;E&gt; res = new HashSet&lt;E&gt;(m1 + m2);<a name="line.726"></a>
+<span class="sourceLineNo">727</span>                        TreeSet&lt;Integer&gt; ids1 = new TreeSet&lt;Integer&gt;();<a name="line.727"></a>
+<span class="sourceLineNo">728</span>                        if (m1 == n1) {<a name="line.728"></a>
+<span class="sourceLineNo">729</span>                            // Special case 1: first permutation contains all elements<a name="line.729"></a>
+<span class="sourceLineNo">730</span>                            res.addAll(items1);<a name="line.730"></a>
+<span class="sourceLineNo">731</span>                        } else if (m1 + 1 == n1) {<a name="line.731"></a>
+<span class="sourceLineNo">732</span>                            // Special case 2: first permutation contains all elements but one<a name="line.732"></a>
+<span class="sourceLineNo">733</span>                            int pos = getRandom().nextInt(n1);<a name="line.733"></a>
+<span class="sourceLineNo">734</span>                            for (int i = 0; i &lt; n1; i++)<a name="line.734"></a>
+<span class="sourceLineNo">735</span>                                if (i != pos) res.add(items1.get(i));<a name="line.735"></a>
+<span class="sourceLineNo">736</span>                            ids1.add(pos);<a name="line.736"></a>
+<span class="sourceLineNo">737</span>                        } else {<a name="line.737"></a>
+<span class="sourceLineNo">738</span>                            for(int i = n1 - m1; i &lt; n1; i++){<a name="line.738"></a>
+<span class="sourceLineNo">739</span>                                int pos = getRandom().nextInt(i+1);<a name="line.739"></a>
+<span class="sourceLineNo">740</span>                                E item = items1.get(pos);<a name="line.740"></a>
+<span class="sourceLineNo">741</span>                                if (res.contains(item)) {<a name="line.741"></a>
+<span class="sourceLineNo">742</span>                                    res.add(items1.get(i));<a name="line.742"></a>
+<span class="sourceLineNo">743</span>                                    ids1.add(i);<a name="line.743"></a>
+<span class="sourceLineNo">744</span>                                } else {<a name="line.744"></a>
+<span class="sourceLineNo">745</span>                                    res.add(item);<a name="line.745"></a>
+<span class="sourceLineNo">746</span>                                    ids1.add(pos);<a name="line.746"></a>
+<span class="sourceLineNo">747</span>                                }<a name="line.747"></a>
+<span class="sourceLineNo">748</span>                            }<a name="line.748"></a>
+<span class="sourceLineNo">749</span>                        }<a name="line.749"></a>
+<span class="sourceLineNo">750</span>                        TreeSet&lt;Integer&gt; ids2 = new TreeSet&lt;Integer&gt;();<a name="line.750"></a>
+<span class="sourceLineNo">751</span>                        if (m2 == n2) {<a name="line.751"></a>
+<span class="sourceLineNo">752</span>                            // Special case 1: second permutation contains all elements<a name="line.752"></a>
+<span class="sourceLineNo">753</span>                            res.addAll(items2);<a name="line.753"></a>
+<span class="sourceLineNo">754</span>                        } else if (m2 + 1 == n2) {<a name="line.754"></a>
+<span class="sourceLineNo">755</span>                            // Special case 2: second permutation contains all elements but one<a name="line.755"></a>
+<span class="sourceLineNo">756</span>                            int pos = getRandom().nextInt(n2);<a name="line.756"></a>
+<span class="sourceLineNo">757</span>                            for (int i = 0; i &lt; n2; i++)<a name="line.757"></a>
+<span class="sourceLineNo">758</span>                                if (i != pos) res.add(items2.get(i));<a name="line.758"></a>
+<span class="sourceLineNo">759</span>                            ids2.add(pos);<a name="line.759"></a>
+<span class="sourceLineNo">760</span>                        } else {<a name="line.760"></a>
+<span class="sourceLineNo">761</span>                            for(int i = n2 - m2; i &lt; n2; i++){<a name="line.761"></a>
+<span class="sourceLineNo">762</span>                                int pos = getRandom().nextInt(i+1);<a name="line.762"></a>
+<span class="sourceLineNo">763</span>                                E item = items2.get(pos);<a name="line.763"></a>
+<span class="sourceLineNo">764</span>                                if (res.contains(item)) {<a name="line.764"></a>
+<span class="sourceLineNo">765</span>                                    res.add(items2.get(i));<a name="line.765"></a>
+<span class="sourceLineNo">766</span>                                    ids2.add(n1 + i);<a name="line.766"></a>
+<span class="sourceLineNo">767</span>                                } else {<a name="line.767"></a>
+<span class="sourceLineNo">768</span>                                    res.add(item);<a name="line.768"></a>
+<span class="sourceLineNo">769</span>                                    ids2.add(n1 + pos);<a name="line.769"></a>
+<span class="sourceLineNo">770</span>                                }<a name="line.770"></a>
+<span class="sourceLineNo">771</span>                            }<a name="line.771"></a>
+<span class="sourceLineNo">772</span>                        }<a name="line.772"></a>
+<span class="sourceLineNo">773</span>                        long fp = 0;<a name="line.773"></a>
+<span class="sourceLineNo">774</span>                        for (Integer id: ids1) fp = (n1 * fp) + id;<a name="line.774"></a>
+<span class="sourceLineNo">775</span>                        for (Integer id: ids2) fp = (n2 * fp) + id;<a name="line.775"></a>
+<span class="sourceLineNo">776</span>                        if (used.add(fp)) {<a name="line.776"></a>
+<span class="sourceLineNo">777</span>                            el ++;<a name="line.777"></a>
+<span class="sourceLineNo">778</span>                            return res;<a name="line.778"></a>
+<span class="sourceLineNo">779</span>                        }<a name="line.779"></a>
+<span class="sourceLineNo">780</span>                    }<a name="line.780"></a>
+<span class="sourceLineNo">781</span>                }<a name="line.781"></a>
+<span class="sourceLineNo">782</span>            };<a name="line.782"></a>
+<span class="sourceLineNo">783</span>        }<a name="line.783"></a>
+<span class="sourceLineNo">784</span>    }<a name="line.784"></a>
+<span class="sourceLineNo">785</span><a name="line.785"></a>
+<span class="sourceLineNo">786</span>    /**<a name="line.786"></a>
+<span class="sourceLineNo">787</span>     * Generate a list of random samples combined of the given two lists<a name="line.787"></a>
+<span class="sourceLineNo">788</span>     * @param preferred list of preferred elements<a name="line.788"></a>
+<span class="sourceLineNo">789</span>     * @param additional list of additional elements<a name="line.789"></a>
+<span class="sourceLineNo">790</span>     * @param m size of a sample<a name="line.790"></a>
+<span class="sourceLineNo">791</span>     * @param count number of samples<a name="line.791"></a>
+<span class="sourceLineNo">792</span>     * @return list of samples of size m, preferring as many elements of the preferred list as possible <a name="line.792"></a>
+<span class="sourceLineNo">793</span>     */<a name="line.793"></a>
+<span class="sourceLineNo">794</span>    public static &lt;E&gt; Enumeration&lt;Collection&lt;E&gt;&gt; sample(final List&lt;E&gt; preferred, final List&lt;E&gt; additional, final int m, final int count) {<a name="line.794"></a>
+<span class="sourceLineNo">795</span>        return new Enumeration&lt;Collection&lt;E&gt;&gt;() {<a name="line.795"></a>
+<span class="sourceLineNo">796</span>            long limit = (count &lt; 0 ? binomial(preferred.size() + additional.size(), m) : Math.min(count, binomial(preferred.size() + additional.size(), m)));<a name="line.796"></a>
+<span class="sourceLineNo">797</span>            int k = Math.min(m, preferred.size());<a name="line.797"></a>
+<span class="sourceLineNo">798</span>            int el = 0;<a name="line.798"></a>
+<span class="sourceLineNo">799</span>            Enumeration&lt;Collection&lt;E&gt;&gt; e = sample(preferred, k, additional, m - k, count);<a name="line.799"></a>
+<span class="sourceLineNo">800</span>            <a name="line.800"></a>
+<span class="sourceLineNo">801</span>            @Override<a name="line.801"></a>
+<span class="sourceLineNo">802</span>            public boolean hasMoreElements() {<a name="line.802"></a>
+<span class="sourceLineNo">803</span>                return el &lt; limit;<a name="line.803"></a>
+<span class="sourceLineNo">804</span>            }<a name="line.804"></a>
+<span class="sourceLineNo">805</span>            <a name="line.805"></a>
+<span class="sourceLineNo">806</span>            @Override<a name="line.806"></a>
+<span class="sourceLineNo">807</span>            public Collection&lt;E&gt; nextElement() {<a name="line.807"></a>
+<span class="sourceLineNo">808</span>                if (e.hasMoreElements()) {<a name="line.808"></a>
+<span class="sourceLineNo">809</span>                    el ++;<a name="line.809"></a>
+<span class="sourceLineNo">810</span>                    return e.nextElement();<a name="line.810"></a>
+<span class="sourceLineNo">811</span>                }<a name="line.811"></a>
+<span class="sourceLineNo">812</span>                k = Math.max(Math.min(k - 1, preferred.size() - 1), 0);<a name="line.812"></a>
+<span class="sourceLineNo">813</span>                e = sample(preferred, k, additional, m - k, count);<a name="line.813"></a>
+<span class="sourceLineNo">814</span>                el ++;<a name="line.814"></a>
+<span class="sourceLineNo">815</span>                return e.nextElement();<a name="line.815"></a>
+<span class="sourceLineNo">816</span>            }<a name="line.816"></a>
+<span class="sourceLineNo">817</span>        };<a name="line.817"></a>
+<span class="sourceLineNo">818</span>    }<a name="line.818"></a>
+<span class="sourceLineNo">819</span>}<a name="line.819"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

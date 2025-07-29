@@ -1,0 +1,17 @@
+services:
+  javascript-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: javascript-app
+    restart: unless-stopped
+    init: true
+    ports:
+      - "3000:3000"  # Exposed by Dockerfile, adjust if your app uses a different port
+    # env_file: ./.env  # Uncomment if .env file exists
+    # Add volumes here if your app needs to persist data
+    # networks: [appnet]  # Uncomment if you add more services that need to communicate
+
+# networks:
+#   appnet:
+#     driver: bridge
